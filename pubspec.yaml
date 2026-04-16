@@ -1,0 +1,41 @@
+name: editvideo
+publish_to: 'none'
+description: "A new Flutter project."
+version: 1.0.0+1
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  path: ^1.9.1
+  path_provider: ^2.1.5
+  get: ^4.7.2
+  get_storage: ^2.1.1 #存储
+  logger: ^2.7.0 #logger
+  flutter_screenutil: ^5.9.3 #屏幕适配
+  flutter_easyloading: ^3.0.5 #加载框
+  easy_refresh: ^3.4.0 #刷新
+  wechat_assets_picker: ^10.1.1 #资源选择
+  video_thumbnail: ^0.5.6 #视频第一帧
+  permission_handler: ^12.0.1 #权限
+  device_info_plus: 12.2.0 #设备信息
+  app_settings: ^7.0.0 #系统设置
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/images/common/
+
+flutter_assets_generator:
+  style: legacy
