@@ -18,6 +18,7 @@ class Assets {
   static const String commonPageEmpty = 'assets/images/common/page_empty.png';
   static const String commonSettingOn = 'assets/images/common/setting_on.png';
   static const String commonTakeVideo = 'assets/images/common/take_video.png';
+  static const String commonVideoPlay = 'assets/images/common/video_play.png';
   static const String commonFieldTitle = 'assets/images/common/field_title.png';
   static const String commonSettingOff = 'assets/images/common/setting_off.png';
   static const String commonFieldPerson = 'assets/images/common/field_person.png';

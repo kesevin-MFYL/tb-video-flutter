@@ -38,14 +38,21 @@ class VideoCell extends StatelessWidget {
                 color: CommonColors.black.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(16.r),
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16.r),
-                child: Image.file(
-                  File(memoryInfo.videoInfo!.thumbnailPath!),
-                  width: double.infinity,
-                  height: double.infinity,
-                  fit: BoxFit.cover,
-                ),
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16.r),
+                    child: Image.file(
+                      File(memoryInfo.videoInfo!.thumbnailPath!),
+                      width: double.infinity,
+                      height: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  Center(
+                    child: Image.asset(Assets.commonVideoPlay, width: 48.w, height: 48.w),
+                  ),
+                ],
               ),
             ),
             SizedBox(height: 10.w),
@@ -56,7 +63,9 @@ class VideoCell extends StatelessWidget {
                   child: Padding(
                     padding: EdgeInsets.only(right: 8.w),
                     child: CommonText.instance(
-                      memoryInfo.title.isEmptyString() ? memoryInfo.videoInfo!.path?.split('/').last ?? '' : memoryInfo.title!,
+                      memoryInfo.title.isEmptyString()
+                          ? memoryInfo.videoInfo!.path?.split('/').last ?? ''
+                          : memoryInfo.title!,
                       14.sp,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -68,8 +77,10 @@ class VideoCell extends StatelessWidget {
                   minSize: 0,
                   borderRadius: BorderRadius.zero,
                   onPressed: () => action(memoryInfo, cellType),
-                  child: Image.asset(cellType == VideoCellType.memory ? Assets.commonOperationMore : Assets.commonOperationDelete),
-                )
+                  child: Image.asset(
+                    cellType == VideoCellType.memory ? Assets.commonOperationMore : Assets.commonOperationDelete,
+                  ),
+                ),
               ],
             ),
           ],

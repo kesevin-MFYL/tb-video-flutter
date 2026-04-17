@@ -12,6 +12,7 @@ class CustomTextField extends StatelessWidget {
   final ValueChanged<String>? onChanged;
   final TextInputType? keyboardType;
   final VoidCallback? onTap;
+  final int? maxLines;
   final bool readOnly;
 
   const CustomTextField({
@@ -24,6 +25,7 @@ class CustomTextField extends StatelessWidget {
     this.onChanged,
     this.keyboardType,
     this.onTap,
+    this.maxLines = 1,
     this.readOnly = false,
   });
 
@@ -35,8 +37,7 @@ class CustomTextField extends StatelessWidget {
         clipBehavior: Clip.none,
         children: [
           Container(
-            height: 63.h,
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            padding: EdgeInsets.only(left: 16.w, top: suffixIcon != null ? 19.h : 22.h, right: 16.w, bottom: suffixIcon != null ? 19.h : 21.h),
             decoration: BoxDecoration(
               color: CommonColors.color333333,
               borderRadius: BorderRadius.circular(24.r),
@@ -50,6 +51,7 @@ class CustomTextField extends StatelessWidget {
                     onChanged: onChanged,
                     keyboardType: keyboardType,
                     readOnly: readOnly,
+                    maxLines: maxLines,
                     style: CommonTextStyle.instance(16.sp, fontWeight: CommonFontWeight.bold),
                     decoration: InputDecoration(
                       border: InputBorder.none,

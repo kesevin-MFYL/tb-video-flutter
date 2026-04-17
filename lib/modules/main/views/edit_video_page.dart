@@ -82,7 +82,11 @@ class EditVideoPage extends StatelessWidget {
                                     ),
 
                                   if (controller.isThumbnailLoading)
-                                    Center(child: loadingIndicator(size: 24.w, strokeWidth: 1.5)),
+                                    Center(child: loadingIndicator(size: 24.w, strokeWidth: 1.5))
+                                  else
+                                    Center(
+                                      child: Image.asset(Assets.commonVideoPlay, width: 48.w, height: 48.w),
+                                    ),
                                 ],
                               ],
                             ),
@@ -137,9 +141,12 @@ class EditVideoPage extends StatelessWidget {
                       SizedBox(height: 30.h),
                       CustomTextField(
                         controller: controller.memoController,
+                        maxLines: null,
                         hintText: 'Memo',
                         prefixIcon: Image.asset(Assets.commonFieldMemo, width: 40.w, height: 40.w),
                       ),
+
+                      SizedBox(height: 22.h),
                     ],
                   ),
                 ),
