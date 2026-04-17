@@ -49,6 +49,14 @@ class EditVideoController extends BaseController {
         titleController.text = initialMemoryInfo!.title ?? '';
         personController.text = initialMemoryInfo!.person ?? '';
         memoController.text = initialMemoryInfo!.memo ?? '';
+        
+        if (initialMemoryInfo!.videoTime != null) {
+          chooseDate = DateTime.fromMillisecondsSinceEpoch(initialMemoryInfo!.videoTime!);
+          dateController.text = "${chooseDate!.year}-${chooseDate!.month.toString().padLeft(2, '0')}-${chooseDate!.day.toString().padLeft(2, '0')}";
+        }
+
+        checkSaveBtnEnabled();
+
         update();
       }
     }
@@ -137,7 +145,7 @@ class EditVideoController extends BaseController {
           title: currentTitle,
           person: currentPerson,
           memo: currentMemo,
-          videoTime: DateTime.now().millisecondsSinceEpoch,
+          videoTime: chooseDate?.millisecondsSinceEpoch,
         );
         Storage.addDraftMemory(draftInfo);
         Get.find<DraftController>().getDataFromLocal();
@@ -152,7 +160,8 @@ class EditVideoController extends BaseController {
         if (videoInfo?.path != initialMemoryInfo?.videoInfo?.path ||
             currentTitle != (initialMemoryInfo?.title ?? '') ||
             currentPerson != (initialMemoryInfo?.person ?? '') ||
-            currentMemo != (initialMemoryInfo?.memo ?? '')) {
+            currentMemo != (initialMemoryInfo?.memo ?? '') ||
+            chooseDate?.millisecondsSinceEpoch != initialMemoryInfo?.videoTime) {
           hasChanged = true;
         }
 
@@ -173,7 +182,7 @@ class EditVideoController extends BaseController {
             title: currentTitle,
             person: currentPerson,
             memo: currentMemo,
-            videoTime: initialMemoryInfo?.videoTime ?? DateTime.now().millisecondsSinceEpoch,
+            videoTime: chooseDate?.millisecondsSinceEpoch,
           );
           Storage.addDraftMemory(draftInfo);
 
@@ -219,7 +228,7 @@ class EditVideoController extends BaseController {
         title: titleController.text.trim(),
         person: personController.text.trim(),
         memo: memoController.text.trim(),
-        videoTime: isEditMode ? (initialMemoryInfo!.videoTime ?? DateTime.now().millisecondsSinceEpoch) : DateTime.now().millisecondsSinceEpoch,
+        videoTime: chooseDate?.millisecondsSinceEpoch,
       );
 
       // 添加到保存列表
@@ -240,10 +249,12 @@ class EditVideoController extends BaseController {
   }
 
   void showDateTimePicker() {
+    unfocus();
     DateTimeBottomSheetView.show(
       initialDate: chooseDate,
       onChanged: (date) {
         chooseDate = date;
+        dateController.text = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
       },
     );
   }
