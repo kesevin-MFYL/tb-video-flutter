@@ -146,6 +146,7 @@ class EditVideoController extends BaseController {
           person: currentPerson,
           memo: currentMemo,
           videoTime: chooseDate?.millisecondsSinceEpoch,
+          operationTime: DateTime.now().millisecondsSinceEpoch,
         );
         Storage.addDraftMemory(draftInfo);
         Get.find<DraftController>().getDataFromLocal();
@@ -183,6 +184,7 @@ class EditVideoController extends BaseController {
             person: currentPerson,
             memo: currentMemo,
             videoTime: chooseDate?.millisecondsSinceEpoch,
+            operationTime: DateTime.now().millisecondsSinceEpoch,
           );
           Storage.addDraftMemory(draftInfo);
 
@@ -229,6 +231,7 @@ class EditVideoController extends BaseController {
         person: personController.text.trim(),
         memo: memoController.text.trim(),
         videoTime: chooseDate?.millisecondsSinceEpoch,
+        operationTime: DateTime.now().millisecondsSinceEpoch,
       );
 
       // 添加到保存列表

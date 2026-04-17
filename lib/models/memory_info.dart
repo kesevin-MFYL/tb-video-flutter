@@ -7,6 +7,7 @@ class MemoryInfo {
   int? videoTime;
   String? person;
   String? memo;
+  int? operationTime;
 
   MemoryInfo({
     this.id,
@@ -15,6 +16,7 @@ class MemoryInfo {
     this.videoTime,
     this.person,
     this.memo,
+    this.operationTime,
   });
 
   MemoryInfo.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class MemoryInfo {
     videoTime = json['videoTime'];
     person = json['person'];
     memo = json['memo'];
+    operationTime = json['operationTime'];
   }
 
   Map<String, dynamic> toJson() {
@@ -38,6 +41,7 @@ class MemoryInfo {
     data['videoTime'] = videoTime;
     data['person'] = person;
     data['memo'] = memo;
+    data['operationTime'] = operationTime;
     return data;
   }
 
@@ -48,6 +52,7 @@ class MemoryInfo {
     int? videoTime,
     String? person,
     String? memo,
+    int? operationTime,
   }) {
     return MemoryInfo(
       id: id ?? this.id,
@@ -56,6 +61,7 @@ class MemoryInfo {
       videoTime: videoTime ?? this.videoTime,
       person: person ?? this.person,
       memo: memo ?? this.memo,
+      operationTime: operationTime ?? this.operationTime,
     );
   }
 }

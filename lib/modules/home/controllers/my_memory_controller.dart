@@ -17,6 +17,7 @@ class MyMemoryController extends BaseController {
 
   void getDataFromLocal() async {
     memoryList = Storage.getSavedMemories();
+    memoryList.sort((a, b) => (b.operationTime ?? 0).compareTo(a.operationTime ?? 0));
     multiStatusType = memoryList.isEmpty
         ? MultiStatusType.statusEmpty
         : MultiStatusType.statusContent;
