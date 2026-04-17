@@ -157,6 +157,13 @@ class EditVideoPage extends StatelessWidget {
                   borderRadius: BorderRadius.zero,
                   disabledColor: CommonColors.color333333,
                   color: CommonColors.primaryColor,
+                  suffixDirectional: SuffixDirectional.left,
+                  suffixWidget: Image.asset(
+                    enable ? Assets.commonSaveEnable : Assets.commonSaveUnenable,
+                    width: 24.w,
+                    height: 24.w,
+                  ),
+                  spacing: 8.w,
                   onPressed: enable ? controller.save : null,
                   child: CommonText.instance(
                     'Save',

@@ -20,10 +20,12 @@ class Assets {
   static const String commonTakeVideo = 'assets/images/common/take_video.png';
   static const String commonVideoPlay = 'assets/images/common/video_play.png';
   static const String commonFieldTitle = 'assets/images/common/field_title.png';
+  static const String commonSaveEnable = 'assets/images/common/save_enable.png';
   static const String commonSettingOff = 'assets/images/common/setting_off.png';
   static const String commonFieldPerson = 'assets/images/common/field_person.png';
   static const String commonTabSelected = 'assets/images/common/tab_selected.png';
   static const String commonVideoDelete = 'assets/images/common/video_delete.png';
+  static const String commonSaveUnenable = 'assets/images/common/save_unenable.png';
   static const String commonOperationMore = 'assets/images/common/operation_more.png';
   static const String commonTakeVideoTips = 'assets/images/common/take_video_tips.png';
   static const String commonIconDatePicker = 'assets/images/common/icon_date_picker.png';

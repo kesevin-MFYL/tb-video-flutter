@@ -41,7 +41,7 @@ class EditVideoController extends BaseController {
       isEditMode = true;
       initialMemoryInfo = arguments['memoryInfo'];
       isFromDraft = arguments['isFromDraft'] ?? false;
-      
+
       if (initialMemoryInfo != null) {
         if (initialMemoryInfo!.videoInfo != null) {
           videoInfo = initialMemoryInfo!.videoInfo!.copyWith();
@@ -49,10 +49,11 @@ class EditVideoController extends BaseController {
         titleController.text = initialMemoryInfo!.title ?? '';
         personController.text = initialMemoryInfo!.person ?? '';
         memoController.text = initialMemoryInfo!.memo ?? '';
-        
+
         if (initialMemoryInfo!.videoTime != null) {
           chooseDate = DateTime.fromMillisecondsSinceEpoch(initialMemoryInfo!.videoTime!);
-          dateController.text = "${chooseDate!.year}-${chooseDate!.month.toString().padLeft(2, '0')}-${chooseDate!.day.toString().padLeft(2, '0')}";
+          dateController.text =
+              "${chooseDate!.year}-${chooseDate!.month.toString().padLeft(2, '0')}-${chooseDate!.day.toString().padLeft(2, '0')}";
         }
 
         checkSaveBtnEnabled();
@@ -64,6 +65,7 @@ class EditVideoController extends BaseController {
 
   void pickVideo() async {
     unfocus();
+
     /// 获取视频权限
     final permission = await PermissionUtils.videos();
     if (permission == false) return;
@@ -149,7 +151,9 @@ class EditVideoController extends BaseController {
           operationTime: DateTime.now().millisecondsSinceEpoch,
         );
         Storage.addDraftMemory(draftInfo);
-        Get.find<DraftController>().getDataFromLocal();
+        if (Get.isRegistered<DraftController>()) {
+          Get.find<DraftController>().getDataFromLocal();
+        }
       }
 
       // 如果没有选择视频，直接关闭页面
@@ -188,7 +192,9 @@ class EditVideoController extends BaseController {
           );
           Storage.addDraftMemory(draftInfo);
 
-          Get.find<DraftController>().getDataFromLocal();
+          if (Get.isRegistered<DraftController>()) {
+            Get.find<DraftController>().getDataFromLocal();
+          }
         }
       }
 
@@ -203,7 +209,7 @@ class EditVideoController extends BaseController {
       final appDocDir = await getApplicationDocumentsDirectory();
       final videoFileName = videoInfo!.path!.split('/').last;
       final savedVideoPath = '${appDocDir.path}/$videoFileName';
-      
+
       final originalFile = File(videoInfo!.path!);
       if (originalFile.existsSync() && videoInfo!.path != savedVideoPath) {
         await originalFile.copy(savedVideoPath);
@@ -239,13 +245,14 @@ class EditVideoController extends BaseController {
 
       if (isEditMode && isFromDraft) {
         await Storage.deleteDraftMemory(initialMemoryInfo!.id!);
-        Get.find<DraftController>().getDataFromLocal();
+        if (Get.isRegistered<DraftController>()) {
+          Get.find<DraftController>().getDataFromLocal();
+        }
       }
 
       Get.find<MyMemoryController>().getDataFromLocal();
 
       Get.back();
-
     } catch (e) {
       commonDebugPrint("video---Save failed: $e");
     }
@@ -257,7 +264,8 @@ class EditVideoController extends BaseController {
       initialDate: chooseDate,
       onChanged: (date) {
         chooseDate = date;
-        dateController.text = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+        dateController.text =
+            "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
       },
     );
   }
