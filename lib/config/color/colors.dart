@@ -23,6 +23,7 @@ class CommonColors {
   static const Color textColor = white;
 
   static const Color color333333 = Color(0xFF333333);
+  static const Color color666666 = Color(0xFF666666);
   static const Color color555555 = Color(0xFF555555);
   static const Color color060600 = Color(0xFF060600);
   static const Color color1B1B18 = Color(0xFF1B1B18);

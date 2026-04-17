@@ -5,6 +5,7 @@ import 'package:editvideo/manager/asset_manager.dart';
 import 'package:editvideo/models/video_info.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/permission_util.dart';
+import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 
@@ -12,6 +13,11 @@ class EditVideoController extends BaseController {
   VideoInfo? videoInfo;
 
   var isThumbnailLoading = false;
+
+  final titleController = TextEditingController();
+  final dateController = TextEditingController();
+  final personController = TextEditingController();
+  final memoController = TextEditingController();
 
   @override
   void handArguments(arguments) {}
@@ -37,6 +43,11 @@ class EditVideoController extends BaseController {
       // 获取视频封面
       await _loadThumbnail();
     }
+  }
+
+  void deleteVideo() {
+    videoInfo = null;
+    update();
   }
 
   /// 获取视频封面
