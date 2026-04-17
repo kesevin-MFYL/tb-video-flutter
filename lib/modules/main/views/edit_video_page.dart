@@ -22,6 +22,7 @@ class EditVideoPage extends StatelessWidget {
       builder: (controller) {
         return PageBase(
           title: 'Edit content',
+          leadingAction: () => controller.toback(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -109,7 +110,8 @@ class EditVideoPage extends StatelessWidget {
                         hintText: 'Title',
                         prefixIcon: Image.asset(Assets.commonFieldTitle, width: 40.w, height: 40.w),
                         suffixIcon: Image.asset(Assets.commonTakeVideoTips, width: 24.w, height: 24.w),
-                        isRequired: true, // 强制显示高亮边框和错误状态
+                        isRequired: true,
+                        onChanged: (value) => controller.checkSaveBtnEnabled(),
                       ),
 
                       SizedBox(height: 30.h),
@@ -127,14 +129,14 @@ class EditVideoPage extends StatelessWidget {
 
                       SizedBox(height: 30.h),
                       CustomTextField(
-                        controller: controller.titleController,
+                        controller: controller.personController,
                         hintText: 'Person',
                         prefixIcon: Image.asset(Assets.commonFieldPerson, width: 40.w, height: 40.w),
                       ),
 
                       SizedBox(height: 30.h),
                       CustomTextField(
-                        controller: controller.titleController,
+                        controller: controller.memoController,
                         hintText: 'Memo',
                         prefixIcon: Image.asset(Assets.commonFieldMemo, width: 40.w, height: 40.w),
                       ),
@@ -143,18 +145,22 @@ class EditVideoPage extends StatelessWidget {
                 ),
               ),
 
-              CommonButton(
-                minSize: 48.h,
-                borderRadius: BorderRadius.zero,
-                color: CommonColors.primaryColor,
-                onPressed: () {},
-                child: CommonText.instance(
-                  'Save',
-                  20.sp,
-                  color: CommonColors.color060600,
-                  fontWeight: CommonFontWeight.bold,
-                ),
-              ),
+              Obx(() {
+                final enable = controller.saveEnable.value;
+                return CommonButton(
+                  minSize: 48.h,
+                  borderRadius: BorderRadius.zero,
+                  disabledColor: CommonColors.color333333,
+                  color: CommonColors.primaryColor,
+                  onPressed: enable ? controller.save : null,
+                  child: CommonText.instance(
+                    'Save',
+                    20.sp,
+                    color: enable ? CommonColors.color060600 : CommonColors.color666666,
+                    fontWeight: CommonFontWeight.bold,
+                  ),
+                );
+              }),
             ],
           ),
         );

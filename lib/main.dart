@@ -10,8 +10,8 @@ import 'package:get/get.dart';
 
 import 'utils/constant.dart';
 
-void main() {
-  AppManager.instance.initial();
+void main() async {
+  await AppManager.instance.initial();
 
   runApp(
     ScreenUtilInit(

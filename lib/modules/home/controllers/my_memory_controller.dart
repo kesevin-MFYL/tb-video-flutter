@@ -1,25 +1,25 @@
 import 'package:editvideo/base/base_controller.dart';
+import 'package:editvideo/models/memory_info.dart';
+import 'package:editvideo/utils/storage.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 
 class MyMemoryController extends BaseController {
   var multiStatusType = MultiStatusType.statusLoading;
 
   /// memory列表
-  var memoryList = <String>[];
+  var memoryList = <MemoryInfo>[];
 
   @override
   void onInit() {
     super.onInit();
-    _getDataFromLocal();
+    getDataFromLocal();
   }
 
-  void _getDataFromLocal() async {
-    Future.delayed(Duration(seconds: 3), () {
-      for (int i = 0; i < 11; i++) {
-        memoryList.add('memory_$i');
-      }
-      multiStatusType = MultiStatusType.statusContent;
-      update();
-    });
+  void getDataFromLocal() async {
+    memoryList = Storage.getSavedMemories();
+    multiStatusType = memoryList.isEmpty
+        ? MultiStatusType.statusEmpty
+        : MultiStatusType.statusContent;
+    update();
   }
 }

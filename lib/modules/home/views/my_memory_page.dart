@@ -1,5 +1,6 @@
 import 'package:editvideo/modules/home/controllers/my_memory_controller.dart';
 import 'package:editvideo/modules/home/widget/video_cell.dart';
+import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:editvideo/widget/refresh/refresh.dart';
 import 'package:flutter/material.dart';
@@ -36,12 +37,12 @@ class _MyMemoryPageState extends State<MyMemoryPage> with AutomaticKeepAliveClie
               ),
               itemCount: controller.memoryList.length,
               itemBuilder: (context, index) {
-                final videoInfo = controller.memoryList[index];
+                final memoryInfo = controller.memoryList[index];
                 return VideoCell(
-                  videoInfo: videoInfo,
+                  memoryInfo: memoryInfo,
                   cellType: VideoCellType.memory,
-                  action: (videoInfo, cellType) {
-
+                  action: (memoryInfo, cellType) {
+                    Get.toNamed(Routes.editVideo, arguments: {'memoryInfo': memoryInfo});
                   },
                 );
               },

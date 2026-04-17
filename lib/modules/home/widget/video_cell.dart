@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/generated/assets.dart';
+import 'package:editvideo/models/memory_info.dart';
+import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/button/common_button.dart';
 import 'package:flutter/material.dart';
@@ -8,10 +12,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 enum VideoCellType { memory, draft }
 
 class VideoCell extends StatelessWidget {
-  const VideoCell({super.key, required this.videoInfo, required this.action, required this.cellType});
+  const VideoCell({super.key, required this.memoryInfo, required this.action, required this.cellType});
 
-  final String videoInfo;
-  final void Function(String videoInfo, VideoCellType cellType) action;
+  final MemoryInfo memoryInfo;
+  final void Function(MemoryInfo memoryInfo, VideoCellType cellType) action;
   final VideoCellType cellType;
 
   @override
@@ -34,6 +38,15 @@ class VideoCell extends StatelessWidget {
                 color: CommonColors.black.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(16.r),
               ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16.r),
+                child: Image.file(
+                  File(memoryInfo.videoInfo!.thumbnailPath!),
+                  width: double.infinity,
+                  height: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
             SizedBox(height: 10.w),
             Row(
@@ -43,7 +56,7 @@ class VideoCell extends StatelessWidget {
                   child: Padding(
                     padding: EdgeInsets.only(right: 8.w),
                     child: CommonText.instance(
-                      'PEAKY BLINDERS',
+                      memoryInfo.title.isEmptyString() ? memoryInfo.videoInfo!.path?.split('/').last ?? '' : memoryInfo.title!,
                       14.sp,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -54,7 +67,7 @@ class VideoCell extends StatelessWidget {
                 CommonButton(
                   minSize: 0,
                   borderRadius: BorderRadius.zero,
-                  onPressed: () => action(videoInfo, cellType),
+                  onPressed: () => action(memoryInfo, cellType),
                   child: Image.asset(cellType == VideoCellType.memory ? Assets.commonOperationMore : Assets.commonOperationDelete),
                 )
               ],

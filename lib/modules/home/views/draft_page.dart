@@ -1,5 +1,6 @@
 import 'package:editvideo/modules/home/controllers/draft_controller.dart';
 import 'package:editvideo/modules/home/widget/video_cell.dart';
+import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:editvideo/widget/refresh/refresh.dart';
 import 'package:flutter/material.dart';
@@ -36,12 +37,12 @@ class _DraftPageState extends State<DraftPage> with AutomaticKeepAliveClientMixi
               ),
               itemCount: controller.draftList.length,
               itemBuilder: (context, index) {
-                final videoInfo = controller.draftList[index];
+                final memoryInfo = controller.draftList[index];
                 return VideoCell(
-                  videoInfo: videoInfo,
+                  memoryInfo: memoryInfo,
                   cellType: VideoCellType.draft,
-                  action: (videoInfo, cellType) {
-
+                  action: (memoryInfo, cellType) {
+                    Get.toNamed(Routes.editVideo, arguments: {'memoryInfo': memoryInfo, 'isFromDraft': true});
                   },
                 );
               },

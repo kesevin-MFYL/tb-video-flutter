@@ -1,6 +1,4 @@
-import 'package:editvideo/config/build_config.dart';
 import 'package:editvideo/config/color/colors.dart';
-import 'package:editvideo/config/environment.dart';
 import 'package:editvideo/config/log/logger_config.dart';
 import 'package:editvideo/utils/storage.dart';
 import 'package:flutter/material.dart';
@@ -20,8 +18,6 @@ class AppManager {
       DeviceOrientation.portraitDown,
     ]);
 
-    // 配置环境
-    BuildConfig.instantiate(envType: Environment.development);
     // 配置日志
     LoggerConfig.instantiate();
     // 初始化存储
