@@ -126,9 +126,7 @@ class EditVideoPage extends StatelessWidget {
                         suffixIcon: Image.asset(Assets.commonArrowDown, width: 24.w, height: 24.w),
                         isRequired: true,
                         readOnly: true,
-                        onTap: () {
-                          debugPrint('点击了日期选择');
-                        },
+                        onTap: controller.showDateTimePicker,
                       ),
 
                       SizedBox(height: 30.h),

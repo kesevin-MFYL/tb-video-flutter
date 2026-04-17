@@ -9,6 +9,7 @@ import 'package:editvideo/modules/home/controllers/my_memory_controller.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/permission_util.dart';
 import 'package:editvideo/utils/storage.dart';
+import 'package:editvideo/widget/bottom_sheet/date_time_bottom_sheet_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
@@ -27,6 +28,8 @@ class EditVideoController extends BaseController {
   final dateController = TextEditingController();
   final personController = TextEditingController();
   final memoController = TextEditingController();
+
+  DateTime? chooseDate;
 
   var saveEnable = false.obs;
 
@@ -234,5 +237,14 @@ class EditVideoController extends BaseController {
     } catch (e) {
       commonDebugPrint("video---Save failed: $e");
     }
+  }
+
+  void showDateTimePicker() {
+    DateTimeBottomSheetView.show(
+      initialDate: chooseDate,
+      onChanged: (date) {
+        chooseDate = date;
+      },
+    );
   }
 }

@@ -26,5 +26,6 @@ class Assets {
   static const String commonVideoDelete = 'assets/images/common/video_delete.png';
   static const String commonOperationMore = 'assets/images/common/operation_more.png';
   static const String commonTakeVideoTips = 'assets/images/common/take_video_tips.png';
+  static const String commonIconDatePicker = 'assets/images/common/icon_date_picker.png';
   static const String commonOperationDelete = 'assets/images/common/operation_delete.png';
 }

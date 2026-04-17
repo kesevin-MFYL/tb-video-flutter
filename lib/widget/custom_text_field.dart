@@ -32,6 +32,7 @@ class CustomTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      behavior: HitTestBehavior.translucent,
       onTap: onTap,
       child: Stack(
         clipBehavior: Clip.none,
@@ -52,6 +53,7 @@ class CustomTextField extends StatelessWidget {
                     keyboardType: keyboardType,
                     readOnly: readOnly,
                     maxLines: maxLines,
+                    enabled: !readOnly,
                     style: CommonTextStyle.instance(16.sp, fontWeight: CommonFontWeight.bold),
                     decoration: InputDecoration(
                       border: InputBorder.none,
