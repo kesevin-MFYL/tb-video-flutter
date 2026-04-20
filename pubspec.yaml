@@ -25,6 +25,7 @@ dependencies:
   device_info_plus: 12.2.0 #设备信息
   app_settings: ^7.0.0 #系统设置
   uuid: ^4.5.3 #uuid
+  webview_flutter: ^4.13.1 #内嵌网页
 
 dev_dependencies:
   flutter_test:

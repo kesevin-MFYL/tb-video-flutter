@@ -6,4 +6,6 @@ class Routes {
 
   /// 公共页面
   static const editVideo = '/editVideo';
+
+  static const webPage = '/webPage';
 }

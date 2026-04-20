@@ -22,12 +22,7 @@ class HomePage extends StatelessWidget {
               Container(
                 height: 110.h,
                 decoration: const BoxDecoration(
-                  image: DecorationImage(
-                    fit: BoxFit.cover,
-                    image: AssetImage(
-                      Assets.commonHomeBg,
-                    ),
-                  ),
+                  image: DecorationImage(fit: BoxFit.cover, image: AssetImage(Assets.commonHomeBg)),
                 ),
               ),
               SafeArea(
@@ -46,13 +41,22 @@ class HomePage extends StatelessWidget {
                               onTap: () => controller.queryChanged(QueryType.myMemory),
                               child: Stack(
                                 children: [
-                                  Image.asset(queryType  == QueryType.myMemory ? Assets.commonMemoryOn : Assets.commonMemoryOff, width: queryType  == QueryType.myMemory ? 143.w : 119.w, height: queryType  == QueryType.myMemory ? 48.w : 40.w),
-                                  queryType == QueryType.myMemory ? Positioned(left: 0, bottom: 0, child: Image.asset(Assets.commonTabSelected, width: 93.w, height: 18.w)) : SizedBox(),
+                                  Image.asset(
+                                    queryType == QueryType.myMemory ? Assets.commonMemoryOn : Assets.commonMemoryOff,
+                                    width: queryType == QueryType.myMemory ? 143.w : 119.w,
+                                    height: queryType == QueryType.myMemory ? 48.w : 40.w,
+                                  ),
+                                  queryType == QueryType.myMemory
+                                      ? Positioned(
+                                          left: 0,
+                                          bottom: 0,
+                                          child: Image.asset(Assets.commonTabSelected, width: 93.w, height: 18.w),
+                                        )
+                                      : SizedBox(),
                                 ],
                               ),
                             );
                           }),
-
 
                           // draft
                           Obx(() {
@@ -60,11 +64,21 @@ class HomePage extends StatelessWidget {
                             return GestureDetector(
                               onTap: () => controller.queryChanged(QueryType.draft),
                               child: SizedBox(
-                                width: queryType  == QueryType.draft ? 93.w : null,
+                                width: queryType == QueryType.draft ? 93.w : null,
                                 child: Stack(
                                   children: [
-                                    Image.asset(queryType  == QueryType.draft ? Assets.commonDraftOn : Assets.commonDraftOff, width: queryType  == QueryType.draft ? 59.w : 49.w, height: queryType  == QueryType.draft ? 48.w : 40.w),
-                                    queryType == QueryType.draft ? Positioned(left: 0, bottom: 0, child: Image.asset(Assets.commonTabSelected, width: 93.w, height: 18.w)) : SizedBox(),
+                                    Image.asset(
+                                      queryType == QueryType.draft ? Assets.commonDraftOn : Assets.commonDraftOff,
+                                      width: queryType == QueryType.draft ? 59.w : 49.w,
+                                      height: queryType == QueryType.draft ? 48.w : 40.w,
+                                    ),
+                                    queryType == QueryType.draft
+                                        ? Positioned(
+                                            left: 0,
+                                            bottom: 0,
+                                            child: Image.asset(Assets.commonTabSelected, width: 93.w, height: 18.w),
+                                          )
+                                        : SizedBox(),
                                   ],
                                 ),
                               ),
@@ -93,7 +107,7 @@ class HomePage extends StatelessWidget {
                   ],
                 ),
               ),
-            ]
+            ],
           ),
         );
       },

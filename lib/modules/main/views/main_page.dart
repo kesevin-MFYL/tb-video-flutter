@@ -23,11 +23,7 @@ class MainPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (GetPlatform.isAndroid) {
-      return PopScope(child: _bodyView(context), canPop: false);
-    } else {
-      return _bodyView(context);
-    }
+    return _bodyView(context);
   }
 
   _bodyView(BuildContext context) {
