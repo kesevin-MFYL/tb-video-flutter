@@ -18,6 +18,7 @@ class Assets {
   static const String commonPageEmpty = 'assets/images/common/page_empty.png';
   static const String commonSettingOn = 'assets/images/common/setting_on.png';
   static const String commonTakeVideo = 'assets/images/common/take_video.png';
+  static const String commonVideoEdit = 'assets/images/common/video_edit.png';
   static const String commonVideoPlay = 'assets/images/common/video_play.png';
   static const String commonFieldTitle = 'assets/images/common/field_title.png';
   static const String commonSaveEnable = 'assets/images/common/save_enable.png';
@@ -30,4 +31,5 @@ class Assets {
   static const String commonTakeVideoTips = 'assets/images/common/take_video_tips.png';
   static const String commonIconDatePicker = 'assets/images/common/icon_date_picker.png';
   static const String commonOperationDelete = 'assets/images/common/operation_delete.png';
+  static const String commonVideoDeleteWhite = 'assets/images/common/video_delete_white.png';
 }

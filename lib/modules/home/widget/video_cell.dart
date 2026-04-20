@@ -12,10 +12,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 enum VideoCellType { memory, draft }
 
 class VideoCell extends StatelessWidget {
-  const VideoCell({super.key, required this.memoryInfo, required this.action, required this.cellType});
+  const VideoCell({super.key, required this.memoryInfo, required this.videoAction, required this.operationAction, required this.cellType});
 
   final MemoryInfo memoryInfo;
-  final void Function(MemoryInfo memoryInfo, VideoCellType cellType) action;
+  final void Function(MemoryInfo memoryInfo, VideoCellType cellType) videoAction;
+  final void Function(MemoryInfo memoryInfo, VideoCellType cellType) operationAction;
   final VideoCellType cellType;
 
   @override
@@ -31,29 +32,34 @@ class VideoCell extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: double.infinity,
-              height: 96.w,
-              decoration: BoxDecoration(
-                color: CommonColors.black.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(16.r),
-              ),
-              child: Stack(
-                children: [
-                  ClipRRect(
+            CommonButton(
+                minSize: 0,
+                borderRadius: BorderRadius.zero,
+                onPressed: () => videoAction(memoryInfo, cellType),
+                child: Container(
+                  width: double.infinity,
+                  height: 96.w,
+                  decoration: BoxDecoration(
+                    color: CommonColors.black.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(16.r),
-                    child: Image.file(
-                      File(memoryInfo.videoInfo!.thumbnailPath!),
-                      width: double.infinity,
-                      height: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
                   ),
-                  Center(
-                    child: Image.asset(Assets.commonVideoPlay, width: 48.w, height: 48.w),
+                  child: Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(16.r),
+                        child: Image.file(
+                          File(memoryInfo.videoInfo!.thumbnailPath!),
+                          width: double.infinity,
+                          height: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      Center(
+                        child: Image.asset(Assets.commonVideoPlay, width: 48.w, height: 48.w),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
             ),
             SizedBox(height: 10.w),
             Row(
@@ -64,7 +70,10 @@ class VideoCell extends StatelessWidget {
                     padding: EdgeInsets.only(right: 8.w),
                     child: CommonText.instance(
                       memoryInfo.title.isEmptyString()
-                          ? memoryInfo.videoInfo!.path?.split('/').last ?? ''
+                          ? memoryInfo.videoInfo!
+                          .path
+                          ?.split('/')
+                          .last ?? ''
                           : memoryInfo.title!,
                       14.sp,
                       maxLines: 1,
@@ -76,7 +85,7 @@ class VideoCell extends StatelessWidget {
                 CommonButton(
                   minSize: 0,
                   borderRadius: BorderRadius.zero,
-                  onPressed: () => action(memoryInfo, cellType),
+                  onPressed: () => operationAction(memoryInfo, cellType),
                   child: Image.asset(
                     cellType == VideoCellType.memory ? Assets.commonOperationMore : Assets.commonOperationDelete,
                   ),

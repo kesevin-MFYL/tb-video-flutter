@@ -41,8 +41,11 @@ class _DraftPageState extends State<DraftPage> with AutomaticKeepAliveClientMixi
                 return VideoCell(
                   memoryInfo: memoryInfo,
                   cellType: VideoCellType.draft,
-                  action: (memoryInfo, cellType) {
+                  videoAction: (memoryInfo, cellType) {
                     Get.toNamed(Routes.editVideo, arguments: {'memoryInfo': memoryInfo, 'isFromDraft': true});
+                  },
+                  operationAction: (memoryInfo, cellType) {
+                    controller.deleteDraft(memoryInfo);
                   },
                 );
               },

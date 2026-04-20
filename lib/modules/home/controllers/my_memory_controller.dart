@@ -1,7 +1,10 @@
 import 'package:editvideo/base/base_controller.dart';
 import 'package:editvideo/models/memory_info.dart';
+import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/utils/storage.dart';
+import 'package:editvideo/widget/bottom_sheet/operation_bottom_sheet_view.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
+import 'package:get/get.dart';
 
 class MyMemoryController extends BaseController {
   var multiStatusType = MultiStatusType.statusLoading;
@@ -22,5 +25,17 @@ class MyMemoryController extends BaseController {
         ? MultiStatusType.statusEmpty
         : MultiStatusType.statusContent;
     update();
+  }
+
+  void showOperation(MemoryInfo memoryInfo) {
+    OperationBottomSheetView.show(
+      editAction: () {
+        Get.toNamed(Routes.editVideo, arguments: {'memoryInfo': memoryInfo});
+      },
+      deleteAction: () async {
+        await Storage.deleteSavedMemory(memoryInfo.id ?? '');
+        getDataFromLocal();
+      },
+    );
   }
 }

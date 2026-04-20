@@ -41,8 +41,10 @@ class _MyMemoryPageState extends State<MyMemoryPage> with AutomaticKeepAliveClie
                 return VideoCell(
                   memoryInfo: memoryInfo,
                   cellType: VideoCellType.memory,
-                  action: (memoryInfo, cellType) {
-                    Get.toNamed(Routes.editVideo, arguments: {'memoryInfo': memoryInfo});
+                  videoAction: (memoryInfo, cellType) {
+                  },
+                  operationAction: (memoryInfo, cellType) {
+                    controller.showOperation(memoryInfo);
                   },
                 );
               },

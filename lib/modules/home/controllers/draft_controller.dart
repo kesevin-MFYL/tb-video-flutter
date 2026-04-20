@@ -18,9 +18,12 @@ class DraftController extends BaseController {
   void getDataFromLocal() async {
     draftList = Storage.getDraftMemories();
     draftList.sort((a, b) => (b.operationTime ?? 0).compareTo(a.operationTime ?? 0));
-    multiStatusType = draftList.isEmpty
-        ? MultiStatusType.statusEmpty
-        : MultiStatusType.statusContent;
+    multiStatusType = draftList.isEmpty ? MultiStatusType.statusEmpty : MultiStatusType.statusContent;
     update();
+  }
+
+  void deleteDraft(MemoryInfo memoryInfo) async {
+    await Storage.deleteDraftMemory(memoryInfo.id ?? '');
+    getDataFromLocal();
   }
 }
