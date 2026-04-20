@@ -1,6 +1,6 @@
+import 'package:editvideo/modules/common/page/play_video_page.dart';
 import 'package:editvideo/modules/home/controllers/my_memory_controller.dart';
 import 'package:editvideo/modules/home/widget/video_cell.dart';
-import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:editvideo/widget/refresh/refresh.dart';
 import 'package:flutter/material.dart';
@@ -42,6 +42,7 @@ class _MyMemoryPageState extends State<MyMemoryPage> with AutomaticKeepAliveClie
                   memoryInfo: memoryInfo,
                   cellType: VideoCellType.memory,
                   videoAction: (memoryInfo, cellType) {
+                    PlayVideoPage.playVideo(memoryInfo: memoryInfo);
                   },
                   operationAction: (memoryInfo, cellType) {
                     controller.showOperation(memoryInfo);

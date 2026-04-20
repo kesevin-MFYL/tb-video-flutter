@@ -252,7 +252,7 @@ class EditVideoController extends BaseController {
 
       Get.find<MyMemoryController>().getDataFromLocal();
 
-      Get.back();
+      Get.back(result: memoryInfo);
     } catch (e) {
       commonDebugPrint("video---Save failed: $e");
     }

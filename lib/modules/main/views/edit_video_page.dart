@@ -85,7 +85,7 @@ class EditVideoPage extends StatelessWidget {
                                     Center(child: loadingIndicator(size: 24.w, strokeWidth: 1.5))
                                   else
                                     Center(
-                                      child: Image.asset(Assets.commonVideoPlay, width: 48.w, height: 48.w),
+                                      child: Image.asset(Assets.commonVideoPlayBig, width: 48.w, height: 48.w),
                                     ),
                                 ],
                               ],
