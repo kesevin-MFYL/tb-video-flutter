@@ -13,6 +13,7 @@ import 'package:editvideo/widget/bottom_sheet/operation_bottom_sheet_view.dart';
 import 'package:editvideo/widget/button/common_button.dart';
 import 'package:editvideo/widget/page_base.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
@@ -48,6 +49,9 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
   Timer? _hideTimer;
 
   DateTime? dateTime;
+
+  /// 是否全屏
+  bool _isFullScreen = false;
 
   @override
   void initState() {
@@ -137,6 +141,26 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
     }
   }
 
+  /// 切换全屏
+  void _toggleFullScreen() {
+    setState(() {
+      _isFullScreen = !_isFullScreen;
+    });
+    if (_isFullScreen) {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    } else {
+        SystemChrome.setPreferredOrientations([
+          DeviceOrientation.portraitUp,
+          DeviceOrientation.portraitDown,
+        ]);
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
+      }
+  }
+
   /// 开始隐藏控制栏计时
   void _startHideTimer() {
     _cancelHideTimer();
@@ -156,6 +180,11 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
 
   @override
   void dispose() {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
     _videoPlayerController.removeListener(_videoListener);
     _videoPlayerController.dispose();
     _cancelHideTimer();
@@ -172,6 +201,23 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isFullScreen) {
+      return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) {
+            _toggleFullScreen();
+          }
+        },
+        child: Scaffold(
+          backgroundColor: Colors.black,
+          body: SizedBox.expand(
+            child: _buildVideoPlayer(),
+          ),
+        ),
+      );
+    }
+
     return PageBase(
       title: 'Play',
       actions: _actionView(),
@@ -180,169 +226,7 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
         children: [
           SizedBox(
             height: 212.h,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // 视频播放器（或封面）
-                Center(
-                  child: _isInitialized
-                      ? AspectRatio(
-                          aspectRatio: _videoPlayerController.value.aspectRatio,
-                          child: VideoPlayer(_videoPlayerController),
-                        )
-                      : Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            if (_memoryInfo.videoInfo!.thumbnailPath != null &&
-                                _memoryInfo.videoInfo!.thumbnailPath!.isNotEmpty)
-                              Image.file(
-                                File(_memoryInfo.videoInfo!.thumbnailPath!),
-                                width: double.infinity,
-                                height: double.infinity,
-                                fit: BoxFit.cover,
-                              ),
-                            const CircularProgressIndicator(color: CommonColors.primaryColor),
-                          ],
-                        ),
-                ),
-
-                // 背景轻触切换控件
-                GestureDetector(
-                  onTap: _toggleControls,
-                  behavior: HitTestBehavior.opaque,
-                  child: Container(color: Colors.transparent),
-                ),
-
-                // 操作栏
-                AnimatedOpacity(
-                  opacity: _showControls ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 300),
-                  child: IgnorePointer(
-                    ignoring: !_showControls,
-                    child: Stack(
-                      children: [
-                        // 播放/暂停按钮
-                        Center(
-                          child: _showControls
-                              ? GestureDetector(
-                                  onTap: _togglePlay,
-                                  child: Image.asset(
-                                    _videoPlayerController.value.isPlaying
-                                        ? Assets.commonVideoPause
-                                        : Assets.commonVideoPlayBig,
-                                    width: 48.w,
-                                    height: 48.w,
-                                  ),
-                                )
-                              : const SizedBox.shrink(),
-                        ),
-
-                        // 底部操作栏
-                        Positioned(
-                          bottom: 6.h,
-                          left: 16.w,
-                          right: 16.w,
-                          child: Row(
-                            children: [
-                              // 播放/暂停按钮
-                              GestureDetector(
-                                onTap: _togglePlay,
-                                child: Image.asset(
-                                  _videoPlayerController.value.isPlaying
-                                      ? Assets.commonIconPause
-                                      : Assets.commonIconPlay,
-                                  width: 24.w,
-                                  height: 24.w,
-                                ),
-                              ),
-
-                              SizedBox(width: 10.w),
-
-                              // 时长、进度条
-                              Expanded(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // 进度条
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: Builder(
-                                            builder: (context) {
-                                              final duration = _totalDuration.inSeconds.toDouble();
-                                              final position = _currentPosition.inSeconds.toDouble();
-                                              final value = position.clamp(0.0, duration > 0 ? duration : 0.0);
-
-                                              return SliderTheme(
-                                                data: SliderTheme.of(context).copyWith(
-                                                  //轨道的粗细
-                                                  trackHeight: 4.w,
-                                                  //轨道的形状
-                                                  // trackShape: FullWidthTrackShape(),
-                                                  //滑块形状 半径
-                                                  thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6.w),
-                                                  thumbColor: CommonColors.primaryColor,
-                                                  //滑块已滑动部分的轨道颜色
-                                                  activeTrackColor: CommonColors.colorDB88E6,
-                                                  //滑块未滑动部分的轨道颜色
-                                                  inactiveTrackColor: CommonColors.white.withOpacity(0.3),
-                                                  padding: EdgeInsets.zero,
-                                                ),
-                                                child: Slider(
-                                                  value: value,
-                                                  min: 0.0,
-                                                  max: duration > 0 ? duration : 1.0,
-                                                  onChanged: (v) {
-                                                    _seekTo(v);
-                                                  },
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-
-                                    SizedBox(height: 2.h),
-
-                                    // 时长
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        // 当前时长
-                                        CommonText.instance(
-                                          _formatDuration(_currentPosition),
-                                          10.sp,
-                                          color: CommonColors.white,
-                                          fontWeight: CommonFontWeight.medium,
-                                        ),
-                                        // 总时长
-                                        CommonText.instance(
-                                          _formatDuration(_totalDuration),
-                                          10.sp,
-                                          color: CommonColors.white,
-                                          fontWeight: CommonFontWeight.medium,
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              SizedBox(width: 10.w),
-
-                              // 横屏、竖屏
-                              Image.asset(Assets.commonIconLandscape, width: 24.w, height: 24.w),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            child: _buildVideoPlayer(),
           ),
 
           Expanded(
@@ -456,6 +340,191 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
       ),
     );
   }
+
+  Widget _buildVideoPlayer() {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        // 视频播放器（或封面）
+        Center(
+          child: _isInitialized
+              ? AspectRatio(
+                  aspectRatio: _videoPlayerController.value.aspectRatio,
+                  child: VideoPlayer(_videoPlayerController),
+                )
+              : Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    if (_memoryInfo.videoInfo!.thumbnailPath != null &&
+                        _memoryInfo.videoInfo!.thumbnailPath!.isNotEmpty)
+                      Image.file(
+                        File(_memoryInfo.videoInfo!.thumbnailPath!),
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    const CircularProgressIndicator(color: CommonColors.primaryColor),
+                  ],
+                ),
+        ),
+
+        // 背景轻触切换控件
+        GestureDetector(
+          onTap: _toggleControls,
+          behavior: HitTestBehavior.opaque,
+          child: Container(color: Colors.transparent),
+        ),
+
+        // 操作栏
+        AnimatedOpacity(
+          opacity: _showControls ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 300),
+          child: IgnorePointer(
+            ignoring: !_showControls,
+            child: SafeArea(
+              child: Stack(
+                children: [
+                  // 顶部操作栏（全屏时显示返回按钮）
+                  if (_isFullScreen)
+                    Positioned(
+                      top: 16.h,
+                      left: 16.w,
+                      child: GestureDetector(
+                        onTap: _toggleFullScreen,
+                        child: Image.asset(Assets.commonNavBack, width: 32.w, height: 32.w, color: Colors.white),
+                      ),
+                    ),
+
+                // 播放/暂停按钮
+                Center(
+                  child: _showControls
+                      ? GestureDetector(
+                          onTap: _togglePlay,
+                          child: Image.asset(
+                            _videoPlayerController.value.isPlaying
+                                ? Assets.commonVideoPause
+                                : Assets.commonVideoPlayBig,
+                            width: 48.w,
+                            height: 48.w,
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+
+                // 底部操作栏
+                Positioned(
+                  bottom: 6.h,
+                  left: 16.w,
+                  right: 16.w,
+                  child: Row(
+                    children: [
+                      // 播放/暂停按钮
+                      GestureDetector(
+                        onTap: _togglePlay,
+                        child: Image.asset(
+                          _videoPlayerController.value.isPlaying
+                              ? Assets.commonIconPause
+                              : Assets.commonIconPlay,
+                          width: 24.w,
+                          height: 24.w,
+                        ),
+                      ),
+
+                      SizedBox(width: 10.w),
+
+                      // 时长、进度条
+                      Expanded(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // 进度条
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Builder(
+                                    builder: (context) {
+                                      final duration = _totalDuration.inSeconds.toDouble();
+                                      final position = _currentPosition.inSeconds.toDouble();
+                                      final value = position.clamp(0.0, duration > 0 ? duration : 0.0);
+
+                                      return SliderTheme(
+                                        data: SliderTheme.of(context).copyWith(
+                                          //轨道的粗细
+                                          trackHeight: 4.w,
+                                          //滑块形状 半径
+                                          thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6.w),
+                                          thumbColor: CommonColors.primaryColor,
+                                          //滑块已滑动部分的轨道颜色
+                                          activeTrackColor: CommonColors.colorDB88E6,
+                                          //滑块未滑动部分的轨道颜色
+                                          inactiveTrackColor: CommonColors.white.withOpacity(0.3),
+                                          padding: EdgeInsets.zero,
+                                        ),
+                                        child: Slider(
+                                          value: value,
+                                          min: 0.0,
+                                          max: duration > 0 ? duration : 1.0,
+                                          onChanged: (v) {
+                                            _seekTo(v);
+                                          },
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            SizedBox(height: 2.h),
+
+                            // 时长
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                // 当前时长
+                                CommonText.instance(
+                                  _formatDuration(_currentPosition),
+                                  10.sp,
+                                  color: CommonColors.white,
+                                  fontWeight: CommonFontWeight.medium,
+                                ),
+                                // 总时长
+                                CommonText.instance(
+                                  _formatDuration(_totalDuration),
+                                  10.sp,
+                                  color: CommonColors.white,
+                                  fontWeight: CommonFontWeight.medium,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      SizedBox(width: 10.w),
+
+                      // 横屏、竖屏
+                      GestureDetector(
+                        onTap: _toggleFullScreen,
+                        child: Image.asset(
+                          _isFullScreen ? Assets.commonIconPortrait : Assets.commonIconLandscape,
+                          width: 24.w,
+                          height: 24.w
+                        ),
+                      ),
+
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ],
+  );
+}
 
   _actionView() {
     return CommonButton(
