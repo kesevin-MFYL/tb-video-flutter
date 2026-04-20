@@ -31,6 +31,7 @@ class PlayVideoPage extends StatefulWidget {
 }
 
 class _PlayVideoPageState extends State<PlayVideoPage> {
+  late MemoryInfo _memoryInfo;
   late VideoPlayerController _videoPlayerController;
   var _isInitialized = false;
 
@@ -52,8 +53,10 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
   void initState() {
     super.initState();
 
-    dateTime = widget.memoryInfo.videoTime != null
-        ? DateTime.fromMillisecondsSinceEpoch(widget.memoryInfo.videoTime!)
+    _memoryInfo = widget.memoryInfo;
+
+    dateTime = _memoryInfo.videoTime != null
+        ? DateTime.fromMillisecondsSinceEpoch(_memoryInfo.videoTime!)
         : null;
 
     _initPlayer();
@@ -61,7 +64,7 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
 
   /// 初始化播放器
   void _initPlayer() {
-    _videoPlayerController = VideoPlayerController.file(File(widget.memoryInfo.videoInfo!.path!));
+    _videoPlayerController = VideoPlayerController.file(File(_memoryInfo.videoInfo!.path!));
 
     _videoPlayerController.initialize().then((_) {
       if (!mounted) return;
@@ -190,10 +193,10 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
                       : Stack(
                           alignment: Alignment.center,
                           children: [
-                            if (widget.memoryInfo.videoInfo!.thumbnailPath != null &&
-                                widget.memoryInfo.videoInfo!.thumbnailPath!.isNotEmpty)
+                            if (_memoryInfo.videoInfo!.thumbnailPath != null &&
+                                _memoryInfo.videoInfo!.thumbnailPath!.isNotEmpty)
                               Image.file(
-                                File(widget.memoryInfo.videoInfo!.thumbnailPath!),
+                                File(_memoryInfo.videoInfo!.thumbnailPath!),
                                 width: double.infinity,
                                 height: double.infinity,
                                 fit: BoxFit.cover,
@@ -357,7 +360,7 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
                         SizedBox(width: 8.w),
                         Expanded(
                           child: CommonText.instance(
-                            widget.memoryInfo.title ?? '--',
+                            _memoryInfo.title ?? '--',
                             16.sp,
                             fontWeight: CommonFontWeight.bold,
                           ),
@@ -396,7 +399,7 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
                         SizedBox(width: 8.w),
                         Expanded(
                           child: CommonText.instance(
-                            widget.memoryInfo.person.isEmptyString() ? '--' : widget.memoryInfo.person ?? '',
+                            _memoryInfo.person.isEmptyString() ? '--' : _memoryInfo.person ?? '',
                             16.sp,
                             color: CommonColors.white.withOpacity(0.5),
                             fontWeight: CommonFontWeight.medium,
@@ -415,7 +418,7 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
                           children: [
                             Image.asset(Assets.commonFieldMemo, width: 32.w, height: 32.w),
                             SizedBox(width: 8.w),
-                            if (widget.memoryInfo.memo.isEmptyString())
+                            if (_memoryInfo.memo.isEmptyString())
                               CommonText.instance(
                                 '--',
                                 16.sp,
@@ -425,7 +428,7 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
                           ],
                         ),
 
-                        if (widget.memoryInfo.memo.isNotEmptyString()) ...[
+                        if (_memoryInfo.memo.isNotEmptyString()) ...[
                           SizedBox(height: 8.h),
                           Container(
                             width: double.infinity,
@@ -435,7 +438,7 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
                               borderRadius: BorderRadius.circular(24.r),
                             ),
                             child: CommonText.instance(
-                              widget.memoryInfo.memo!,
+                              _memoryInfo.memo!,
                               16.sp,
                               color: CommonColors.white.withOpacity(0.5),
                               fontWeight: CommonFontWeight.medium,
@@ -461,14 +464,35 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
       padding: EdgeInsets.zero,
       onPressed: () {
         OperationBottomSheetView.show(
-          editAction: () {
-            final result = Get.toNamed(Routes.editVideo, arguments: {'memoryInfo': widget.memoryInfo});
+          editAction: () async {
+            if (_isInitialized && _videoPlayerController.value.isPlaying) {
+              _videoPlayerController.pause();
+              setState(() {
+                _showControls = true;
+              });
+              _cancelHideTimer();
+            }
+
+            final result = await Get.toNamed(Routes.editVideo, arguments: {'memoryInfo': _memoryInfo});
             if (result != null && result is MemoryInfo) {
-              // widget.memoryInfo = result as MemoryInfo;
+              final oldPath = _memoryInfo.videoInfo?.path;
+              setState(() {
+                _memoryInfo = result;
+                dateTime = _memoryInfo.videoTime != null
+                    ? DateTime.fromMillisecondsSinceEpoch(_memoryInfo.videoTime!)
+                    : null;
+                
+                if (oldPath != _memoryInfo.videoInfo?.path) {
+                  _videoPlayerController.removeListener(_videoListener);
+                  _videoPlayerController.dispose();
+                  _isInitialized = false;
+                  _initPlayer();
+                }
+              });
             }
           },
           deleteAction: () async {
-            await Storage.deleteSavedMemory(widget.memoryInfo.id ?? '');
+            await Storage.deleteSavedMemory(_memoryInfo.id ?? '');
             Get.find<MyMemoryController>().getDataFromLocal();
             Get.back();
           },
