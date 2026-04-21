@@ -12,7 +12,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 enum VideoCellType { memory, draft }
 
 class VideoCell extends StatelessWidget {
-  const VideoCell({super.key, required this.memoryInfo, required this.videoAction, required this.operationAction, required this.cellType});
+  const VideoCell({
+    super.key,
+    required this.memoryInfo,
+    required this.videoAction,
+    required this.operationAction,
+    required this.cellType,
+  });
 
   final MemoryInfo memoryInfo;
   final void Function(MemoryInfo memoryInfo, VideoCellType cellType) videoAction;
@@ -33,18 +39,19 @@ class VideoCell extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CommonButton(
-                minSize: 0,
-                borderRadius: BorderRadius.zero,
-                onPressed: () => videoAction(memoryInfo, cellType),
-                child: Container(
-                  width: double.infinity,
-                  height: 96.w,
-                  decoration: BoxDecoration(
-                    color: CommonColors.black.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(16.r),
-                  ),
-                  child: Stack(
-                    children: [
+              minSize: 0,
+              borderRadius: BorderRadius.zero,
+              onPressed: () => videoAction(memoryInfo, cellType),
+              child: Container(
+                width: double.infinity,
+                height: 96.w,
+                decoration: BoxDecoration(
+                  color: CommonColors.black.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(16.r),
+                ),
+                child: Stack(
+                  children: [
+                    if (memoryInfo.videoInfo!.thumbnailPath != null)
                       ClipRRect(
                         borderRadius: BorderRadius.circular(16.r),
                         child: Image.file(
@@ -54,12 +61,18 @@ class VideoCell extends StatelessWidget {
                           fit: BoxFit.cover,
                         ),
                       ),
+
+                    if (memoryInfo.videoInfo!.thumbnailPath == null)
+                      Center(
+                        child: Image.asset(Assets.commonIconVideoError, width: 80.w, height: 80.w, fit: BoxFit.cover),
+                      )
+                    else
                       Center(
                         child: Image.asset(Assets.commonVideoPlay, width: 48.w, height: 48.w),
                       ),
-                    ],
-                  ),
+                  ],
                 ),
+              ),
             ),
             SizedBox(height: 10.w),
             Row(
@@ -70,10 +83,7 @@ class VideoCell extends StatelessWidget {
                     padding: EdgeInsets.only(right: 8.w),
                     child: CommonText.instance(
                       memoryInfo.title.isEmptyString()
-                          ? memoryInfo.videoInfo!
-                          .path
-                          ?.split('/')
-                          .last ?? ''
+                          ? memoryInfo.videoInfo!.path?.split('/').last ?? ''
                           : memoryInfo.title!,
                       14.sp,
                       maxLines: 1,

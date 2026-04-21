@@ -214,6 +214,11 @@ class VideoViewState extends State<VideoView> {
                         width: double.infinity,
                         height: double.infinity,
                         fit: BoxFit.cover,
+                        errorBuilder: (context, object, stack) {
+                          return Center(
+                            child: Image.asset(Assets.commonIconVideoError, width: 160, height: 160, fit: BoxFit.cover),
+                          );
+                        },
                       ),
                     const CircularProgressIndicator(color: CommonColors.primaryColor),
                   ],

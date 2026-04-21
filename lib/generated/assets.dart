@@ -39,6 +39,7 @@ class Assets {
   static const String commonVideoPlayBig = 'assets/images/common/video_play_big.png';
   static const String commonTakeVideoTips = 'assets/images/common/take_video_tips.png';
   static const String commonIconDatePicker = 'assets/images/common/icon_date_picker.png';
+  static const String commonIconVideoError = 'assets/images/common/icon_video_error.png';
   static const String commonOperationDelete = 'assets/images/common/operation_delete.png';
   static const String commonIconSettingTitle = 'assets/images/common/icon_setting_title.png';
   static const String commonVideoDeleteWhite = 'assets/images/common/video_delete_white.png';

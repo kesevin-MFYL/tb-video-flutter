@@ -83,6 +83,15 @@ class EditVideoPage extends StatelessWidget {
 
                                   if (controller.isThumbnailLoading)
                                     Center(child: loadingIndicator(size: 24.w, strokeWidth: 1.5))
+                                  else if (controller.videoInfo!.thumbnailPath == null)
+                                    Center(
+                                      child: Image.asset(
+                                        Assets.commonIconVideoError,
+                                        width: 80.w,
+                                        height: 80.w,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    )
                                   else
                                     Center(
                                       child: Image.asset(Assets.commonVideoPlayBig, width: 48.w, height: 48.w),

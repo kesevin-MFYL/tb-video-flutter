@@ -1,5 +1,5 @@
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:editvideo/widget/permission_setting_dialog.dart';
+import 'package:editvideo/widget/dialog/permission_setting_dialog.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 
