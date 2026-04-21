@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/generated/assets.dart';
@@ -59,9 +60,7 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
 
     _memoryInfo = widget.memoryInfo;
 
-    dateTime = _memoryInfo.videoTime != null
-        ? DateTime.fromMillisecondsSinceEpoch(_memoryInfo.videoTime!)
-        : null;
+    dateTime = _memoryInfo.videoTime != null ? DateTime.fromMillisecondsSinceEpoch(_memoryInfo.videoTime!) : null;
 
     _initPlayer();
   }
@@ -147,18 +146,12 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
       _isFullScreen = !_isFullScreen;
     });
     if (_isFullScreen) {
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.landscapeLeft,
-        DeviceOrientation.landscapeRight,
-      ]);
+      SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     } else {
-        SystemChrome.setPreferredOrientations([
-          DeviceOrientation.portraitUp,
-          DeviceOrientation.portraitDown,
-        ]);
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
-      }
+      SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
+    }
   }
 
   /// 开始隐藏控制栏计时
@@ -180,10 +173,7 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
 
   @override
   void dispose() {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
     _videoPlayerController.removeListener(_videoListener);
     _videoPlayerController.dispose();
@@ -211,9 +201,7 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
         },
         child: Scaffold(
           backgroundColor: Colors.black,
-          body: SizedBox.expand(
-            child: _buildVideoPlayer(),
-          ),
+          body: SizedBox.expand(child: _buildVideoPlayer()),
         ),
       );
     }
@@ -221,123 +209,150 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
     return PageBase(
       title: 'Play',
       actions: _actionView(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          SizedBox(
-            height: 212.h,
-            child: _buildVideoPlayer(),
-          ),
+          _buildBackground(),
 
-          Expanded(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 标题
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8.h),
-                    child: Row(
-                      children: [
-                        Image.asset(Assets.commonFieldTitle, width: 32.w, height: 32.w),
-                        SizedBox(width: 8.w),
-                        Expanded(
-                          child: CommonText.instance(
-                            _memoryInfo.title ?? '--',
-                            16.sp,
-                            fontWeight: CommonFontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(height: 212.h, color: CommonColors.color333333, child: _buildVideoPlayer()),
 
-                  // 日期
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8.h),
-                    child: Row(
-                      children: [
-                        Image.asset(Assets.commonFieldDate, width: 32.w, height: 32.w),
-                        SizedBox(width: 8.w),
-                        Expanded(
-                          child: CommonText.instance(
-                            dateTime != null
-                                ? "${dateTime!.year}-${dateTime!.month.toString().padLeft(2, '0')}-${dateTime!.day.toString().padLeft(2, '0')}"
-                                : '--',
-                            16.sp,
-                            color: CommonColors.white.withOpacity(0.5),
-                            fontWeight: CommonFontWeight.medium,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // 人物
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8.h),
-                    child: Row(
-                      children: [
-                        Image.asset(Assets.commonFieldPerson, width: 32.w, height: 32.w),
-                        SizedBox(width: 8.w),
-                        Expanded(
-                          child: CommonText.instance(
-                            _memoryInfo.person.isEmptyString() ? '--' : _memoryInfo.person ?? '',
-                            16.sp,
-                            color: CommonColors.white.withOpacity(0.5),
-                            fontWeight: CommonFontWeight.medium,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // 描述
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8.h),
-                    child: Column(
-                      children: [
-                        Row(
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 标题
+                      Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8.h),
+                        child: Row(
                           children: [
-                            Image.asset(Assets.commonFieldMemo, width: 32.w, height: 32.w),
+                            Image.asset(Assets.commonFieldTitle, width: 32.w, height: 32.w),
                             SizedBox(width: 8.w),
-                            if (_memoryInfo.memo.isEmptyString())
-                              CommonText.instance(
-                                '--',
+                            Expanded(
+                              child: CommonText.instance(
+                                _memoryInfo.title ?? '--',
+                                16.sp,
+                                fontWeight: CommonFontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // 日期
+                      Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8.h),
+                        child: Row(
+                          children: [
+                            Image.asset(Assets.commonFieldDate, width: 32.w, height: 32.w),
+                            SizedBox(width: 8.w),
+                            Expanded(
+                              child: CommonText.instance(
+                                dateTime != null
+                                    ? "${dateTime!.year}-${dateTime!.month.toString().padLeft(2, '0')}-${dateTime!.day.toString().padLeft(2, '0')}"
+                                    : '--',
                                 16.sp,
                                 color: CommonColors.white.withOpacity(0.5),
                                 fontWeight: CommonFontWeight.medium,
                               ),
+                            ),
                           ],
                         ),
+                      ),
 
-                        if (_memoryInfo.memo.isNotEmptyString()) ...[
-                          SizedBox(height: 8.h),
-                          Container(
-                            width: double.infinity,
-                            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-                            decoration: BoxDecoration(
-                              color: CommonColors.white.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(24.r),
+                      // 人物
+                      Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8.h),
+                        child: Row(
+                          children: [
+                            Image.asset(Assets.commonFieldPerson, width: 32.w, height: 32.w),
+                            SizedBox(width: 8.w),
+                            Expanded(
+                              child: CommonText.instance(
+                                _memoryInfo.person.isEmptyString() ? '--' : _memoryInfo.person ?? '',
+                                16.sp,
+                                color: CommonColors.white.withOpacity(0.5),
+                                fontWeight: CommonFontWeight.medium,
+                              ),
                             ),
-                            child: CommonText.instance(
-                              _memoryInfo.memo!,
-                              16.sp,
-                              color: CommonColors.white.withOpacity(0.5),
-                              fontWeight: CommonFontWeight.medium,
+                          ],
+                        ),
+                      ),
+
+                      // 描述
+                      Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8.h),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Image.asset(Assets.commonFieldMemo, width: 32.w, height: 32.w),
+                                SizedBox(width: 8.w),
+                                if (_memoryInfo.memo.isEmptyString())
+                                  CommonText.instance(
+                                    '--',
+                                    16.sp,
+                                    color: CommonColors.white.withOpacity(0.5),
+                                    fontWeight: CommonFontWeight.medium,
+                                  ),
+                              ],
                             ),
-                          ),
-                        ],
-                      ],
-                    ),
+
+                            if (_memoryInfo.memo.isNotEmptyString()) ...[
+                              SizedBox(height: 8.h),
+                              Container(
+                                width: double.infinity,
+                                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+                                decoration: BoxDecoration(
+                                  color: CommonColors.white.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(24.r),
+                                ),
+                                child: CommonText.instance(
+                                  _memoryInfo.memo!,
+                                  16.sp,
+                                  color: CommonColors.white.withOpacity(0.5),
+                                  fontWeight: CommonFontWeight.medium,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildBackground() {
+    return Stack(
+      children: [
+        if (_memoryInfo.videoInfo!.thumbnailPath != null && _memoryInfo.videoInfo!.thumbnailPath!.isNotEmpty)
+          Positioned.fill(
+            child: Image.file(
+              File(_memoryInfo.videoInfo!.thumbnailPath!),
+              width: double.infinity,
+              height: double.infinity,
+              fit: BoxFit.cover,
+            ),
+          ),
+        Positioned.fill(
+          child: ClipRRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(color: CommonColors.black.withOpacity(0.6)),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -387,144 +402,147 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
                   // 顶部操作栏（全屏时显示返回按钮）
                   if (_isFullScreen)
                     Positioned(
-                      top: 16.h,
-                      left: 16.w,
-                      child: GestureDetector(
-                        onTap: _toggleFullScreen,
-                        child: Image.asset(Assets.commonNavBack, width: 32.w, height: 32.w, color: Colors.white),
+                      top: 20,
+                      left: 32,
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: _toggleFullScreen,
+                            child: Image.asset(Assets.commonNavBack, width: 32, height: 32),
+                          ),
+                          SizedBox(width: 14),
+                          CommonText.instance(_memoryInfo.title ?? '', 16, fontWeight: CommonFontWeight.bold),
+                        ],
                       ),
                     ),
 
-                // 播放/暂停按钮
-                Center(
-                  child: _showControls
-                      ? GestureDetector(
+                  // 播放/暂停按钮
+                  Center(
+                    child: _showControls
+                        ? GestureDetector(
+                            onTap: _togglePlay,
+                            child: Image.asset(
+                              _videoPlayerController.value.isPlaying
+                                  ? Assets.commonVideoPause
+                                  : Assets.commonVideoPlayBig,
+                              width: 48,
+                              height: 48,
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+
+                  // 底部操作栏
+                  Positioned(
+                    bottom: _isFullScreen ? 16 : 8,
+                    left: _isFullScreen ? 32 : 16,
+                    right: _isFullScreen ? 32 : 16,
+                    child: Row(
+                      children: [
+                        // 播放/暂停按钮
+                        GestureDetector(
                           onTap: _togglePlay,
                           child: Image.asset(
-                            _videoPlayerController.value.isPlaying
-                                ? Assets.commonVideoPause
-                                : Assets.commonVideoPlayBig,
-                            width: 48.w,
-                            height: 48.w,
+                            _videoPlayerController.value.isPlaying ? Assets.commonIconPause : Assets.commonIconPlay,
+                            width: 24,
+                            height: 24,
                           ),
-                        )
-                      : const SizedBox.shrink(),
-                ),
-
-                // 底部操作栏
-                Positioned(
-                  bottom: 6.h,
-                  left: 16.w,
-                  right: 16.w,
-                  child: Row(
-                    children: [
-                      // 播放/暂停按钮
-                      GestureDetector(
-                        onTap: _togglePlay,
-                        child: Image.asset(
-                          _videoPlayerController.value.isPlaying
-                              ? Assets.commonIconPause
-                              : Assets.commonIconPlay,
-                          width: 24.w,
-                          height: 24.w,
                         ),
-                      ),
 
-                      SizedBox(width: 10.w),
+                        SizedBox(width: 10),
 
-                      // 时长、进度条
-                      Expanded(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // 进度条
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Builder(
-                                    builder: (context) {
-                                      final duration = _totalDuration.inSeconds.toDouble();
-                                      final position = _currentPosition.inSeconds.toDouble();
-                                      final value = position.clamp(0.0, duration > 0 ? duration : 0.0);
+                        // 时长、进度条
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // 进度条
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Builder(
+                                      builder: (context) {
+                                        final duration = _totalDuration.inSeconds.toDouble();
+                                        final position = _currentPosition.inSeconds.toDouble();
+                                        final value = position.clamp(0.0, duration > 0 ? duration : 0.0);
 
-                                      return SliderTheme(
-                                        data: SliderTheme.of(context).copyWith(
-                                          //轨道的粗细
-                                          trackHeight: 4.w,
-                                          //滑块形状 半径
-                                          thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6.w),
-                                          thumbColor: CommonColors.primaryColor,
-                                          //滑块已滑动部分的轨道颜色
-                                          activeTrackColor: CommonColors.colorDB88E6,
-                                          //滑块未滑动部分的轨道颜色
-                                          inactiveTrackColor: CommonColors.white.withOpacity(0.3),
-                                          padding: EdgeInsets.zero,
-                                        ),
-                                        child: Slider(
-                                          value: value,
-                                          min: 0.0,
-                                          max: duration > 0 ? duration : 1.0,
-                                          onChanged: (v) {
-                                            _seekTo(v);
-                                          },
-                                        ),
-                                      );
-                                    },
+                                        return SliderTheme(
+                                          data: SliderTheme.of(context).copyWith(
+                                            //轨道的粗细
+                                            trackHeight: 4,
+                                            //滑块形状 半径
+                                            thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6),
+                                            thumbColor: CommonColors.primaryColor,
+                                            //滑块已滑动部分的轨道颜色
+                                            activeTrackColor: CommonColors.colorDB88E6,
+                                            //滑块未滑动部分的轨道颜色
+                                            inactiveTrackColor: CommonColors.white.withOpacity(0.3),
+                                            padding: EdgeInsets.zero,
+                                          ),
+                                          child: Slider(
+                                            value: value,
+                                            min: 0.0,
+                                            max: duration > 0 ? duration : 1.0,
+                                            onChanged: (v) {
+                                              _seekTo(v);
+                                            },
+                                          ),
+                                        );
+                                      },
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
+                                ],
+                              ),
 
-                            SizedBox(height: 2.h),
+                              SizedBox(height: 2),
 
-                            // 时长
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                // 当前时长
-                                CommonText.instance(
-                                  _formatDuration(_currentPosition),
-                                  10.sp,
-                                  color: CommonColors.white,
-                                  fontWeight: CommonFontWeight.medium,
-                                ),
-                                // 总时长
-                                CommonText.instance(
-                                  _formatDuration(_totalDuration),
-                                  10.sp,
-                                  color: CommonColors.white,
-                                  fontWeight: CommonFontWeight.medium,
-                                ),
-                              ],
-                            ),
-                          ],
+                              // 时长
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  // 当前时长
+                                  CommonText.instance(
+                                    _formatDuration(_currentPosition),
+                                    10,
+                                    color: CommonColors.white,
+                                    fontWeight: CommonFontWeight.medium,
+                                  ),
+                                  // 总时长
+                                  CommonText.instance(
+                                    _formatDuration(_totalDuration),
+                                    10,
+                                    color: CommonColors.white,
+                                    fontWeight: CommonFontWeight.medium,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
 
-                      SizedBox(width: 10.w),
+                        SizedBox(width: 10),
 
-                      // 横屏、竖屏
-                      GestureDetector(
-                        onTap: _toggleFullScreen,
-                        child: Image.asset(
-                          _isFullScreen ? Assets.commonIconPortrait : Assets.commonIconLandscape,
-                          width: 24.w,
-                          height: 24.w
+                        // 横屏、竖屏
+                        GestureDetector(
+                          onTap: _toggleFullScreen,
+                          child: Image.asset(
+                            _isFullScreen ? Assets.commonIconPortrait : Assets.commonIconLandscape,
+                            width: 24,
+                            height: 24,
+                          ),
                         ),
-                      ),
-
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
-      ),
-    ],
-  );
-}
+      ],
+    );
+  }
 
   _actionView() {
     return CommonButton(
@@ -550,7 +568,7 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
                 dateTime = _memoryInfo.videoTime != null
                     ? DateTime.fromMillisecondsSinceEpoch(_memoryInfo.videoTime!)
                     : null;
-                
+
                 if (oldPath != _memoryInfo.videoInfo?.path) {
                   _videoPlayerController.removeListener(_videoListener);
                   _videoPlayerController.dispose();
