@@ -90,7 +90,7 @@ class SettingPage extends StatelessWidget {
                     padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 19.h),
                     borderRadius: BorderRadius.circular(24.r),
                     color: CommonColors.color333333,
-                    onPressed: () {},
+                    onPressed: controller.feedback,
                     child: Row(
                       children: [
                         Image.asset(Assets.commonIconFeedBack, width: 24.w, height: 24.w),

@@ -28,6 +28,7 @@ dependencies:
   webview_flutter: ^4.13.1 #内嵌网页
   video_player: ^2.10.1 # 视频播放
   flutter_native_splash: ^2.4.7 #启动白屏优化
+  url_launcher: ^6.3.2 #启动链接
 
 dev_dependencies:
   flutter_test:

@@ -78,6 +78,16 @@ class EditVideoPage extends StatelessWidget {
                                         width: double.infinity,
                                         height: double.infinity,
                                         fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return Center(
+                                            child: Image.asset(
+                                              Assets.commonIconVideoError,
+                                              width: 80.w,
+                                              height: 80.w,
+                                              fit: BoxFit.cover,
+                                            ),
+                                          );
+                                        },
                                       ),
                                     ),
 
