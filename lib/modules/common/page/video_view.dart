@@ -58,7 +58,7 @@ class VideoViewState extends State<VideoView> {
       _isInitialized = false;
       _initPlayer();
     }
-    
+
     if (oldWidget.isFullScreen != widget.isFullScreen) {
       if (widget.isFullScreen) {
         if (_isInitialized && _videoPlayerController.value.isPlaying) {
@@ -163,7 +163,7 @@ class VideoViewState extends State<VideoView> {
   void _startHideTimer() {
     _cancelHideTimer();
     if (!widget.isFullScreen) return;
-    
+
     _hideTimer = Timer(const Duration(seconds: 3), () {
       if (_videoPlayerController.value.isPlaying && mounted) {
         setState(() {
@@ -261,15 +261,15 @@ class VideoViewState extends State<VideoView> {
                 Center(
                   child: _showControls
                       ? GestureDetector(
-                    onTap: _togglePlay,
-                    child: Image.asset(
-                      _videoPlayerController.value.isPlaying
-                          ? Assets.commonVideoPause
-                          : Assets.commonVideoPlayBig,
-                      width: 48,
-                      height: 48,
-                    ),
-                  )
+                          onTap: _togglePlay,
+                          child: Image.asset(
+                            _videoPlayerController.value.isPlaying
+                                ? Assets.commonVideoPause
+                                : Assets.commonVideoPlayBig,
+                            width: 48,
+                            height: 48,
+                          ),
+                        )
                       : const SizedBox.shrink(),
                 ),
 

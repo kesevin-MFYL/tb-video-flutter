@@ -3,7 +3,7 @@ import 'package:editvideo/models/memory_info.dart';
 import 'package:get_storage/get_storage.dart';
 
 class Storage {
-  static const _kToken = '_token_key';
+  static const _kFirstOpen = '_first_open_key';
   static const _kSavedMemories = '_saved_memories_key';
   static const _kDraftMemories = '_draft_memories_key';
 
@@ -16,12 +16,12 @@ class Storage {
     _getStorage = GetStorage();
   }
 
-  static Future<void> setToken(String? token) async {
-    return _getStorage!.write(_kToken, token);
+  static Future<void> setFirstOpen(bool? firstOpen) async {
+    return _getStorage!.write(_kFirstOpen, firstOpen);
   }
 
-  static String? getToken() {
-    return _getStorage!.read<String?>(_kToken);
+  static bool? getFirstOpen() {
+    return _getStorage!.read<bool?>(_kFirstOpen);
   }
 
   // === 保存数据 ===
