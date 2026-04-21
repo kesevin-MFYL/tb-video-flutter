@@ -58,6 +58,19 @@ class VideoViewState extends State<VideoView> {
       _isInitialized = false;
       _initPlayer();
     }
+    
+    if (oldWidget.isFullScreen != widget.isFullScreen) {
+      if (widget.isFullScreen) {
+        if (_isInitialized && _videoPlayerController.value.isPlaying) {
+          _startHideTimer();
+        }
+      } else {
+        _cancelHideTimer();
+        setState(() {
+          _showControls = true;
+        });
+      }
+    }
   }
 
   /// 初始化播放器
@@ -135,6 +148,7 @@ class VideoViewState extends State<VideoView> {
 
   /// 切换操作栏状态
   void _toggleControls() {
+    if (!widget.isFullScreen) return;
     setState(() {
       _showControls = !_showControls;
     });
@@ -148,6 +162,8 @@ class VideoViewState extends State<VideoView> {
   /// 开始隐藏控制栏计时
   void _startHideTimer() {
     _cancelHideTimer();
+    if (!widget.isFullScreen) return;
+    
     _hideTimer = Timer(const Duration(seconds: 3), () {
       if (_videoPlayerController.value.isPlaying && mounted) {
         setState(() {
