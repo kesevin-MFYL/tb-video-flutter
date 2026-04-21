@@ -238,145 +238,143 @@ class VideoViewState extends State<VideoView> {
           duration: const Duration(milliseconds: 300),
           child: IgnorePointer(
             ignoring: !_showControls,
-            child: SafeArea(
-              child: Stack(
-                children: [
-                  // 顶部操作栏（全屏时显示返回按钮）
-                  if (widget.isFullScreen)
-                    Positioned(
-                      top: 20,
-                      left: 32,
-                      child: Row(
-                        children: [
-                          GestureDetector(
-                            onTap: widget.onToggleFullScreen,
-                            child: Image.asset(Assets.commonNavBack, width: 32, height: 32),
-                          ),
-                          const SizedBox(width: 14),
-                          CommonText.instance(widget.title ?? '', 16, fontWeight: CommonFontWeight.bold),
-                        ],
-                      ),
-                    ),
-
-                  // 播放/暂停按钮
-                  Center(
-                    child: _showControls
-                        ? GestureDetector(
-                            onTap: _togglePlay,
-                            child: Image.asset(
-                              _videoPlayerController.value.isPlaying
-                                  ? Assets.commonVideoPause
-                                  : Assets.commonVideoPlayBig,
-                              width: 48,
-                              height: 48,
-                            ),
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-
-                  // 底部操作栏
+            child: Stack(
+              children: [
+                // 顶部操作栏（全屏时显示返回按钮）
+                if (widget.isFullScreen)
                   Positioned(
-                    bottom: widget.isFullScreen ? 16 : 8,
-                    left: widget.isFullScreen ? 32 : 16,
-                    right: widget.isFullScreen ? 32 : 16,
+                    top: 20,
+                    left: 32,
                     child: Row(
                       children: [
-                        // 播放/暂停按钮
-                        GestureDetector(
-                          onTap: _togglePlay,
-                          child: Image.asset(
-                            _videoPlayerController.value.isPlaying ? Assets.commonIconPause : Assets.commonIconPlay,
-                            width: 24,
-                            height: 24,
-                          ),
-                        ),
-
-                        const SizedBox(width: 10),
-
-                        // 时长、进度条
-                        Expanded(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // 进度条
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Builder(
-                                      builder: (context) {
-                                        final duration = _totalDuration.inSeconds.toDouble();
-                                        final position = _currentPosition.inSeconds.toDouble();
-                                        final value = position.clamp(0.0, duration > 0 ? duration : 0.0);
-
-                                        return SliderTheme(
-                                          data: SliderTheme.of(context).copyWith(
-                                            //轨道的粗细
-                                            trackHeight: 4,
-                                            //滑块形状 半径
-                                            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                                            thumbColor: CommonColors.primaryColor,
-                                            //滑块已滑动部分的轨道颜色
-                                            activeTrackColor: CommonColors.colorDB88E6,
-                                            //滑块未滑动部分的轨道颜色
-                                            inactiveTrackColor: CommonColors.white.withOpacity(0.3),
-                                            padding: EdgeInsets.zero,
-                                          ),
-                                          child: Slider(
-                                            value: value,
-                                            min: 0.0,
-                                            max: duration > 0 ? duration : 1.0,
-                                            onChanged: _seekTo,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              const SizedBox(height: 2),
-
-                              // 时长
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  // 当前时长
-                                  CommonText.instance(
-                                    _formatDuration(_currentPosition),
-                                    10,
-                                    color: CommonColors.white,
-                                    fontWeight: CommonFontWeight.medium,
-                                  ),
-                                  // 总时长
-                                  CommonText.instance(
-                                    _formatDuration(_totalDuration),
-                                    10,
-                                    color: CommonColors.white,
-                                    fontWeight: CommonFontWeight.medium,
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(width: 10),
-
-                        // 横屏、竖屏
                         GestureDetector(
                           onTap: widget.onToggleFullScreen,
-                          child: Image.asset(
-                            widget.isFullScreen ? Assets.commonIconPortrait : Assets.commonIconLandscape,
-                            width: 24,
-                            height: 24,
-                          ),
+                          child: Image.asset(Assets.commonNavBack, width: 32, height: 32),
                         ),
+                        const SizedBox(width: 14),
+                        CommonText.instance(widget.title ?? '', 16, fontWeight: CommonFontWeight.bold),
                       ],
                     ),
                   ),
-                ],
-              ),
+
+                // 播放/暂停按钮
+                Center(
+                  child: _showControls
+                      ? GestureDetector(
+                    onTap: _togglePlay,
+                    child: Image.asset(
+                      _videoPlayerController.value.isPlaying
+                          ? Assets.commonVideoPause
+                          : Assets.commonVideoPlayBig,
+                      width: 48,
+                      height: 48,
+                    ),
+                  )
+                      : const SizedBox.shrink(),
+                ),
+
+                // 底部操作栏
+                Positioned(
+                  bottom: widget.isFullScreen ? 16 : 8,
+                  left: widget.isFullScreen ? 32 : 16,
+                  right: widget.isFullScreen ? 32 : 16,
+                  child: Row(
+                    children: [
+                      // 播放/暂停按钮
+                      GestureDetector(
+                        onTap: _togglePlay,
+                        child: Image.asset(
+                          _videoPlayerController.value.isPlaying ? Assets.commonIconPause : Assets.commonIconPlay,
+                          width: 24,
+                          height: 24,
+                        ),
+                      ),
+
+                      const SizedBox(width: 10),
+
+                      // 时长、进度条
+                      Expanded(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // 进度条
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Builder(
+                                    builder: (context) {
+                                      final duration = _totalDuration.inSeconds.toDouble();
+                                      final position = _currentPosition.inSeconds.toDouble();
+                                      final value = position.clamp(0.0, duration > 0 ? duration : 0.0);
+
+                                      return SliderTheme(
+                                        data: SliderTheme.of(context).copyWith(
+                                          //轨道的粗细
+                                          trackHeight: 4,
+                                          //滑块形状 半径
+                                          thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                                          thumbColor: CommonColors.primaryColor,
+                                          //滑块已滑动部分的轨道颜色
+                                          activeTrackColor: CommonColors.colorDB88E6,
+                                          //滑块未滑动部分的轨道颜色
+                                          inactiveTrackColor: CommonColors.white.withOpacity(0.3),
+                                          padding: EdgeInsets.zero,
+                                        ),
+                                        child: Slider(
+                                          value: value,
+                                          min: 0.0,
+                                          max: duration > 0 ? duration : 1.0,
+                                          onChanged: _seekTo,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 2),
+
+                            // 时长
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                // 当前时长
+                                CommonText.instance(
+                                  _formatDuration(_currentPosition),
+                                  10,
+                                  color: CommonColors.white,
+                                  fontWeight: CommonFontWeight.medium,
+                                ),
+                                // 总时长
+                                CommonText.instance(
+                                  _formatDuration(_totalDuration),
+                                  10,
+                                  color: CommonColors.white,
+                                  fontWeight: CommonFontWeight.medium,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(width: 10),
+
+                      // 横屏、竖屏
+                      GestureDetector(
+                        onTap: widget.onToggleFullScreen,
+                        child: Image.asset(
+                          widget.isFullScreen ? Assets.commonIconPortrait : Assets.commonIconLandscape,
+                          width: 24,
+                          height: 24,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ),
