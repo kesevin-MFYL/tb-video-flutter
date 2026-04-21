@@ -1,6 +1,8 @@
 class Routes {
   Routes._();
 
+  static const launch = '/launch';
+
   /// 根页面
   static const main = '/main';
 

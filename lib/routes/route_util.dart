@@ -4,6 +4,6 @@ class RouterUtil {
   static String initialRoute() => nextRoute();
 
   static String nextRoute() {
-    return Routes.main;
+    return Routes.launch;
   }
 }

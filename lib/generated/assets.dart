@@ -11,6 +11,7 @@ class Assets {
   static const String commonNavBack = 'assets/images/common/nav_back.png';
   static const String commonDraftOff = 'assets/images/common/draft_off.png';
   static const String commonIconPlay = 'assets/images/common/icon_play.png';
+  static const String commonLaunchBg = 'assets/images/common/launch_bg.png';
   static const String commonMemoryOn = 'assets/images/common/memory_on.png';
   static const String commonArrowDown = 'assets/images/common/arrow_down.png';
   static const String commonFieldDate = 'assets/images/common/field_date.png';
@@ -25,6 +26,7 @@ class Assets {
   static const String commonArrowRight = 'assets/images/common/arrow_right.png';
   static const String commonFieldTitle = 'assets/images/common/field_title.png';
   static const String commonIconPolicy = 'assets/images/common/icon_policy.png';
+  static const String commonLaunchIcon = 'assets/images/common/launch_icon.png';
   static const String commonSaveEnable = 'assets/images/common/save_enable.png';
   static const String commonSettingOff = 'assets/images/common/setting_off.png';
   static const String commonVideoPause = 'assets/images/common/video_pause.png';
@@ -44,5 +46,5 @@ class Assets {
   static const String commonIconSettingTitle = 'assets/images/common/icon_setting_title.png';
   static const String commonVideoDeleteWhite = 'assets/images/common/video_delete_white.png';
   static const String commonIconUserAgreement = 'assets/images/common/icon_user_agreement.png';
-  static const String launchLaunchImage = 'assets/images/launch/launch_image.jpg';
+  static const String launchLaunchImage = 'assets/images/launch/launch_image.png';
 }

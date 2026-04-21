@@ -1,4 +1,5 @@
 import 'package:editvideo/modules/common/page/app_web_page.dart';
+import 'package:editvideo/modules/launch/views/launch_page.dart';
 import 'package:editvideo/modules/main/views/edit_video_page.dart';
 import 'package:editvideo/modules/main/views/main_page.dart';
 import 'package:editvideo/routes/app_routes.dart';
@@ -8,9 +9,22 @@ class AppPages {
   AppPages._();
 
   static final routes = [
+    ...LaunchPages.routes,
     ...MainPages.routes,
     // ...SettingPages.routes,
     ...CommonPages.routes,
+  ];
+}
+
+class LaunchPages {
+  LaunchPages._();
+
+  /// 路由管理
+  static final routes = [
+    GetPage(
+      name: Routes.launch,
+      page: () => LaunchPage(),
+    ),
   ];
 }
 
