@@ -44,4 +44,5 @@ class Assets {
   static const String commonIconSettingTitle = 'assets/images/common/icon_setting_title.png';
   static const String commonVideoDeleteWhite = 'assets/images/common/video_delete_white.png';
   static const String commonIconUserAgreement = 'assets/images/common/icon_user_agreement.png';
+  static const String launchLaunchImage = 'assets/images/launch/launch_image.jpg';
 }
