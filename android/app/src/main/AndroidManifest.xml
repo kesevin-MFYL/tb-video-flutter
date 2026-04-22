@@ -10,7 +10,7 @@
         android:name="android.permission.READ_MEDIA_VIDEO"/>
 
     <application
-        android:label="editvideo"
+        android:label="MoviX"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

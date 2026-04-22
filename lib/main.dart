@@ -19,6 +19,7 @@ void main() async {
       minTextAdapt: true,
       splitScreenMode: true,
       child: GetMaterialApp(
+        title: 'MoviX',
         theme: theme,
         getPages: AppPages.routes,
         initialRoute: RouterUtil.initialRoute(),
