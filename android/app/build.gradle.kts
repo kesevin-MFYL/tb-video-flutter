@@ -34,7 +34,7 @@ android {
         create("keyStore") {
             storeFile = file(System.getenv("KEYSTORE_PATH") ?: "../../../app_key.jks")
             storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "kelvin123"
-            keyAlias = System.getenv("KEY_ALIAS") ?: "kelvin123"
+            keyAlias = System.getenv("KEY_ALIAS") ?: "kelvin"
             keyPassword = System.getenv("KEY_PASSWORD") ?: "kelvin123"
         }
     }
