@@ -21,7 +21,7 @@ class _WebPageState extends State<WebPage> {
   void initState() {
     super.initState();
     webViewController = WebViewController()
-      ..setBackgroundColor(CommonColors.background)
+      ..setBackgroundColor(Colors.white)
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(

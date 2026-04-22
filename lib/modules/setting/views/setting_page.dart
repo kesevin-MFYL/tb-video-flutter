@@ -49,7 +49,7 @@ class SettingPage extends StatelessWidget {
                     onPressed: () {
                       Get.toNamed(Routes.webPage, arguments: {
                         'webType': WebViewType.privacyPolicy,
-                        'webUrl': 'www.baidu.com',
+                        'webUrl': 'https://movixweb.com/privacy/',
                       });
                     },
                     child: Row(
@@ -71,7 +71,7 @@ class SettingPage extends StatelessWidget {
                     onPressed: () {
                       Get.toNamed(Routes.webPage, arguments: {
                         'webType': WebViewType.userAgreement,
-                        'webUrl': 'https://www.baidu.com',
+                        'webUrl': 'https://movixweb.com/terms/',
                       });
                     },
                     child: Row(
