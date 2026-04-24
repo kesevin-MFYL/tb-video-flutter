@@ -89,127 +89,130 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
 
     return PageBase(
       title: 'Play',
+      isTransparentAppBar: true,
       actions: _actionView(),
       child: Stack(
         children: [
           // 模糊背景
           _buildBackground(),
 
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(height: 212.h, color: CommonColors.color333333, child: _buildVideoView()),
+          SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(height: 212.h, color: CommonColors.color333333, child: _buildVideoView()),
 
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 标题
-                      Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8.h),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Image.asset(Assets.commonFieldTitle, width: 32.w, height: 32.w),
-                            SizedBox(width: 8.w),
-                            Expanded(
-                              child: CommonText.instance(
-                                _memoryInfo.title ?? '--',
-                                16.sp,
-                                fontWeight: CommonFontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // 日期
-                      Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8.h),
-                        child: Row(
-                          children: [
-                            Image.asset(Assets.commonFieldDate, width: 32.w, height: 32.w),
-                            SizedBox(width: 8.w),
-                            Expanded(
-                              child: CommonText.instance(
-                                dateTime != null
-                                    ? "${dateTime!.month.toString().padLeft(2, '0')}.${dateTime!.day.toString().padLeft(2, '0')}.${dateTime!.year}"
-                                    : '--',
-                                16.sp,
-                                color: CommonColors.white.withOpacity(0.5),
-                                fontWeight: CommonFontWeight.medium,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // 人物
-                      Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8.h),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Image.asset(Assets.commonFieldPerson, width: 32.w, height: 32.w),
-                            SizedBox(width: 8.w),
-                            Expanded(
-                              child: CommonText.instance(
-                                _memoryInfo.person.isEmptyString() ? '--' : _memoryInfo.person ?? '',
-                                16.sp,
-                                color: CommonColors.white.withOpacity(0.5),
-                                fontWeight: CommonFontWeight.medium,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // 描述
-                      Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8.h),
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                Image.asset(Assets.commonFieldMemo, width: 32.w, height: 32.w),
-                                SizedBox(width: 8.w),
-                                if (_memoryInfo.memo.isEmptyString())
-                                  CommonText.instance(
-                                    '--',
-                                    16.sp,
-                                    color: CommonColors.white.withOpacity(0.5),
-                                    fontWeight: CommonFontWeight.medium,
-                                  ),
-                              ],
-                            ),
-
-                            if (_memoryInfo.memo.isNotEmptyString()) ...[
-                              SizedBox(height: 8.h),
-                              Container(
-                                width: double.infinity,
-                                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-                                decoration: BoxDecoration(
-                                  color: CommonColors.white.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(24.r),
-                                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 标题
+                        Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8.h),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Image.asset(Assets.commonFieldTitle, width: 32.w, height: 32.w),
+                              SizedBox(width: 8.w),
+                              Expanded(
                                 child: CommonText.instance(
-                                  _memoryInfo.memo!,
+                                  _memoryInfo.title ?? '--',
+                                  16.sp,
+                                  fontWeight: CommonFontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // 日期
+                        Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8.h),
+                          child: Row(
+                            children: [
+                              Image.asset(Assets.commonFieldDate, width: 32.w, height: 32.w),
+                              SizedBox(width: 8.w),
+                              Expanded(
+                                child: CommonText.instance(
+                                  dateTime != null
+                                      ? "${dateTime!.month.toString().padLeft(2, '0')}.${dateTime!.day.toString().padLeft(2, '0')}.${dateTime!.year}"
+                                      : '--',
                                   16.sp,
                                   color: CommonColors.white.withOpacity(0.5),
                                   fontWeight: CommonFontWeight.medium,
                                 ),
                               ),
                             ],
-                          ],
+                          ),
                         ),
-                      ),
-                    ],
+
+                        // 人物
+                        Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8.h),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Image.asset(Assets.commonFieldPerson, width: 32.w, height: 32.w),
+                              SizedBox(width: 8.w),
+                              Expanded(
+                                child: CommonText.instance(
+                                  _memoryInfo.person.isEmptyString() ? '--' : _memoryInfo.person ?? '',
+                                  16.sp,
+                                  color: CommonColors.white.withOpacity(0.5),
+                                  fontWeight: CommonFontWeight.medium,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // 描述
+                        Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8.h),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Image.asset(Assets.commonFieldMemo, width: 32.w, height: 32.w),
+                                  SizedBox(width: 8.w),
+                                  if (_memoryInfo.memo.isEmptyString())
+                                    CommonText.instance(
+                                      '--',
+                                      16.sp,
+                                      color: CommonColors.white.withOpacity(0.5),
+                                      fontWeight: CommonFontWeight.medium,
+                                    ),
+                                ],
+                              ),
+
+                              if (_memoryInfo.memo.isNotEmptyString()) ...[
+                                SizedBox(height: 8.h),
+                                Container(
+                                  width: double.infinity,
+                                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+                                  decoration: BoxDecoration(
+                                    color: CommonColors.white.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(24.r),
+                                  ),
+                                  child: CommonText.instance(
+                                    _memoryInfo.memo!,
+                                    16.sp,
+                                    color: CommonColors.white.withOpacity(0.5),
+                                    fontWeight: CommonFontWeight.medium,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),

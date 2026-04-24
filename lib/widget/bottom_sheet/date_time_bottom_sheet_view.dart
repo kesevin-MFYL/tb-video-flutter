@@ -100,7 +100,7 @@ class DateTimeBottomSheetView extends StatelessWidget {
   static void show({DateTime? initialDate, ValueChanged<DateTime>? onChanged}) {
     Get.bottomSheet(
       DateTimeBottomSheetView(initialDate: initialDate, onChanged: onChanged),
-      barrierColor: CommonColors.black.withOpacity(0.3),
+      barrierColor: CommonColors.black.withOpacity(0.5),
       ignoreSafeArea: true,
       isScrollControlled: true,
     );

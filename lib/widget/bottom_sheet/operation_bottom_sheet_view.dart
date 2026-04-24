@@ -88,7 +88,7 @@ class OperationBottomSheetView extends StatelessWidget {
   static void show({VoidCallback? editAction, VoidCallback? deleteAction}) {
     Get.bottomSheet(
       OperationBottomSheetView(editAction: editAction, deleteAction: deleteAction),
-      barrierColor: CommonColors.black.withOpacity(0.3),
+      barrierColor: CommonColors.black.withOpacity(0.5),
       ignoreSafeArea: true,
       isScrollControlled: true,
     );
