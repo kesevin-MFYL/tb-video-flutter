@@ -110,6 +110,7 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
                       Padding(
                         padding: EdgeInsets.symmetric(vertical: 8.h),
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Image.asset(Assets.commonFieldTitle, width: 32.w, height: 32.w),
                             SizedBox(width: 8.w),
@@ -134,7 +135,7 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
                             Expanded(
                               child: CommonText.instance(
                                 dateTime != null
-                                    ? "${dateTime!.year}-${dateTime!.month.toString().padLeft(2, '0')}-${dateTime!.day.toString().padLeft(2, '0')}"
+                                    ? "${dateTime!.month.toString().padLeft(2, '0')}.${dateTime!.day.toString().padLeft(2, '0')}.${dateTime!.year}"
                                     : '--',
                                 16.sp,
                                 color: CommonColors.white.withOpacity(0.5),
@@ -149,6 +150,7 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
                       Padding(
                         padding: EdgeInsets.symmetric(vertical: 8.h),
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Image.asset(Assets.commonFieldPerson, width: 32.w, height: 32.w),
                             SizedBox(width: 8.w),

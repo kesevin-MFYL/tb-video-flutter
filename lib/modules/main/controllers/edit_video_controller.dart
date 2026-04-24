@@ -53,7 +53,7 @@ class EditVideoController extends BaseController {
         if (initialMemoryInfo!.videoTime != null) {
           chooseDate = DateTime.fromMillisecondsSinceEpoch(initialMemoryInfo!.videoTime!);
           dateController.text =
-              "${chooseDate!.year}-${chooseDate!.month.toString().padLeft(2, '0')}-${chooseDate!.day.toString().padLeft(2, '0')}";
+              "${chooseDate!.month.toString().padLeft(2, '0')}.${chooseDate!.day.toString().padLeft(2, '0')}.${chooseDate!.year}";
         }
 
         checkSaveBtnEnabled();
@@ -265,7 +265,7 @@ class EditVideoController extends BaseController {
       onChanged: (date) {
         chooseDate = date;
         dateController.text =
-            "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+            "${date.month.toString().padLeft(2, '0')}.${date.day.toString().padLeft(2, '0')}.${date.year}";
       },
     );
   }
