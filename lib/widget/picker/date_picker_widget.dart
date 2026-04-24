@@ -62,9 +62,9 @@ class _DatePickerWidgetState extends State<DatePickerWidget> {
 
     computeDay(animate: false);
 
-    monthController = PageController(viewportFraction: 48 / 240, initialPage: currentMonth - 1);
-    dayController = PageController(viewportFraction: 48 / 240, initialPage: currentDay - 1);
-    yearController = PageController(viewportFraction: 48 / 240, initialPage: currentYear - minYear);
+    monthController = PageController(viewportFraction: 40 / 184, initialPage: currentMonth - 1);
+    dayController = PageController(viewportFraction: 40 / 184, initialPage: currentDay - 1);
+    yearController = PageController(viewportFraction: 40 / 184, initialPage: currentYear - minYear);
   }
 
   void computeDay({bool animate = true}) {
@@ -106,13 +106,13 @@ class _DatePickerWidgetState extends State<DatePickerWidget> {
     return Column(
       children: [
         Container(
-          height: 240,
+          height: 184,
           padding: EdgeInsets.symmetric(horizontal: 16.w),
           child: Stack(
             alignment: Alignment.center,
             children: [
               Container(
-                height: 48.h,
+                height: 40.h,
                 decoration: BoxDecoration(
                   color: CommonColors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(20.r),
@@ -214,11 +214,11 @@ class _DatePickerWidgetState extends State<DatePickerWidget> {
                 right: 0,
                 child: IgnorePointer(
                   child: Container(
-                    height: 48.h,
+                    height: 40.h,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [CommonColors.color333333.withAlpha((255 * 0.5).toInt()), CommonColors.color333333],
-                        begin: Alignment.bottomCenter,
+                        begin: Alignment.center,
                         end: Alignment.topCenter,
                       ),
                     ),
@@ -231,12 +231,12 @@ class _DatePickerWidgetState extends State<DatePickerWidget> {
                 right: 0,
                 child: IgnorePointer(
                   child: Container(
-                    height: 48.h,
+                    height: 40.h,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [CommonColors.color333333, CommonColors.color333333.withAlpha((255 * 0.5).toInt())],
-                        begin: Alignment.bottomCenter,
-                        end: Alignment.topCenter,
+                        colors: [CommonColors.color333333.withAlpha((255 * 0.5).toInt()), CommonColors.color333333],
+                        begin: Alignment.center,
+                        end: Alignment.bottomCenter,
                       ),
                     ),
                   ),
