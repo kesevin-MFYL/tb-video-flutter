@@ -18,66 +18,69 @@ class OperationBottomSheetView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(top: 20.h, bottom: safeAreaBottomDistance(20.h)),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.only(topLeft: Radius.circular(32.h), topRight: Radius.circular(32.h)),
-        color: CommonColors.primaryColor,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          CommonButton(
-            minSize: 0,
-            borderRadius: BorderRadius.zero,
-            suffixDirectional: SuffixDirectional.top,
-            spacing: 8.h,
-            suffixWidget: ClipOval(
-              child: Container(
+    return Padding(
+      padding: EdgeInsets.only(bottom: safeAreaEdgeInsets.bottom),
+      child: Container(
+        padding: EdgeInsets.only(top: 20.h, bottom: 20.h),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.only(topLeft: Radius.circular(32.h), topRight: Radius.circular(32.h)),
+          color: CommonColors.primaryColor,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            CommonButton(
+              minSize: 0,
+              borderRadius: BorderRadius.zero,
+              suffixDirectional: SuffixDirectional.top,
+              spacing: 8.h,
+              suffixWidget: ClipOval(
+                child: Container(
+                  color: CommonColors.color060600,
+                  alignment: Alignment.center,
+                  width: 54.w,
+                  height: 54.w,
+                  child: Image.asset(Assets.commonVideoEdit, width: 32.w, height: 32.w),
+                ),
+              ),
+              onPressed: () {
+                Get.back();
+                editAction?.call();
+              },
+              child: CommonText.instance(
+                'Edit',
+                14.sp,
                 color: CommonColors.color060600,
-                alignment: Alignment.center,
-                width: 54.w,
-                height: 54.w,
-                child: Image.asset(Assets.commonVideoEdit, width: 32.w, height: 32.w),
+                fontWeight: CommonFontWeight.bold,
               ),
             ),
-            onPressed: () {
-              Get.back();
-              editAction?.call();
-            },
-            child: CommonText.instance(
-              'Edit',
-              14.sp,
-              color: CommonColors.color060600,
-              fontWeight: CommonFontWeight.bold,
-            ),
-          ),
-          CommonButton(
-            minSize: 0,
-            borderRadius: BorderRadius.zero,
-            suffixDirectional: SuffixDirectional.top,
-            spacing: 8.h,
-            suffixWidget: ClipOval(
-              child: Container(
-                color: CommonColors.colorD43364,
-                alignment: Alignment.center,
-                width: 54.w,
-                height: 54.w,
-                child: Image.asset(Assets.commonVideoDeleteWhite, width: 32.w, height: 32.w),
+            CommonButton(
+              minSize: 0,
+              borderRadius: BorderRadius.zero,
+              suffixDirectional: SuffixDirectional.top,
+              spacing: 8.h,
+              suffixWidget: ClipOval(
+                child: Container(
+                  color: CommonColors.colorD43364,
+                  alignment: Alignment.center,
+                  width: 54.w,
+                  height: 54.w,
+                  child: Image.asset(Assets.commonVideoDeleteWhite, width: 32.w, height: 32.w),
+                ),
+              ),
+              onPressed: () {
+                Get.back();
+                deleteAction?.call();
+              },
+              child: CommonText.instance(
+                'Delete',
+                14.sp,
+                color: CommonColors.color060600,
+                fontWeight: CommonFontWeight.bold,
               ),
             ),
-            onPressed: () {
-              Get.back();
-              deleteAction?.call();
-            },
-            child: CommonText.instance(
-              'Delete',
-              14.sp,
-              color: CommonColors.color060600,
-              fontWeight: CommonFontWeight.bold,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -30,6 +30,7 @@ class Assets {
   static const String commonSaveEnable = 'assets/images/common/save_enable.png';
   static const String commonSettingOff = 'assets/images/common/setting_off.png';
   static const String commonVideoPause = 'assets/images/common/video_pause.png';
+  static const String commonAddVideoBg = 'assets/images/common/add_video_bg.png';
   static const String commonFieldPerson = 'assets/images/common/field_person.png';
   static const String commonTabSelected = 'assets/images/common/tab_selected.png';
   static const String commonVideoDelete = 'assets/images/common/video_delete.png';

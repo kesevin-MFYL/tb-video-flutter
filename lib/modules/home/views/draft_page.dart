@@ -28,7 +28,7 @@ class _DraftPageState extends State<DraftPage> with AutomaticKeepAliveClientMixi
             hasAppBar: false,
             currentStatus: controller.multiStatusType,
             child: GridView.builder(
-              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 12.h),
+              padding: EdgeInsets.only(left: 8.w, top: 12.h, right: 8.w, bottom: 50.h),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 crossAxisSpacing: 15.w,

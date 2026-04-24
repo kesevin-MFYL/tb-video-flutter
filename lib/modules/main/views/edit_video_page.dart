@@ -3,6 +3,7 @@ import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/modules/common/page/video_view_with_edit.dart';
 import 'package:editvideo/modules/main/controllers/edit_video_controller.dart';
 import 'package:editvideo/utils/common_ui.dart';
+import 'package:editvideo/utils/common_values.dart';
 import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/button/common_button.dart';
 import 'package:editvideo/widget/custom_text_field.dart';
@@ -21,6 +22,7 @@ class EditVideoPage extends StatelessWidget {
       builder: (controller) {
         return PageBase(
           title: 'Edit content',
+          resizeToAvoidBottomInset: false,
           leadingAction: () => controller.toback(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -40,6 +42,9 @@ class EditVideoPage extends StatelessWidget {
                               color: CommonColors.color333333,
                               borderRadius: BorderRadius.circular(24.r),
                               border: Border.all(color: CommonColors.primaryColor, width: 1.w),
+                              image: controller.videoInfo == null
+                                  ? DecorationImage(fit: BoxFit.cover, image: AssetImage(Assets.commonAddVideoBg))
+                                  : null,
                             ),
                             child: Stack(
                               children: [
@@ -144,24 +149,27 @@ class EditVideoPage extends StatelessWidget {
 
               Obx(() {
                 final enable = controller.saveEnable.value;
-                return CommonButton(
-                  minSize: 48.h,
-                  borderRadius: BorderRadius.zero,
-                  disabledColor: CommonColors.color333333,
-                  color: CommonColors.primaryColor,
-                  suffixDirectional: SuffixDirectional.left,
-                  suffixWidget: Image.asset(
-                    enable ? Assets.commonSaveEnable : Assets.commonSaveUnenable,
-                    width: 24.w,
-                    height: 24.w,
-                  ),
-                  spacing: 8.w,
-                  onPressed: enable ? controller.save : null,
-                  child: CommonText.instance(
-                    'Save',
-                    20.sp,
-                    color: enable ? CommonColors.color060600 : CommonColors.color666666,
-                    fontWeight: CommonFontWeight.bold,
+                return Padding(
+                  padding: EdgeInsets.only(bottom: safeAreaEdgeInsets.bottom),
+                  child: CommonButton(
+                    minSize: 62.h,
+                    borderRadius: BorderRadius.zero,
+                    disabledColor: CommonColors.color333333,
+                    color: CommonColors.primaryColor,
+                    suffixDirectional: SuffixDirectional.left,
+                    suffixWidget: Image.asset(
+                      enable ? Assets.commonSaveEnable : Assets.commonSaveUnenable,
+                      width: 24.w,
+                      height: 24.w,
+                    ),
+                    spacing: 8.w,
+                    onPressed: enable ? controller.save : null,
+                    child: CommonText.instance(
+                      'Save',
+                      20.sp,
+                      color: enable ? CommonColors.color060600 : CommonColors.color666666,
+                      fontWeight: CommonFontWeight.bold,
+                    ),
                   ),
                 );
               }),
