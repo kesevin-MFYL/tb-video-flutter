@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../config/color/colors.dart';
 
-class CustomTextField extends StatelessWidget {
+class CustomTextField extends StatefulWidget {
   final Widget? prefixIcon;
   final Widget? suffixIcon;
   final String? hintText;
@@ -30,34 +30,53 @@ class CustomTextField extends StatelessWidget {
   });
 
   @override
+  State<CustomTextField> createState() => _CustomTextFieldState();
+}
+
+class _CustomTextFieldState extends State<CustomTextField> {
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
-      onTap: onTap,
+      onTap: widget.onTap,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
           Container(
-            padding: EdgeInsets.only(left: 16.w, top: suffixIcon != null ? 19.h : 22.h, right: 16.w, bottom: suffixIcon != null ? 19.h : 21.h),
+            padding: EdgeInsets.only(
+              left: 16.w,
+              top: widget.suffixIcon != null ? 19.h : 22.h,
+              right: 16.w,
+              bottom: widget.suffixIcon != null ? 19.h : 21.h,
+            ),
             decoration: BoxDecoration(
               color: CommonColors.color333333,
               borderRadius: BorderRadius.circular(24.r),
-              border: Border.all(color: isRequired ? CommonColors.primaryColor : Colors.transparent, width: 1.5),
+              border: Border.all(color: widget.isRequired ? CommonColors.primaryColor : Colors.transparent, width: 1.5),
             ),
             child: Row(
               children: [
                 Expanded(
                   child: TextField(
-                    controller: controller,
-                    onChanged: onChanged,
-                    keyboardType: keyboardType,
-                    readOnly: readOnly,
-                    maxLines: maxLines,
-                    enabled: !readOnly,
+                    controller: widget.controller,
+                    focusNode: _focusNode,
+                    onChanged: widget.onChanged,
+                    keyboardType: widget.keyboardType,
+                    readOnly: widget.readOnly,
+                    maxLines: widget.maxLines,
+                    enabled: !widget.readOnly,
                     style: CommonTextStyle.instance(16.sp, fontWeight: CommonFontWeight.bold),
                     decoration: InputDecoration(
                       border: InputBorder.none,
-                      hintText: hintText,
+                      hintText: widget.hintText,
                       hintStyle: CommonTextStyle.instance(
                         16.sp,
                         color: CommonColors.color666666,
@@ -69,11 +88,25 @@ class CustomTextField extends StatelessWidget {
                     cursorColor: CommonColors.primaryColor,
                   ),
                 ),
-                if (suffixIcon != null) ...[const SizedBox(width: 12), suffixIcon!],
+                if (widget.suffixIcon != null) ...[
+                  const SizedBox(width: 12),
+                  GestureDetector(
+                    onTap: () {
+                      if (widget.onTap != null) {
+                        widget.onTap!();
+                        return;
+                      }
+                      if (!_focusNode.hasFocus) {
+                        _focusNode.requestFocus();
+                      }
+                    },
+                    child: widget.suffixIcon!,
+                  ),
+                ],
               ],
             ),
           ),
-          if (prefixIcon != null) Positioned(left: 10.w, top: -20.w, child: prefixIcon!),
+          if (widget.prefixIcon != null) Positioned(left: 10.w, top: -20.w, child: widget.prefixIcon!),
         ],
       ),
     );
