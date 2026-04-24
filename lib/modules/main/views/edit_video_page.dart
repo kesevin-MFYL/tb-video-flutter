@@ -1,7 +1,6 @@
-import 'dart:io';
-
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/generated/assets.dart';
+import 'package:editvideo/modules/common/page/video_view_with_edit.dart';
 import 'package:editvideo/modules/main/controllers/edit_video_controller.dart';
 import 'package:editvideo/utils/common_ui.dart';
 import 'package:editvideo/utils/text_extension.dart';
@@ -70,41 +69,15 @@ class EditVideoPage extends StatelessWidget {
                                     child: Image.asset(Assets.commonTakeVideoTips, width: 24.w, height: 24.w),
                                   ),
                                 ] else ...[
-                                  if (controller.videoInfo!.thumbnailPath != null)
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(24.r),
-                                      child: Image.file(
-                                        File(controller.videoInfo!.thumbnailPath!),
-                                        width: double.infinity,
-                                        height: double.infinity,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) {
-                                          return Center(
-                                            child: Image.asset(
-                                              Assets.commonIconVideoError,
-                                              width: 80.w,
-                                              height: 80.w,
-                                              fit: BoxFit.cover,
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-
                                   if (controller.isThumbnailLoading)
                                     Center(child: loadingIndicator(size: 24.w, strokeWidth: 1.5))
-                                  else if (controller.videoInfo!.thumbnailPath == null)
-                                    Center(
-                                      child: Image.asset(
-                                        Assets.commonIconVideoError,
-                                        width: 80.w,
-                                        height: 80.w,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    )
                                   else
-                                    Center(
-                                      child: Image.asset(Assets.commonVideoPlayBig, width: 48.w, height: 48.w),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(24.r),
+                                      child: VideoViewWithEdit(
+                                        videoUrl: controller.videoInfo!.path!,
+                                        thumbPath: controller.videoInfo!.thumbnailPath,
+                                      ),
                                     ),
                                 ],
                               ],
