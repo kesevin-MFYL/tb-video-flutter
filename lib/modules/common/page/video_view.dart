@@ -244,8 +244,8 @@ class VideoViewState extends State<VideoView> {
                 if (widget.isFullScreen)
                   Positioned(
                     top: 20,
-                    left: 32,
-                    right: 32,
+                    left: 56,
+                    right: 56,
                     child: Row(
                       children: [
                         GestureDetector(
@@ -275,8 +275,9 @@ class VideoViewState extends State<VideoView> {
                             _videoPlayerController.value.isPlaying
                                 ? Assets.commonVideoPause
                                 : Assets.commonVideoPlayBig,
-                            width: 48,
-                            height: 48,
+                            width: widget.isFullScreen ? 64 : 48,
+                            height: widget.isFullScreen ? 64 : 48,
+                            fit: BoxFit.cover,
                           ),
                         )
                       : const SizedBox.shrink(),
@@ -284,9 +285,9 @@ class VideoViewState extends State<VideoView> {
 
                 // 底部操作栏
                 Positioned(
-                  bottom: widget.isFullScreen ? 16 : 8,
-                  left: widget.isFullScreen ? 32 : 16,
-                  right: widget.isFullScreen ? 32 : 16,
+                  bottom: widget.isFullScreen ? 32 : 8,
+                  left: widget.isFullScreen ? 56 : 16,
+                  right: widget.isFullScreen ? 56 : 16,
                   child: Row(
                     children: [
                       // 播放/暂停按钮
@@ -294,12 +295,13 @@ class VideoViewState extends State<VideoView> {
                         onTap: _togglePlay,
                         child: Image.asset(
                           _videoPlayerController.value.isPlaying ? Assets.commonIconPause : Assets.commonIconPlay,
-                          width: 24,
-                          height: 24,
+                          width: widget.isFullScreen ? 32 : 24,
+                          height: widget.isFullScreen ? 32 : 24,
+                          fit: BoxFit.cover,
                         ),
                       ),
 
-                      const SizedBox(width: 10),
+                      SizedBox(width: widget.isFullScreen ? 16 : 10),
 
                       // 时长、进度条
                       Expanded(
@@ -343,7 +345,7 @@ class VideoViewState extends State<VideoView> {
                               ],
                             ),
 
-                            const SizedBox(height: 2),
+                            SizedBox(height: widget.isFullScreen ? 4 : 2),
 
                             // 时长
                             Row(
@@ -352,14 +354,14 @@ class VideoViewState extends State<VideoView> {
                                 // 当前时长
                                 CommonText.instance(
                                   _formatDuration(_currentPosition),
-                                  10,
+                                  widget.isFullScreen ? 12 : 10,
                                   color: CommonColors.white,
                                   fontWeight: CommonFontWeight.medium,
                                 ),
                                 // 总时长
                                 CommonText.instance(
                                   _formatDuration(_totalDuration),
-                                  10,
+                                  widget.isFullScreen ? 12 : 10,
                                   color: CommonColors.white,
                                   fontWeight: CommonFontWeight.medium,
                                 ),
@@ -369,15 +371,15 @@ class VideoViewState extends State<VideoView> {
                         ),
                       ),
 
-                      const SizedBox(width: 10),
+                      SizedBox(width: widget.isFullScreen ? 16 : 10),
 
                       // 横屏、竖屏
                       GestureDetector(
                         onTap: widget.onToggleFullScreen,
                         child: Image.asset(
                           widget.isFullScreen ? Assets.commonIconPortrait : Assets.commonIconLandscape,
-                          width: 24,
-                          height: 24,
+                          width: widget.isFullScreen ? 28 : 24,
+                          height: widget.isFullScreen ? 28 : 24,
                         ),
                       ),
                     ],

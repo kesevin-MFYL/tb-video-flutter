@@ -117,10 +117,14 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
                               Image.asset(Assets.commonFieldTitle, width: 32.w, height: 32.w),
                               SizedBox(width: 8.w),
                               Expanded(
-                                child: CommonText.instance(
-                                  _memoryInfo.title ?? '--',
-                                  16.sp,
-                                  fontWeight: CommonFontWeight.bold,
+                                child: Padding(
+                                  padding: EdgeInsets.only(top: 7.h),
+                                  child: CommonText.instance(
+                                    _memoryInfo.title ?? '--',
+                                    16.sp,
+                                    fontWeight: CommonFontWeight.bold,
+                                    height: 1.2,
+                                  ),
                                 ),
                               ),
                             ],
@@ -157,11 +161,15 @@ class _PlayVideoPageState extends State<PlayVideoPage> {
                               Image.asset(Assets.commonFieldPerson, width: 32.w, height: 32.w),
                               SizedBox(width: 8.w),
                               Expanded(
-                                child: CommonText.instance(
-                                  _memoryInfo.person.isEmptyString() ? '--' : _memoryInfo.person ?? '',
-                                  16.sp,
-                                  color: CommonColors.white.withOpacity(0.5),
-                                  fontWeight: CommonFontWeight.medium,
+                                child: Padding(
+                                  padding: EdgeInsets.only(top: 7.h),
+                                  child: CommonText.instance(
+                                    _memoryInfo.person.isEmptyString() ? '--' : _memoryInfo.person ?? '',
+                                    16.sp,
+                                    color: CommonColors.white.withOpacity(0.5),
+                                    fontWeight: CommonFontWeight.medium,
+                                    height: 1.1,
+                                  ),
                                 ),
                               ),
                             ],
