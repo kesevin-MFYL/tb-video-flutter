@@ -20,6 +20,10 @@ class EditVideoPage extends StatelessWidget {
     return GetBuilder<EditVideoController>(
       init: EditVideoController(),
       builder: (controller) {
+        final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+        final saveBtnHeight = 62.h + safeAreaEdgeInsets.bottom;
+        final scrollPaddingBottom = bottomInset > saveBtnHeight ? bottomInset - saveBtnHeight : 0.0;
+
         return PageBase(
           title: 'Edit content',
           resizeToAvoidBottomInset: false,
@@ -28,121 +32,124 @@ class EditVideoPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          Container(
-                            height: 150.h,
-                            decoration: BoxDecoration(
-                              color: CommonColors.color333333,
-                              borderRadius: BorderRadius.circular(24.r),
-                              border: Border.all(color: CommonColors.primaryColor, width: 1.w),
-                              image: controller.videoInfo == null
-                                  ? DecorationImage(fit: BoxFit.cover, image: AssetImage(Assets.commonAddVideoBg))
-                                  : null,
-                            ),
-                            child: Stack(
-                              children: [
-                                if (controller.videoInfo == null) ...[
-                                  Center(
-                                    child: CommonButton(
-                                      minSize: 0,
-                                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
-                                      borderRadius: BorderRadius.circular(16.r),
-                                      color: CommonColors.primaryColor,
-                                      suffixDirectional: SuffixDirectional.left,
-                                      spacing: 8.w,
-                                      suffixWidget: Image.asset(Assets.commonTakeVideo, width: 24.w, height: 24.w),
-                                      onPressed: () => controller.pickVideo(),
-                                      child: CommonText.instance(
-                                        'Upload video',
-                                        14.sp,
-                                        color: CommonColors.color060600,
-                                        fontWeight: CommonFontWeight.semiBold,
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: scrollPaddingBottom),
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Container(
+                              height: 150.h,
+                              decoration: BoxDecoration(
+                                color: CommonColors.color333333,
+                                borderRadius: BorderRadius.circular(24.r),
+                                border: Border.all(color: CommonColors.primaryColor, width: 1.w),
+                                image: controller.videoInfo == null
+                                    ? DecorationImage(fit: BoxFit.cover, image: AssetImage(Assets.commonAddVideoBg))
+                                    : null,
+                              ),
+                              child: Stack(
+                                children: [
+                                  if (controller.videoInfo == null) ...[
+                                    Center(
+                                      child: CommonButton(
+                                        minSize: 0,
+                                        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+                                        borderRadius: BorderRadius.circular(16.r),
+                                        color: CommonColors.primaryColor,
+                                        suffixDirectional: SuffixDirectional.left,
+                                        spacing: 8.w,
+                                        suffixWidget: Image.asset(Assets.commonTakeVideo, width: 24.w, height: 24.w),
+                                        onPressed: () => controller.pickVideo(),
+                                        child: CommonText.instance(
+                                          'Upload video',
+                                          14.sp,
+                                          color: CommonColors.color060600,
+                                          fontWeight: CommonFontWeight.semiBold,
+                                        ),
                                       ),
                                     ),
-                                  ),
 
-                                  Positioned(
-                                    right: 12.w,
-                                    bottom: 16.h,
-                                    child: Image.asset(Assets.commonTakeVideoTips, width: 24.w, height: 24.w),
-                                  ),
-                                ] else ...[
-                                  if (controller.isThumbnailLoading)
-                                    Center(child: loadingIndicator(size: 24.w, strokeWidth: 1.5))
-                                  else
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(24.r),
-                                      child: VideoViewWithEdit(
-                                        videoUrl: controller.videoInfo!.path!,
-                                        thumbPath: controller.videoInfo!.thumbnailPath,
-                                      ),
+                                    Positioned(
+                                      right: 12.w,
+                                      bottom: 16.h,
+                                      child: Image.asset(Assets.commonTakeVideoTips, width: 24.w, height: 24.w),
                                     ),
+                                  ] else ...[
+                                    if (controller.isThumbnailLoading)
+                                      Center(child: loadingIndicator(size: 24.w, strokeWidth: 1.5))
+                                    else
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(24.r),
+                                        child: VideoViewWithEdit(
+                                          videoUrl: controller.videoInfo!.path!,
+                                          thumbPath: controller.videoInfo!.thumbnailPath,
+                                        ),
+                                      ),
+                                  ],
                                 ],
-                              ],
-                            ),
-                          ),
-
-                          if (controller.videoInfo != null)
-                            Positioned(
-                              right: -6.w,
-                              top: -6.h,
-                              child: CommonButton(
-                                minSize: 0,
-                                borderRadius: BorderRadius.zero,
-                                onPressed: () {
-                                  controller.deleteVideo();
-                                },
-                                child: Image.asset(Assets.commonVideoDelete, width: 24.w, height: 24.w),
                               ),
                             ),
-                        ],
-                      ),
 
-                      SizedBox(height: 52.h),
-                      CustomTextField(
-                        controller: controller.titleController,
-                        hintText: 'Title',
-                        prefixIcon: Image.asset(Assets.commonFieldTitle, width: 40.w, height: 40.w),
-                        suffixIcon: Image.asset(Assets.commonTakeVideoTips, width: 24.w, height: 24.w),
-                        isRequired: true,
-                        onChanged: (value) => controller.checkSaveBtnEnabled(),
-                      ),
+                            if (controller.videoInfo != null)
+                              Positioned(
+                                right: -6.w,
+                                top: -6.h,
+                                child: CommonButton(
+                                  minSize: 0,
+                                  borderRadius: BorderRadius.zero,
+                                  onPressed: () {
+                                    controller.deleteVideo();
+                                  },
+                                  child: Image.asset(Assets.commonVideoDelete, width: 24.w, height: 24.w),
+                                ),
+                              ),
+                          ],
+                        ),
 
-                      SizedBox(height: 30.h),
-                      CustomTextField(
-                        controller: controller.dateController,
-                        hintText: 'Date',
-                        prefixIcon: Image.asset(Assets.commonFieldDate, width: 40.w, height: 40.w),
-                        suffixIcon: Image.asset(Assets.commonArrowDown, width: 24.w, height: 24.w),
-                        isRequired: true,
-                        readOnly: true,
-                        onTap: controller.showDateTimePicker,
-                      ),
+                        SizedBox(height: 52.h),
+                        CustomTextField(
+                          controller: controller.titleController,
+                          hintText: 'Title',
+                          prefixIcon: Image.asset(Assets.commonFieldTitle, width: 40.w, height: 40.w),
+                          suffixIcon: Image.asset(Assets.commonTakeVideoTips, width: 24.w, height: 24.w),
+                          isRequired: true,
+                          onChanged: (value) => controller.checkSaveBtnEnabled(),
+                        ),
 
-                      SizedBox(height: 30.h),
-                      CustomTextField(
-                        controller: controller.personController,
-                        hintText: 'Person',
-                        prefixIcon: Image.asset(Assets.commonFieldPerson, width: 40.w, height: 40.w),
-                      ),
+                        SizedBox(height: 30.h),
+                        CustomTextField(
+                          controller: controller.dateController,
+                          hintText: 'Date',
+                          prefixIcon: Image.asset(Assets.commonFieldDate, width: 40.w, height: 40.w),
+                          suffixIcon: Image.asset(Assets.commonArrowDown, width: 24.w, height: 24.w),
+                          isRequired: true,
+                          readOnly: true,
+                          onTap: controller.showDateTimePicker,
+                        ),
 
-                      SizedBox(height: 30.h),
-                      CustomTextField(
-                        controller: controller.memoController,
-                        maxLines: null,
-                        hintText: 'Memo',
-                        prefixIcon: Image.asset(Assets.commonFieldMemo, width: 40.w, height: 40.w),
-                      ),
+                        SizedBox(height: 30.h),
+                        CustomTextField(
+                          controller: controller.personController,
+                          hintText: 'Person',
+                          prefixIcon: Image.asset(Assets.commonFieldPerson, width: 40.w, height: 40.w),
+                        ),
 
-                      SizedBox(height: 22.h),
-                    ],
+                        SizedBox(height: 30.h),
+                        CustomTextField(
+                          controller: controller.memoController,
+                          maxLines: null,
+                          hintText: 'Memo',
+                          prefixIcon: Image.asset(Assets.commonFieldMemo, width: 40.w, height: 40.w),
+                        ),
+
+                        SizedBox(height: 32.h),
+                      ],
+                    ),
                   ),
                 ),
               ),
