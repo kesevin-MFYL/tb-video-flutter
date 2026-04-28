@@ -25,6 +25,9 @@ dependencies:
   url_launcher: ^6.3.2 #启动链接
   image_picker: ^1.2.1 #图片选择
   wakelock_plus: ^1.2.8 #屏幕常亮
+  firebase_crashlytics: ^5.2.0
+  firebase_analytics: ^12.3.0
+  firebase_core: ^4.7.0
 
 dev_dependencies:
   flutter_test:
