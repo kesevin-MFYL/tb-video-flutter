@@ -3,6 +3,7 @@ import 'package:editvideo/generated/assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:video_player/video_player.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 class VideoViewWithEdit extends StatefulWidget {
   final String videoUrl;
@@ -17,6 +18,8 @@ class VideoViewWithEdit extends StatefulWidget {
 class VideoViewWithEditState extends State<VideoViewWithEdit> {
   late VideoPlayerController _videoPlayerController;
   var _isInitialized = false;
+
+  bool _isPlaying = false;
 
   @override
   void initState() {
@@ -51,6 +54,18 @@ class VideoViewWithEditState extends State<VideoViewWithEdit> {
   /// 视频播放监听
   void _videoListener() {
     if (!_isInitialized || !mounted) return;
+
+    final isPlaying = _videoPlayerController.value.isPlaying;
+
+    if (_isPlaying != isPlaying) {
+      _isPlaying = isPlaying;
+      if (_isPlaying) {
+        WakelockPlus.enable();
+      } else {
+        WakelockPlus.disable();
+      }
+    }
+
     if (_videoPlayerController.value.isCompleted) {
       setState(() {});
     }
@@ -73,6 +88,7 @@ class VideoViewWithEditState extends State<VideoViewWithEdit> {
 
   @override
   void dispose() {
+    WakelockPlus.disable();
     _videoPlayerController.removeListener(_videoListener);
     _videoPlayerController.dispose();
     super.dispose();
