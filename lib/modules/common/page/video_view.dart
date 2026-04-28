@@ -6,6 +6,7 @@ import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/utils/text_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 class VideoView extends StatefulWidget {
   final String videoUrl;
@@ -42,6 +43,8 @@ class VideoViewState extends State<VideoView> {
 
   /// 隐藏操作栏计时器
   Timer? _hideTimer;
+
+  bool _isPlaying = false;
 
   @override
   void initState() {
@@ -98,6 +101,17 @@ class VideoViewState extends State<VideoView> {
     if (!_isInitialized || !mounted) return;
 
     final currentPosition = _videoPlayerController.value.position;
+    final isPlaying = _videoPlayerController.value.isPlaying;
+    
+    if (_isPlaying != isPlaying) {
+      _isPlaying = isPlaying;
+      if (_isPlaying) {
+        WakelockPlus.enable();
+      } else {
+        WakelockPlus.disable();
+      }
+    }
+
     setState(() {
       // 更新当前播放进度
       _currentPosition = currentPosition;
@@ -180,6 +194,7 @@ class VideoViewState extends State<VideoView> {
 
   @override
   void dispose() {
+    WakelockPlus.disable();
     _videoPlayerController.removeListener(_videoListener);
     _videoPlayerController.dispose();
     _cancelHideTimer();
