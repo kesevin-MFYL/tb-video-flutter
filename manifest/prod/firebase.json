@@ -1,0 +1,21 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "movix-and",
+          "appId": "1:731880294848:android:971803bb269f66ab8da025",
+          "fileOutput": "android/app/google-services.json"
+        }
+      }
+    },
+    "dart": {
+      "lib/firebase_options.dart": {
+        "projectId": "movix-and",
+        "configurations": {
+          "android": "1:731880294848:android:971803bb269f66ab8da025"
+        }
+      }
+    }
+  }
+}

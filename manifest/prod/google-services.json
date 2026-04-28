@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "731880294848",
+    "project_id": "movix-and",
+    "storage_bucket": "movix-and.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:731880294848:android:971803bb269f66ab8da025",
+        "android_client_info": {
+          "package_name": "com.movix.editvideo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC-X__20cjHbs_QO5bFy3FjKEjoGJjdZdY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
