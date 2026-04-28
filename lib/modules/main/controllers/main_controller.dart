@@ -2,7 +2,6 @@ import 'package:editvideo/base/base_controller.dart';
 import 'package:editvideo/modules/home/views/home_page.dart';
 import 'package:editvideo/modules/setting/views/setting_page.dart';
 import 'package:editvideo/routes/app_routes.dart';
-import 'package:editvideo/utils/permission_util.dart';
 import 'package:editvideo/utils/storage.dart';
 import 'package:get/get.dart';
 
@@ -16,8 +15,8 @@ class MainController extends BaseController {
     super.onInit();
     final isFirstOpen = Storage.getFirstOpen();
     if (!(isFirstOpen ?? false)) {
-      await PermissionUtils.videos();
-      Storage.setFirstOpen(true);
+      // await PermissionUtils.videos();
+      // Storage.setFirstOpen(true);
     }
   }
 

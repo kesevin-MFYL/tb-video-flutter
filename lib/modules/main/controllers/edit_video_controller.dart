@@ -7,7 +7,6 @@ import 'package:editvideo/models/video_info.dart';
 import 'package:editvideo/modules/home/controllers/draft_controller.dart';
 import 'package:editvideo/modules/home/controllers/my_memory_controller.dart';
 import 'package:editvideo/utils/extension.dart';
-import 'package:editvideo/utils/permission_util.dart';
 import 'package:editvideo/utils/storage.dart';
 import 'package:editvideo/widget/bottom_sheet/date_time_bottom_sheet_view.dart';
 import 'package:flutter/material.dart';
@@ -66,21 +65,13 @@ class EditVideoController extends BaseController {
   void pickVideo() async {
     unfocus();
 
-    /// 获取视频权限
-    final permission = await PermissionUtils.videos();
-    if (permission == false) return;
-
-    final assetEntity = await AssetManager.instance.pickVideos();
-    if (assetEntity != null) {
+    final xFile = await AssetManager.instance.pickVideos();
+    if (xFile != null) {
       isThumbnailLoading = true;
-      final file = await assetEntity.file;
-      final fileLength = await file?.length();
+      final fileLength = await xFile.length();
       videoInfo = VideoInfo(
-        width: assetEntity?.width ?? 0,
-        height: assetEntity?.height ?? 0,
-        duration: assetEntity?.duration ?? 0,
-        size: fileLength ?? 0,
-        path: file?.path ?? '',
+        size: fileLength,
+        path: xFile.path,
       );
       checkSaveBtnEnabled();
       update();
