@@ -101,68 +101,21 @@ class RemoteConfigManager {
 
   AdConfig? get config => _config;
 
-  static const String _defaultAdRulesJson = '''
-  {
-    "showCount": 100,
-    "sameInterval": 15,
-    "differentInterval": 30,
-    "timeOut": 10,
-    "openivtime": 30,
-    "PlayPointTime": 600,
-    "open": [
-      {
-        "adsource": "admob",
-        "adweight": 7,
-        "adtype": "rewarded",
-        "placementid": "ca-app-pub-4055761602240548/77886310xx"
-      },
-      {
-        "adsource": "admob",
-        "adweight": 6,
-        "adtype": "open",
-        "placementid": "ca-app-pub-4055761602240548/7788xx1073"
-      }
-    ],
-    "behavior": [
-      {
-        "adsource": "admob",
-        "adweight": 5,
-        "adtype": "rewarded",
-        "placementid": "ca-app-pub-4055761602240548/778xx31073"
-      },
-      {
-        "adsource": "admob",
-        "adweight": 4,
-        "adtype": "interstitial",
-        "placementid": "ca-app-pub-405576160xx40548/7788631073"
-      }
-    ]
-  }
-  ''';
-
   Future<void> initialize() async {
     // 配置 Remote Config 的设置
     await _remoteConfig.setConfigSettings(RemoteConfigSettings(
-      // 设置获取配置的超时时间
-      fetchTimeout: const Duration(seconds: 10),
+      // 设置获取配置的超时时间为7秒
+      fetchTimeout: const Duration(seconds: 7),
       // 【关键】开发阶段：建议设置较短的间隔以便调试，例如 0 秒
       // 【重要】生产环境：务必遵循最低更新间隔为 1 小时 (3600 秒) 的官方建议，以避免性能问题
       minimumFetchInterval: kDebugMode
           ? const Duration(seconds: 0)
           : const Duration(hours: 1),
     ));
-
-    // 设置应用内默认参数值，确保在没有远程配置时也能运行
-    await _remoteConfig.setDefaults(const {
-      'ad_rules': _defaultAdRulesJson,
-    });
-
-    // 第一次启动时主动拉取并激活配置
-    await fetchAndActivateConfig();
   }
 
-  // 拉取并激活配置
-  Future<void> fetchAndActivateConfig() async {
+  // 拉取并激活配置，返回是否拉取并解析成功
+  Future<bool> fetchAndActivateConfig() async {
     try {
       // 从 Firebase 服务端拉取最新配置
       bool updated = await _remoteConfig.fetchAndActivate();
@@ -171,17 +124,16 @@ class RemoteConfigManager {
       } else {
         debugPrint("Remote config fetchAndActivate called, but no update.");
       }
-      // 无论是否有更新，都将 RemoteConfig 中的数据转换为 AdConfig 对象
-      _parseAndCacheConfig();
+      
+      // 无论是否有更新，都尝试将 RemoteConfig 中的数据转换为 AdConfig 对象
+      return _parseAndCacheConfig();
     } catch (e) {
       debugPrint("Failed to fetch and activate remote config: $e");
-      // 如果获取失败，尝试使用已有的缓存或默认值
-      _parseAndCacheConfig();
+      return false;
     }
   }
 
-  // 在 RemoteConfigService 类中
-  void _parseAndCacheConfig() {
+  bool _parseAndCacheConfig() {
     // 获取 JSON 字符串形式的配置
     final configString = _remoteConfig.getString('ad_rules');
     if (configString.isNotEmpty) {
@@ -191,34 +143,16 @@ class RemoteConfigManager {
         // 将 Map 转换为你的 AdConfig 模型类
         _config = AdConfig.fromJson(configMap);
         debugPrint("Ad config parsed and cached: ${_config?.toJson()}");
+        return true;
       } catch (e) {
         debugPrint("Error parsing ad config JSON: $e");
-        // 解析失败时回退到默认配置
-        _config = _getDefaultAdConfig();
+        _config = null;
+        return false;
       }
     } else {
-      // 如果没有获取到，使用默认配置
-      _config = _getDefaultAdConfig();
-    }
-  }
-
-  AdConfig _getDefaultAdConfig() {
-    try {
-      final Map<String, dynamic> defaultMap = jsonDecode(_defaultAdRulesJson);
-      return AdConfig.fromJson(defaultMap);
-    } catch (e) {
-      debugPrint("Error parsing default ad config JSON: $e");
-      // 返回一个安全的默认值
-      return AdConfig(
-        showCount: 100,
-        sameInterval: 15,
-        differentInterval: 30,
-        timeOut: 10,
-        openivtime: 30,
-        playPointTime: 600,
-        open: [],
-        behavior: [],
-      );
+      debugPrint("Ad config string is empty.");
+      _config = null;
+      return false;
     }
   }
 }

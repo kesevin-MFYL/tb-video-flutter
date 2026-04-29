@@ -33,11 +33,11 @@ class AppOpenAdManager {
   /// 通知 [AdManager] 继续尝试下一个优先级的配置项。
   void loadAdItem(String scenario, AdItem item, {required VoidCallback onFailed}) async {
     // 检查是否已经获得了用户的广告授权同意
-    var canRequestAds = await ConsentManager.instance.canRequestAds();
-    if (!canRequestAds) {
-      onFailed();
-      return;
-    }
+    // var canRequestAds = await ConsentManager.instance.canRequestAds();
+    // if (!canRequestAds) {
+    //   onFailed();
+    //   return;
+    // }
 
     AppOpenAd.load(
       adUnitId: item.placementid,

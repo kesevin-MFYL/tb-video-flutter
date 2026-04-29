@@ -88,14 +88,16 @@ class AdManager {
   /// 展示指定场景的广告
   ///
   /// 调用该方法时，调度器会检查内部哪个具体的广告管理器加载成功了，并调用其展示方法。
+  /// [onAdDismissed]：提供给最外部业务方使用的回调，在广告被用户关闭或因过期丢弃时触发，用于处理后续流程（如跳转主页）。
   /// **注意**：原生广告（NativeAd）通常是作为 Widget 嵌入 UI 中的，不适用此弹窗展示方法。
-  void showAdIfAvailable(String scenario) {
+  void showAdIfAvailable(String scenario, {VoidCallback? onAdDismissed}) {
     // 如果没有任何可用广告，则尝试重新发起一轮加载
     if (!isAdAvailable(scenario)) {
       debugPrint('Tried to show ad before available for scenario: $scenario.');
       if (_scenarioAdItems.containsKey(scenario) && _scenarioAdItems[scenario]!.isNotEmpty) {
         loadAd(scenario, _scenarioAdItems[scenario]!);
       }
+      if (onAdDismissed != null) onAdDismissed();
       return;
     }
 
@@ -104,6 +106,7 @@ class AdManager {
       if (_scenarioAdItems.containsKey(scenario) && _scenarioAdItems[scenario]!.isNotEmpty) {
         loadAd(scenario, _scenarioAdItems[scenario]!);
       }
+      if (onAdDismissed != null) onAdDismissed();
     }
 
     // 优先尝试展示能够全屏展示的开屏广告
@@ -117,6 +120,7 @@ class AdManager {
     // 如果是原生广告，只打印提示，因为它需要通过 UI Widget 进行渲染
     else if (NativeAdManager.instance.isAdLoaded(scenario)) {
       debugPrint('Native ad is loaded for scenario $scenario, please render it via UI Widget.');
+      if (onAdDismissed != null) onAdDismissed();
     }
   }
 }
