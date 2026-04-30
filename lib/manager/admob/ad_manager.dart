@@ -20,6 +20,15 @@ class AdManager {
   /// 缓存每个场景的广告配置列表，主要用于广告展示完毕（关闭）后，自动重新发起下一轮加载
   final Map<String, List<AdItem>> _scenarioAdItems = {};
 
+  void prepareAdItems(String scenario, List<AdItem> adItems) {
+    if (adItems.isEmpty) {
+      commonDebugPrint('AdManager: No valid ad items for scenario: $scenario');
+      return;
+    }
+    // 缓存当前场景配置
+    _scenarioAdItems[scenario] = adItems;
+  }
+
   /// 针对指定场景加载广告
   ///
   /// [scenario] 场景名称（例如：'open'、'behavior' 等）

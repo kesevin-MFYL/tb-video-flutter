@@ -1,4 +1,5 @@
 import 'package:editvideo/base/base_controller.dart';
+import 'package:editvideo/manager/admob/ad_manager.dart';
 import 'package:editvideo/modules/home/views/home_page.dart';
 import 'package:editvideo/modules/setting/views/setting_page.dart';
 import 'package:editvideo/routes/app_routes.dart';
@@ -21,11 +22,17 @@ class MainController extends BaseController {
   void tabChanged(int index) {
     if (currentIndex != index) {
       currentIndex = index;
+
+      if (currentIndex == 0) {
+        AdManager.instance.showAdIfAvailable('behavior');
+      }
       update();
     }
   }
 
   void addVideo() {
-    Get.toNamed(Routes.editVideo);
+    AdManager.instance.showAdIfAvailable('behavior', onAdDismissed: () {
+      Get.toNamed(Routes.editVideo);
+    });
   }
 }

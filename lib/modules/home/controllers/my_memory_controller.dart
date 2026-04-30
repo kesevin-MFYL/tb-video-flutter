@@ -1,4 +1,5 @@
 import 'package:editvideo/base/base_controller.dart';
+import 'package:editvideo/manager/admob/ad_manager.dart';
 import 'package:editvideo/models/memory_info.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/utils/storage.dart';
@@ -30,7 +31,9 @@ class MyMemoryController extends BaseController {
   void showOperation(MemoryInfo memoryInfo) {
     OperationBottomSheetView.show(
       editAction: () {
-        Get.toNamed(Routes.editVideo, arguments: {'memoryInfo': memoryInfo});
+        AdManager.instance.showAdIfAvailable('behavior', onAdDismissed: () {
+          Get.toNamed(Routes.editVideo, arguments: {'memoryInfo': memoryInfo});
+        });
       },
       deleteAction: () async {
         await Storage.deleteSavedMemory(memoryInfo.id ?? '');

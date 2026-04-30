@@ -37,7 +37,8 @@ class LaunchController extends GetxController {
     }
 
     final config = RemoteConfigManager().config!;
-    
+
+    // AdManager.instance.prepareAdItems('behavior', config.behavior);
     // 4. 根据配置分别加载 open 和 behavior 场景的广告
     AdManager.instance.loadAd('open', config.open);
     AdManager.instance.loadAd('behavior', config.behavior);

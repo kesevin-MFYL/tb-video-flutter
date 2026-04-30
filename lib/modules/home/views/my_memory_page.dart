@@ -1,3 +1,4 @@
+import 'package:editvideo/manager/admob/ad_manager.dart';
 import 'package:editvideo/modules/common/page/play_video_page.dart';
 import 'package:editvideo/modules/home/controllers/my_memory_controller.dart';
 import 'package:editvideo/modules/home/widget/video_cell.dart';
@@ -42,7 +43,9 @@ class _MyMemoryPageState extends State<MyMemoryPage> with AutomaticKeepAliveClie
                   memoryInfo: memoryInfo,
                   cellType: VideoCellType.memory,
                   videoAction: (memoryInfo, cellType) {
-                    PlayVideoPage.playVideo(memoryInfo: memoryInfo);
+                    AdManager.instance.showAdIfAvailable('behavior', onAdDismissed: () {
+                      PlayVideoPage.playVideo(memoryInfo: memoryInfo);
+                    });
                   },
                   operationAction: (memoryInfo, cellType) {
                     controller.showOperation(memoryInfo);
