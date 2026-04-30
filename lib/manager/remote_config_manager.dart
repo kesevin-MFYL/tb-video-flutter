@@ -45,6 +45,7 @@ class AdConfig {
   final int playPointTime;
   final List<AdItem> open;
   final List<AdItem> behavior;
+  final List<AdItem> nvhome;
 
   AdConfig({
     required this.showCount,
@@ -55,6 +56,7 @@ class AdConfig {
     required this.playPointTime,
     required this.open,
     required this.behavior,
+    required this.nvhome,
   });
 
   factory AdConfig.fromJson(Map<String, dynamic> json) {
@@ -75,6 +77,7 @@ class AdConfig {
       playPointTime: json['PlayPointTime'] as int? ?? 600,
       open: parseAndSort(json['open'] as List<dynamic>?),
       behavior: parseAndSort(json['behavior'] as List<dynamic>?),
+      nvhome: parseAndSort(json['NVhome'] as List<dynamic>?),
     );
   }
 
@@ -88,6 +91,7 @@ class AdConfig {
       'PlayPointTime': playPointTime,
       'open': open.map((e) => e.toJson()).toList(),
       'behavior': behavior.map((e) => e.toJson()).toList(),
+      'NVhome': nvhome.map((e) => e.toJson()).toList(),
     };
   }
 }
