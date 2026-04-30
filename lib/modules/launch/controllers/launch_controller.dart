@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 class LaunchController extends GetxController {
   bool _hasNavigatedToMain = false;
   Timer? _timeoutTimer;
+  Timer? _checkAdTimer;
 
   @override
   void onInit() {
@@ -47,33 +48,44 @@ class LaunchController extends GetxController {
     _tryShowOpenAd();
   }
 
-  void _tryShowOpenAd() async {
+  void _tryShowOpenAd() {
     // 循环检查 open 场景广告是否准备就绪，每隔 500 毫秒检查一次，直到超时
-    while (!_hasNavigatedToMain) {
-      if (AdManager.instance.isAdAvailable('open')) {
-        // 取消超时定时器，因为我们要开始展示广告了
-        _timeoutTimer?.cancel();
-        
-        AdManager.instance.showAdIfAvailable('open', onAdDismissed: () {
-          _navigateToMain();
-        });
-        return; // 退出检查循环
+    _checkAdTimer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
+      if (_hasNavigatedToMain) {
+        timer.cancel();
+        return;
       }
-      // 等待 500 毫秒后再次检查
-      await Future.delayed(const Duration(milliseconds: 500));
-    }
+
+      if (AdManager.instance.isAdAvailable('open')) {
+        // 取消超时定时器和检查定时器，因为我们要开始展示广告了
+        _timeoutTimer?.cancel();
+        timer.cancel();
+
+        debugPrint('LaunchController: Open ad is ready. Showing ad.');
+        AdManager.instance.showAdIfAvailable('open', onAdDismissed: () {
+          debugPrint('LaunchController: Open ad dismissed. Navigating to main.');
+          // 在原生全屏广告关闭时，给 Flutter 渲染一点恢复的缓冲时间（比如 100 毫秒）
+          // 否则可能会因为原生转场动画和 GetX 路由切换同时发生而导致界面僵死或延迟
+          // Future.delayed(const Duration(milliseconds: 100), () {
+            _navigateToMain();
+          // });
+        });
+      }
+    });
   }
 
   void _navigateToMain() {
     if (_hasNavigatedToMain) return;
     _hasNavigatedToMain = true;
     _timeoutTimer?.cancel();
+    _checkAdTimer?.cancel();
     Get.offAllNamed(Routes.main);
   }
 
   @override
   void onClose() {
     _timeoutTimer?.cancel();
+    _checkAdTimer?.cancel();
     super.onClose();
   }
 }
