@@ -22,6 +22,8 @@ class NativeAdManager {
   final Map<String, NativeAd> _nativeAds = {};
   /// 记录每个场景是否已成功加载原生广告
   final Map<String, bool> _isAdLoadedMap = {};
+  /// 记录每个场景是否正在加载原生广告中，防止重复发起请求
+  final Map<String, bool> _isAdLoadingMap = {};
 
   /// 缓存每个场景对应的加载成功回调，供 UI 层监听并重绘 Widget
   final Map<String, Function(String scenario)> onAdLoadedCallbacks = {};
@@ -57,6 +59,13 @@ class NativeAdManager {
     //   return;
     // }
 
+    if (isAdLoading(scenario)) {
+      commonDebugPrint('NativeAdManager: NativeAd for scenario $scenario is already loading. Ignored duplicate request.');
+      return;
+    }
+
+    _isAdLoadingMap[scenario] = true;
+
     final ad = NativeAd(
       adUnitId: item.placementid,
       listener: NativeAdListener(
@@ -65,6 +74,7 @@ class NativeAdManager {
           // 加载成功，记录广告实例和可用状态
           _nativeAds[scenario] = ad as NativeAd;
           _isAdLoadedMap[scenario] = true;
+          _isAdLoadingMap[scenario] = false;
           // 通知 UI 层广告已加载完毕，可以提取并渲染了
           if (onAdLoadedCallbacks.containsKey(scenario)) {
             onAdLoadedCallbacks[scenario]!(scenario);
@@ -74,6 +84,7 @@ class NativeAdManager {
           commonDebugPrint('NativeAdManager: NativeAd ${item.placementid} failed to load for scenario $scenario: $error');
           // 加载失败，释放废弃实例
           ad.dispose();
+          _isAdLoadingMap[scenario] = false;
           // 通知调度器继续尝试加载下一个配置
           onFailed();
         },
@@ -134,6 +145,11 @@ class NativeAdManager {
   /// 检查指定场景的原生广告是否已加载并可用
   bool isAdLoaded(String scenario) {
     return _isAdLoadedMap[scenario] ?? false;
+  }
+
+  /// 检查指定场景的原生广告是否正在加载中
+  bool isAdLoading(String scenario) {
+    return _isAdLoadingMap[scenario] ?? false;
   }
 
   /// 获取指定场景加载好的原生广告实例

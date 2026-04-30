@@ -25,6 +25,9 @@ class AppOpenAdManager {
   /// 缓存每个场景加载成功的广告实例
   final Map<String, AppOpenAd> _appOpenAds = {};
   
+  /// 记录每个场景是否正在加载中，防止重复发起请求
+  final Map<String, bool> _isAdLoadingMap = {};
+  
   /// 标记当前是否正在展示广告，防止重复展示
   bool _isShowingAd = false;
 
@@ -40,6 +43,13 @@ class AppOpenAdManager {
     //   return;
     // }
 
+    if (isAdLoading(scenario)) {
+      commonDebugPrint('AppOpenAdManager: AppOpenAd for scenario $scenario is already loading. Ignored duplicate request.');
+      return;
+    }
+
+    _isAdLoadingMap[scenario] = true;
+
     AppOpenAd.load(
       adUnitId: item.placementid,
       request: const AdRequest(),
@@ -49,9 +59,11 @@ class AppOpenAdManager {
           // 加载成功，记录加载时间和广告实例
           _appOpenLoadTimes[scenario] = DateTime.now();
           _appOpenAds[scenario] = ad;
+          _isAdLoadingMap[scenario] = false;
         },
         onAdFailedToLoad: (error) {
           commonDebugPrint('AppOpenAdManager: AppOpenAd ${item.placementid} failed to load for scenario $scenario: $error');
+          _isAdLoadingMap[scenario] = false;
           // 加载失败，通知调度器继续下一个
           onFailed();
         },
@@ -62,6 +74,11 @@ class AppOpenAdManager {
   /// 检查指定场景的开屏广告是否已加载并可用
   bool isAdAvailable(String scenario) {
     return _appOpenAds.containsKey(scenario) && _appOpenAds[scenario] != null;
+  }
+
+  /// 检查指定场景的开屏广告是否正在加载中
+  bool isAdLoading(String scenario) {
+    return _isAdLoadingMap[scenario] ?? false;
   }
 
   /// 展示指定场景的广告

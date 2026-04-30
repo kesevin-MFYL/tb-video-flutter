@@ -25,6 +25,9 @@ class InterstitialAdManager {
   /// 缓存每个场景加载成功的广告实例
   final Map<String, InterstitialAd> _interstitialAds = {};
 
+  /// 记录每个场景是否正在加载中，防止重复发起请求
+  final Map<String, bool> _isAdLoadingMap = {};
+
   /// 标记当前是否正在展示广告，防止重复展示
   bool _isShowingAd = false;
 
@@ -40,6 +43,13 @@ class InterstitialAdManager {
     //   return;
     // }
 
+    if (isAdLoading(scenario)) {
+      commonDebugPrint('InterstitialAdManager: InterstitialAd for scenario $scenario is already loading. Ignored duplicate request.');
+      return;
+    }
+
+    _isAdLoadingMap[scenario] = true;
+
     InterstitialAd.load(
       adUnitId: item.placementid,
       request: const AdRequest(),
@@ -49,9 +59,11 @@ class InterstitialAdManager {
           // 加载成功，记录加载时间和广告实例
           _interstitialLoadTimes[scenario] = DateTime.now();
           _interstitialAds[scenario] = ad;
+          _isAdLoadingMap[scenario] = false;
         },
         onAdFailedToLoad: (error) {
           commonDebugPrint('InterstitialAdManager: InterstitialAd ${item.placementid} failed to load for scenario $scenario: $error');
+          _isAdLoadingMap[scenario] = false;
           // 加载失败，通知调度器继续下一个
           onFailed();
         },
@@ -62,6 +74,11 @@ class InterstitialAdManager {
   /// 检查指定场景的插屏广告是否已加载并可用
   bool isAdAvailable(String scenario) {
     return _interstitialAds.containsKey(scenario) && _interstitialAds[scenario] != null;
+  }
+
+  /// 检查指定场景的插屏广告是否正在加载中
+  bool isAdLoading(String scenario) {
+    return _isAdLoadingMap[scenario] ?? false;
   }
 
   /// 展示指定场景的广告
