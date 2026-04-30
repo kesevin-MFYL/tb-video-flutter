@@ -1,3 +1,4 @@
+import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/manager/admob/app_open_ad_manager.dart';
 import 'package:editvideo/manager/admob/interstitial_ad_manager.dart';
 import 'package:editvideo/manager/admob/native_ad_manager.dart';
@@ -25,7 +26,7 @@ class AdManager {
   /// [adItems]  该场景下的广告配置列表（建议按 `adweight` 降序排列好传入）
   void loadAd(String scenario, List<AdItem> adItems) {
     if (adItems.isEmpty) {
-      debugPrint('No valid ad items for scenario: $scenario');
+      commonDebugPrint('AdManager: No valid ad items for scenario: $scenario');
       return;
     }
     // 缓存当前场景配置
@@ -44,18 +45,18 @@ class AdManager {
   void _loadAdFromItems(String scenario, List<AdItem> items, int index) {
     // 如果索引超出了列表长度，说明所有配置项都尝试完毕且全部失败
     if (index >= items.length) {
-      debugPrint('All ad items failed to load for scenario: $scenario.');
+      commonDebugPrint('AdManager: All ad items failed to load for scenario: $scenario.');
       // 通知原生广告的监听器，当前场景所有广告加载失败
       NativeAdManager.instance.notifyAdFailed(scenario);
       return;
     }
 
     final currentItem = items[index];
-    debugPrint('AdManager attempting to load adtype: ${currentItem.adtype} for scenario: $scenario (weight: ${currentItem.adweight})');
+    commonDebugPrint('AdManager: attempting to load adtype: ${currentItem.adtype} for scenario: $scenario (weight: ${currentItem.adweight})');
 
     // 闭包方法：当前广告项加载失败时触发，自动索引加一并尝试下一个配置项
     void onFailed() {
-      debugPrint('AdManager: adtype ${currentItem.adtype} failed for scenario $scenario, trying next...');
+      commonDebugPrint('AdManager: adtype ${currentItem.adtype} failed for scenario $scenario, trying next...');
       _loadAdFromItems(scenario, items, index + 1);
     }
 
@@ -72,7 +73,7 @@ class AdManager {
         break;
       default:
         // 遇到未知的广告类型直接跳过，尝试下一个
-        debugPrint('Unknown adtype: ${currentItem.adtype}. Skipping to next.');
+        commonDebugPrint('AdManager: Unknown adtype: ${currentItem.adtype}. Skipping to next.');
         onFailed();
         break;
     }
@@ -93,7 +94,7 @@ class AdManager {
   void showAdIfAvailable(String scenario, {VoidCallback? onAdDismissed}) {
     // 如果没有任何可用广告，则尝试重新发起一轮加载
     if (!isAdAvailable(scenario)) {
-      debugPrint('Tried to show ad before available for scenario: $scenario.');
+      commonDebugPrint('AdManager: Tried to show ad before available for scenario: $scenario.');
       if (_scenarioAdItems.containsKey(scenario) && _scenarioAdItems[scenario]!.isNotEmpty) {
         loadAd(scenario, _scenarioAdItems[scenario]!);
       }
@@ -119,7 +120,7 @@ class AdManager {
     } 
     // 如果是原生广告，只打印提示，因为它需要通过 UI Widget 进行渲染
     else if (NativeAdManager.instance.isAdLoaded(scenario)) {
-      debugPrint('Native ad is loaded for scenario $scenario, please render it via UI Widget.');
+      commonDebugPrint('AdManager: Native ad is loaded for scenario $scenario, please render it via UI Widget.');
       if (onAdDismissed != null) onAdDismissed();
     }
   }

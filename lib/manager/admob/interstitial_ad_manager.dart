@@ -1,3 +1,4 @@
+import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/manager/admob/consent_manager.dart';
 import 'package:editvideo/manager/remote_config_manager.dart';
 import 'package:flutter/material.dart';
@@ -33,24 +34,24 @@ class InterstitialAdManager {
   /// 通知 [AdManager] 继续尝试下一个优先级的配置项。
   void loadAdItem(String scenario, AdItem item, {required VoidCallback onFailed}) async {
     // 检查是否已经获得了用户的广告授权同意
-    var canRequestAds = await ConsentManager.instance.canRequestAds();
-    if (!canRequestAds) {
-      onFailed();
-      return;
-    }
+    // var canRequestAds = await ConsentManager.instance.canRequestAds();
+    // if (!canRequestAds) {
+    //   onFailed();
+    //   return;
+    // }
 
     InterstitialAd.load(
       adUnitId: item.placementid,
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
-          debugPrint('InterstitialAd ${item.placementid} loaded for scenario: $scenario');
+          commonDebugPrint('InterstitialAdManager: InterstitialAd ${item.placementid} loaded for scenario: $scenario');
           // 加载成功，记录加载时间和广告实例
           _interstitialLoadTimes[scenario] = DateTime.now();
           _interstitialAds[scenario] = ad;
         },
         onAdFailedToLoad: (error) {
-          debugPrint('InterstitialAd ${item.placementid} failed to load for scenario $scenario: $error');
+          commonDebugPrint('InterstitialAdManager: InterstitialAd ${item.placementid} failed to load for scenario $scenario: $error');
           // 加载失败，通知调度器继续下一个
           onFailed();
         },
@@ -68,19 +69,19 @@ class InterstitialAdManager {
   /// [onAdDismissed]：由 [AdManager] 传入的回调，用于在广告被关闭或因异常丢弃时触发重新加载逻辑。
   void showAdIfAvailable(String scenario, {VoidCallback? onAdDismissed}) {
     if (!isAdAvailable(scenario)) {
-      debugPrint('Tried to show ad before available for scenario: $scenario.');
+      commonDebugPrint('InterstitialAdManager: Tried to show ad before available for scenario: $scenario.');
       if (onAdDismissed != null) onAdDismissed();
       return;
     }
     if (_isShowingAd) {
-      debugPrint('Tried to show ad while already showing an ad.');
+      commonDebugPrint('InterstitialAdManager: Tried to show ad while already showing an ad.');
       return;
     }
 
     // 检查广告是否已经过期（超过 1 小时）
     final loadTime = _interstitialLoadTimes[scenario];
     if (loadTime != null && DateTime.now().subtract(maxCacheDuration).isAfter(loadTime)) {
-      debugPrint('Maximum cache duration exceeded for scenario: $scenario. Loading another ad.');
+      commonDebugPrint('InterstitialAdManager: Maximum cache duration exceeded for scenario: $scenario. Loading another ad.');
       disposeAd(scenario);
       if (onAdDismissed != null) onAdDismissed();
       return;
@@ -93,15 +94,15 @@ class InterstitialAdManager {
     ad.fullScreenContentCallback = FullScreenContentCallback(
       onAdShowedFullScreenContent: (ad) {
         _isShowingAd = true;
-        debugPrint('$ad onAdShowedFullScreenContent for scenario: $scenario');
+        commonDebugPrint('InterstitialAdManager: $ad onAdShowedFullScreenContent for scenario: $scenario');
       },
       onAdFailedToShowFullScreenContent: (ad, error) {
-        debugPrint('$ad onAdFailedToShowFullScreenContent for scenario $scenario: $error');
+        commonDebugPrint('InterstitialAdManager: $ad onAdFailedToShowFullScreenContent for scenario $scenario: $error');
         _isShowingAd = false;
         disposeAd(scenario); // 展示失败时销毁并清理缓存
       },
       onAdDismissedFullScreenContent: (ad) {
-        debugPrint('$ad onAdDismissedFullScreenContent for scenario: $scenario');
+        commonDebugPrint('InterstitialAdManager: $ad onAdDismissedFullScreenContent for scenario: $scenario');
         _isShowingAd = false;
         disposeAd(scenario); // 用户关闭广告后销毁并清理缓存
         if (onAdDismissed != null) onAdDismissed(); // 触发回调通知调度器重新拉取备用广告

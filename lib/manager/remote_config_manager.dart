@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:editvideo/config/log/logger.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 
@@ -120,15 +121,15 @@ class RemoteConfigManager {
       // 从 Firebase 服务端拉取最新配置
       bool updated = await _remoteConfig.fetchAndActivate();
       if (updated) {
-        debugPrint("Remote config updated.");
+        commonDebugPrint("Remote config updated.");
       } else {
-        debugPrint("Remote config fetchAndActivate called, but no update.");
+        commonDebugPrint("Remote config fetchAndActivate called, but no update.");
       }
       
       // 无论是否有更新，都尝试将 RemoteConfig 中的数据转换为 AdConfig 对象
       return _parseAndCacheConfig();
     } catch (e) {
-      debugPrint("Failed to fetch and activate remote config: $e");
+      commonDebugPrint("Remote config: Failed to fetch and activate remote config: $e");
       return false;
     }
   }
@@ -142,15 +143,15 @@ class RemoteConfigManager {
         final Map<String, dynamic> configMap = jsonDecode(configString);
         // 将 Map 转换为你的 AdConfig 模型类
         _config = AdConfig.fromJson(configMap);
-        debugPrint("Ad config parsed and cached: ${_config?.toJson()}");
+        commonDebugPrint("Remote config: Ad config parsed and cached: ${_config?.toJson()}");
         return true;
       } catch (e) {
-        debugPrint("Error parsing ad config JSON: $e");
+        commonDebugPrint("Remote config: Error parsing ad config JSON: $e");
         _config = null;
         return false;
       }
     } else {
-      debugPrint("Ad config string is empty.");
+      commonDebugPrint("Remote config: Ad config string is empty.");
       _config = null;
       return false;
     }

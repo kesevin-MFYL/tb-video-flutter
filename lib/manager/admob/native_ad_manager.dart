@@ -1,3 +1,4 @@
+import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/manager/admob/consent_manager.dart';
 import 'package:editvideo/manager/remote_config_manager.dart';
 import 'package:flutter/material.dart';
@@ -50,17 +51,17 @@ class NativeAdManager {
     TemplateType templateType = TemplateType.medium,
   }) async {
     // 检查是否已经获得了用户的广告授权同意
-    var canRequestAds = await ConsentManager.instance.canRequestAds();
-    if (!canRequestAds) {
-      onFailed();
-      return;
-    }
+    // var canRequestAds = await ConsentManager.instance.canRequestAds();
+    // if (!canRequestAds) {
+    //   onFailed();
+    //   return;
+    // }
 
     final ad = NativeAd(
       adUnitId: item.placementid,
       listener: NativeAdListener(
         onAdLoaded: (ad) {
-          debugPrint('NativeAd ${item.placementid} loaded for scenario: $scenario.');
+          commonDebugPrint('NativeAdManager: NativeAd ${item.placementid} loaded for scenario: $scenario.');
           // 加载成功，记录广告实例和可用状态
           _nativeAds[scenario] = ad as NativeAd;
           _isAdLoadedMap[scenario] = true;
@@ -70,12 +71,18 @@ class NativeAdManager {
           }
         },
         onAdFailedToLoad: (ad, error) {
-          debugPrint('NativeAd ${item.placementid} failed to load for scenario $scenario: $error');
+          commonDebugPrint('NativeAdManager: NativeAd ${item.placementid} failed to load for scenario $scenario: $error');
           // 加载失败，释放废弃实例
           ad.dispose();
           // 通知调度器继续尝试加载下一个配置
           onFailed();
         },
+        onAdClicked: (ad) {},
+        onAdImpression: (ad) {},
+        onAdClosed: (ad) {},
+        onAdOpened: (ad) {},
+        onAdWillDismissScreen: (ad) {},
+        onPaidEvent: (ad, valueMicros, precision, currencyCode) {},
       ),
       request: const AdRequest(),
       // 配置原生广告的 UI 样式模板
