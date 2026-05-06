@@ -106,6 +106,16 @@ class AdManager {
   /// 调用该方法时，调度器会检查内部哪个具体的广告管理器加载成功了，并调用其展示方法。
   /// **注意**：原生广告（NativeAd）通常是作为 Widget 嵌入 UI 中的，不适用此弹窗展示方法。
   void showAdIfAvailable(String scenario, {VoidCallback? onAdDismissed}) {
+    // 如果没有任何可用广告，则尝试重新发起一轮加载
+    if (!isAdAvailable(scenario)) {
+      commonDebugPrint('AdManager: Tried to show ad before available for scenario: $scenario.');
+      if (onAdDismissed != null) onAdDismissed();
+      if (_scenarioAdItems.containsKey(scenario) && _scenarioAdItems[scenario]!.isNotEmpty) {
+        loadAd(scenario, _scenarioAdItems[scenario]!);
+      }
+      return;
+    }
+
     // 检查不同广告位展示间隔时间 (differentInterval)
     // 根据需求，同一/不同广告位的全局间隔统一使用 RemoteConfig 中的 differentInterval（默认 30s）
     // 仅全屏广告（open/interstitial）受此限制
@@ -121,16 +131,6 @@ class AdManager {
         if (onAdDismissed != null) onAdDismissed();
         return;
       }
-    }
-
-    // 如果没有任何可用广告，则尝试重新发起一轮加载
-    if (!isAdAvailable(scenario)) {
-      commonDebugPrint('AdManager: Tried to show ad before available for scenario: $scenario.');
-      if (onAdDismissed != null) onAdDismissed();
-      if (_scenarioAdItems.containsKey(scenario) && _scenarioAdItems[scenario]!.isNotEmpty) {
-        loadAd(scenario, _scenarioAdItems[scenario]!);
-      }
-      return;
     }
 
     // 闭包方法：当全屏广告（开屏/插屏）被用户关闭后触发，用于自动重新加载下一轮广告以备后用

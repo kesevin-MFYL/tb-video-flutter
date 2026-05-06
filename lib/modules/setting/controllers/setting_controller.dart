@@ -1,4 +1,5 @@
 import 'package:editvideo/base/base_controller.dart';
+import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/manager/admob/ad_manager.dart';
 import 'package:editvideo/manager/admob/native_ad_manager.dart';
 import 'package:editvideo/manager/remote_config_manager.dart';
@@ -41,7 +42,7 @@ class SettingController extends BaseController {
       _retryLoadAd(scenario);
     } else {
       // 正在加载中，不做任何额外请求，等待 listener 触发回调即可
-      print('SettingController: $scenario ad is currently loading. Waiting for callback.');
+      commonDebugPrint('SettingController: $scenario ad is currently loading. Waiting for callback.');
     }
   }
 

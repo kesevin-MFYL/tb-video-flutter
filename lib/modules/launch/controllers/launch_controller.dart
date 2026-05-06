@@ -42,7 +42,7 @@ class LaunchController extends GetxController {
     // 4. 根据配置分别加载 open 和 behavior 场景的广告
     AdManager.instance.loadAd('open', config.open);
     AdManager.instance.loadAd('behavior', config.behavior);
-    AdManager.instance.loadAd('NVhome', config.behavior);
+    AdManager.instance.loadAd('NVhome', config.nvhome);
 
     // 5. 等待一小段时间让广告有机会加载完成（比如给 AdMob 请求一点时间）
     // 这里我们等待最多剩余的超时时间（因为已经设置了 7 秒强跳定时器）

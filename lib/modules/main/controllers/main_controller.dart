@@ -1,5 +1,6 @@
 import 'package:editvideo/base/base_controller.dart';
 import 'package:editvideo/manager/admob/ad_manager.dart';
+import 'package:editvideo/manager/admob/app_lifecycle_reactor.dart';
 import 'package:editvideo/modules/home/views/home_page.dart';
 import 'package:editvideo/modules/setting/views/setting_page.dart';
 import 'package:editvideo/routes/app_routes.dart';
@@ -13,6 +14,7 @@ class MainController extends BaseController {
   @override
   void onInit() async {
     super.onInit();
+    AppLifecycleReactor.instance.listenToAppStateChanges();
     // final isFirstOpen = Storage.getFirstOpen();
     // if (!(isFirstOpen ?? false)) {
       // Storage.setFirstOpen(true);
