@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/manager/admob/ad_manager.dart';
+import 'package:editvideo/manager/admob/consent_manager.dart';
 import 'package:editvideo/manager/remote_config_manager.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class LaunchController extends GetxController {
   bool _hasNavigatedToMain = false;
@@ -36,18 +39,32 @@ class LaunchController extends GetxController {
       return;
     }
 
-    final config = RemoteConfigManager().config!;
+    // 4. 收集隐私合规 (UMP) 并初始化 MobileAds
+    ConsentManager.instance.gatherConsent((formError) async {
+      if (formError != null) {
+        commonDebugPrint('LaunchController: gatherConsent error: ${formError.message}');
+      }
+      
+      // 检查用户是否同意了广告请求
+      bool canRequestAds = await ConsentManager.instance.canRequestAds();
+      if (canRequestAds) {
+        // 初始化 AdMob SDK
+        await MobileAds.instance.initialize();
+        debugPrint('LaunchController: MobileAds initialized successfully.');
+        
+        // 5. 根据配置分别加载各个场景的广告
+        final config = RemoteConfigManager().config!;
+        AdManager.instance.loadAd('open', config.open);
+        AdManager.instance.loadAd('behavior', config.behavior);
+        AdManager.instance.loadAd('NVhome', config.nvhome);
 
-    // AdManager.instance.prepareAdItems('behavior', config.behavior);
-    // 4. 根据配置分别加载 open 和 behavior 场景的广告
-    AdManager.instance.loadAd('open', config.open);
-    AdManager.instance.loadAd('behavior', config.behavior);
-    AdManager.instance.loadAd('NVhome', config.nvhome);
-
-    // 5. 等待一小段时间让广告有机会加载完成（比如给 AdMob 请求一点时间）
-    // 这里我们等待最多剩余的超时时间（因为已经设置了 7 秒强跳定时器）
-    // 但为了确保我们能尝试展示，我们使用循环检查或者延迟一点时间后展示
-    _tryShowOpenAd();
+        // 6. 尝试轮询展示 open 广告
+        _tryShowOpenAd();
+      } else {
+        commonDebugPrint('LaunchController: User did not consent to ads. Navigating to main.');
+        _navigateToMain();
+      }
+    });
   }
 
   void _tryShowOpenAd() {

@@ -101,6 +101,25 @@ class SettingPage extends StatelessWidget {
                     ),
                   ),
 
+                  if (controller.isPrivacyOptionsRequired) ...[
+                    SizedBox(height: 16.h),
+                    CommonButton(
+                      minSize: 0,
+                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 19.h),
+                      borderRadius: BorderRadius.circular(24.r),
+                      color: CommonColors.color333333,
+                      onPressed: controller.showPrivacyOptions,
+                      child: Row(
+                        children: [
+                          Icon(Icons.privacy_tip_outlined, color: Colors.white, size: 24.w),
+                          SizedBox(width: 8.w),
+                          Expanded(child: CommonText.instance('Privacy Settings', 16.sp, fontWeight: CommonFontWeight.semiBold)),
+                          Image.asset(Assets.commonArrowRight, width: 24.w, height: 24.w),
+                        ],
+                      ),
+                    ),
+                  ],
+
                 ],
               ),
             ),

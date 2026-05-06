@@ -57,11 +57,11 @@ class NativeAdManager {
     TemplateType templateType = TemplateType.medium,
   }) async {
     // 检查是否已经获得了用户的广告授权同意
-    // var canRequestAds = await ConsentManager.instance.canRequestAds();
-    // if (!canRequestAds) {
-    //   onFailed();
-    //   return;
-    // }
+    var canRequestAds = await ConsentManager.instance.canRequestAds();
+    if (!canRequestAds) {
+      onFailed();
+      return;
+    }
 
     if (isAdLoading(scenario)) {
       commonDebugPrint('NativeAdManager: NativeAd for scenario $scenario is already loading. Ignored duplicate request.');

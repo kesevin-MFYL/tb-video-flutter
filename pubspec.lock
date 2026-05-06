@@ -333,14 +333,54 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.1.1"
+  gma_mediation_applovin:
+    dependency: "direct main"
+    description:
+      name: gma_mediation_applovin
+      sha256: "99b79dcdaeaffba7bf14a9fddd9bf1e2a0e1c80810ebd0600a6d75b54deb9202"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "2.5.2"
+  gma_mediation_liftoffmonetize:
+    dependency: "direct main"
+    description:
+      name: gma_mediation_liftoffmonetize
+      sha256: "66ed3029e3d9bc5e86f03668e2f71ba4287f8f44a0d86240adc8d95bb991912a"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.4.3"
+  gma_mediation_meta:
+    dependency: "direct main"
+    description:
+      name: gma_mediation_meta
+      sha256: d5a7c7c5e6730694739833a70b0cf9746432a1492086cb9892d65be7fa8f797e
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.5.1"
+  gma_mediation_mintegral:
+    dependency: "direct main"
+    description:
+      name: gma_mediation_mintegral
+      sha256: a7ea37a5b72c9639c83acbf2bd0ad8b551e8dfda811a74def3f6a0fb7742d194
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "2.0.3"
+  gma_mediation_pangle:
+    dependency: "direct main"
+    description:
+      name: gma_mediation_pangle
+      sha256: "1454d1dff61fffb21499d3c1c9403a2de3822c7da4dca9a9db7f6aed1bf740cf"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "3.5.3"
   google_mobile_ads:
     dependency: "direct main"
     description:
       name: google_mobile_ads
-      sha256: "50549f6c945d7a445d53c04f34d025b1a1723fbd02719de9e67de432e2597f40"
+      sha256: f35e040875bb54e8a3455bcffed3b4ac9e9263fbf7751b9fd1ae7f30793faee8
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "8.0.0"
+    version: "7.0.0"
   html:
     dependency: transitive
     description:
@@ -900,4 +940,4 @@ packages:
     version: "6.6.1"
 sdks:
   dart: ">=3.10.0 <4.0.0"
-  flutter: ">=3.38.1"
+  flutter: ">=3.38.0"
