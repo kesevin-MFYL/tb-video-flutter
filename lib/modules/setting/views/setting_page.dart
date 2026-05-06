@@ -1,6 +1,5 @@
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/generated/assets.dart';
-import 'package:editvideo/manager/admob/native_ad_manager.dart';
 import 'package:editvideo/modules/common/controllers/web_controller.dart';
 import 'package:editvideo/modules/setting/controllers/setting_controller.dart';
 import 'package:editvideo/routes/app_routes.dart';
@@ -10,7 +9,6 @@ import 'package:editvideo/widget/page_base.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class SettingPage extends StatelessWidget {
   const SettingPage({super.key});
@@ -103,20 +101,6 @@ class SettingPage extends StatelessWidget {
                     ),
                   ),
 
-                  SizedBox(height: 32.h),
-                  // 原生广告展示区域
-                  if (NativeAdManager.instance.isAdLoaded('NVhome') && NativeAdManager.instance.getNativeAd('NVhome') != null)
-                    Container(
-                      width: double.infinity,
-                      // 根据模板大小设置合适的高度，TemplateType.medium 通常需要 300 左右高度
-                      height: 320.h,
-                      decoration: BoxDecoration(
-                        color: CommonColors.color333333,
-                        borderRadius: BorderRadius.circular(16.r),
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: AdWidget(ad: NativeAdManager.instance.getNativeAd('NVhome')!),
-                    ),
                 ],
               ),
             ),
