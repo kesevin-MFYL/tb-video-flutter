@@ -8,7 +8,8 @@ import 'package:get/get.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class LaunchController extends GetxController {
-  bool _hasNavigatedToMain = false;
+  var _isMobileAdsInitializeCalled = false;
+  var _hasNavigatedToMain = false;
   Timer? _timeoutTimer;
   Timer? _checkAdTimer;
 
@@ -44,26 +45,35 @@ class LaunchController extends GetxController {
         commonDebugPrint('LaunchController: gatherConsent error: ${formError.message}');
       }
       
-      // 检查用户是否同意了广告请求
-      bool canRequestAds = await ConsentManager.instance.canRequestAds();
-      if (canRequestAds) {
-        // 初始化 AdMob SDK
-        await MobileAds.instance.initialize();
-        commonDebugPrint('LaunchController: MobileAds initialized successfully.');
-        
-        // 5. 根据配置分别加载各个场景的广告
-        final config = RemoteConfigManager().config!;
-        AdManager.instance.loadAd('open', config.open);
-        AdManager.instance.loadAd('behavior', config.behavior);
-        AdManager.instance.loadAd('NVhome', config.nvhome);
-
-        // 6. 尝试轮询展示 open 广告
-        _tryShowOpenAd();
-      } else {
-        commonDebugPrint('LaunchController: User did not consent to ads. Navigating to main.');
-        _navigateToMain();
-      }
+      _initializeMobileAdsSDK();
     });
+
+    _initializeMobileAdsSDK();
+  }
+
+  void _initializeMobileAdsSDK() async {
+    if (_isMobileAdsInitializeCalled) {
+      return;
+    }
+
+    // 检查用户是否同意了广告请求
+    bool canRequestAds = await ConsentManager.instance.canRequestAds();
+    commonDebugPrint('LaunchController: canRequestAds--$canRequestAds}');
+    if (canRequestAds) {
+      _isMobileAdsInitializeCalled = true;
+
+      // 初始化 AdMob SDK
+      MobileAds.instance.initialize();
+
+      // 5. 根据配置分别加载各个场景的广告
+      final config = RemoteConfigManager().config!;
+      AdManager.instance.loadAd('open', config.open);
+      AdManager.instance.loadAd('behavior', config.behavior);
+      AdManager.instance.loadAd('NVhome', config.nvhome);
+
+      // 6. 尝试轮询展示 open 广告
+      _tryShowOpenAd();
+    }
   }
 
   void _tryShowOpenAd() {
