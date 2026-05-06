@@ -46,6 +46,9 @@ class DraftController extends BaseController {
         //   _retryLoadAd(scenario);
         // });
       },
+      onAdClosed: (s) {
+        update();
+      },
     );
 
     // 处理时间差问题：如果在进入该页面时，LaunchController 中的加载【已经】失败了，

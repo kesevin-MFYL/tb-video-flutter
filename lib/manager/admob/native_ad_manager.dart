@@ -29,6 +29,8 @@ class NativeAdManager {
   final Map<String, Function(String scenario)> onAdLoadedCallbacks = {};
   /// 缓存每个场景对应的加载失败回调，供 UI 层处理异常情况
   final Map<String, Function(String scenario, LoadAdError error)> onAdFailedCallbacks = {};
+  /// 缓存每个场景对应的广告关闭回调，供外部重新发起加载或做其他处理
+  final Map<String, Function(String scenario)> onCloseCallbacks = {};
 
   /// 为特定场景设置加载成功或失败的回调监听
   ///
@@ -37,9 +39,11 @@ class NativeAdManager {
     String scenario, {
     Function(String scenario)? onAdLoaded,
     Function(String scenario, LoadAdError error)? onAdFailed,
+    Function(String scenario)? onAdClosed,
   }) {
     if (onAdLoaded != null) onAdLoadedCallbacks[scenario] = onAdLoaded;
     if (onAdFailed != null) onAdFailedCallbacks[scenario] = onAdFailed;
+    if (onAdClosed != null) onCloseCallbacks[scenario] = onAdClosed;
   }
 
   /// 尝试加载单个广告配置项
@@ -90,7 +94,16 @@ class NativeAdManager {
         },
         onAdClicked: (ad) {},
         onAdImpression: (ad) {},
-        onAdClosed: (ad) {},
+        onAdClosed: (ad) {
+          commonDebugPrint('NativeAdManager: NativeAd ${item.placementid} closed for scenario: $scenario');
+          // 原生广告被关闭/销毁时，释放掉已经被关闭的广告
+          disposeAd(scenario);
+          
+          // 如果外层有通过 setListener 注册关闭监听，则触发回调通知外部（可用于触发新一轮加载等）
+          if (onCloseCallbacks.containsKey(scenario)) {
+            onCloseCallbacks[scenario]!(scenario);
+          }
+        },
         onAdOpened: (ad) {},
         onAdWillDismissScreen: (ad) {},
         onPaidEvent: (ad, valueMicros, precision, currencyCode) {},
@@ -166,6 +179,7 @@ class NativeAdManager {
     _nativeAds[scenario]?.dispose();
     _nativeAds.remove(scenario);
     _isAdLoadedMap[scenario] = false;
+    _isAdLoadingMap.remove(scenario);
   }
 
   /// 销毁所有缓存的广告实例（常用于应用退出或重置时）
@@ -175,5 +189,6 @@ class NativeAdManager {
     }
     _nativeAds.clear();
     _isAdLoadedMap.clear();
+    _isAdLoadingMap.clear();
   }
 }
