@@ -20,6 +20,9 @@ class AdManager {
   /// 缓存每个场景的广告配置列表，主要用于广告展示完毕（关闭）后，自动重新发起下一轮加载
   final Map<String, List<AdItem>> _scenarioAdItems = {};
 
+  /// 记录上一次全局展示全屏广告（open/interstitial）的时间戳
+  DateTime? _lastFullScreenAdShowTime;
+
   void prepareAdItems(String scenario, List<AdItem> adItems) {
     if (adItems.isEmpty) {
       commonDebugPrint('AdManager: No valid ad items for scenario: $scenario');
@@ -98,35 +101,66 @@ class AdManager {
   /// 展示指定场景的广告
   ///
   /// 调用该方法时，调度器会检查内部哪个具体的广告管理器加载成功了，并调用其展示方法。
-  /// [onAdDismissed]：提供给最外部业务方使用的回调，在广告被用户关闭或因过期丢弃时触发，用于处理后续流程（如跳转主页）。
+  /// 展示指定场景的广告
+  ///
+  /// 调用该方法时，调度器会检查内部哪个具体的广告管理器加载成功了，并调用其展示方法。
   /// **注意**：原生广告（NativeAd）通常是作为 Widget 嵌入 UI 中的，不适用此弹窗展示方法。
   void showAdIfAvailable(String scenario, {VoidCallback? onAdDismissed}) {
+    // 检查不同广告位展示间隔时间 (differentInterval)
+    // 根据需求，同一/不同广告位的全局间隔统一使用 RemoteConfig 中的 differentInterval（默认 30s）
+    // 仅全屏广告（open/interstitial）受此限制
+    final config = RemoteConfigManager().config;
+    final int intervalSeconds = config?.differentInterval ?? 30;
+
+    if (_lastFullScreenAdShowTime != null) {
+      final elapsed = DateTime.now().difference(_lastFullScreenAdShowTime!);
+      if (elapsed.inSeconds < intervalSeconds) {
+        commonDebugPrint(
+          'AdManager: Cannot show full screen ad yet. Only ${elapsed.inSeconds}s elapsed, need ${intervalSeconds}s.',
+        );
+        if (onAdDismissed != null) onAdDismissed();
+        return;
+      }
+    }
+
     // 如果没有任何可用广告，则尝试重新发起一轮加载
     if (!isAdAvailable(scenario)) {
       commonDebugPrint('AdManager: Tried to show ad before available for scenario: $scenario.');
+      if (onAdDismissed != null) onAdDismissed();
       if (_scenarioAdItems.containsKey(scenario) && _scenarioAdItems[scenario]!.isNotEmpty) {
         loadAd(scenario, _scenarioAdItems[scenario]!);
       }
-      if (onAdDismissed != null) onAdDismissed();
       return;
     }
 
     // 闭包方法：当全屏广告（开屏/插屏）被用户关闭后触发，用于自动重新加载下一轮广告以备后用
     void reloadNext() {
+      if (onAdDismissed != null) onAdDismissed();
       if (_scenarioAdItems.containsKey(scenario) && _scenarioAdItems[scenario]!.isNotEmpty) {
         loadAd(scenario, _scenarioAdItems[scenario]!);
       }
-      if (onAdDismissed != null) onAdDismissed();
     }
 
     // 优先尝试展示能够全屏展示的开屏广告
     if (AppOpenAdManager.instance.isAdAvailable(scenario)) {
-      AppOpenAdManager.instance.showAdIfAvailable(scenario, onAdDismissed: reloadNext);
-    } 
+      AppOpenAdManager.instance.showAdIfAvailable(
+        scenario,
+        onAdShowed: () {
+          _lastFullScreenAdShowTime = DateTime.now();
+        },
+        onAdDismissed: reloadNext,
+      );
+    }
     // 其次尝试展示插屏广告
     else if (InterstitialAdManager.instance.isAdAvailable(scenario)) {
-      InterstitialAdManager.instance.showAdIfAvailable(scenario, onAdDismissed: reloadNext);
-    } 
+      InterstitialAdManager.instance.showAdIfAvailable(
+        scenario,
+        onAdShowed: () {
+          _lastFullScreenAdShowTime = DateTime.now();
+        },
+        onAdDismissed: reloadNext,
+      );
+    }
     // 如果是原生广告，只打印提示，因为它需要通过 UI Widget 进行渲染
     else if (NativeAdManager.instance.isAdLoaded(scenario)) {
       commonDebugPrint('AdManager: Native ad is loaded for scenario $scenario, please render it via UI Widget.');

@@ -84,7 +84,7 @@ class AppOpenAdManager {
   /// 展示指定场景的广告
   ///
   /// [onAdDismissed]：由 [AdManager] 传入的回调，用于在广告被关闭或因过期丢弃时触发重新加载逻辑。
-  void showAdIfAvailable(String scenario, {VoidCallback? onAdDismissed}) {
+  void showAdIfAvailable(String scenario, {VoidCallback? onAdShowed, VoidCallback? onAdDismissed}) {
     if (!isAdAvailable(scenario)) {
       commonDebugPrint('AppOpenAdManager: Tried to show ad before available for scenario: $scenario.');
       if (onAdDismissed != null) onAdDismissed();
@@ -110,8 +110,9 @@ class AppOpenAdManager {
     // 设置全屏内容的回调监听
     ad.fullScreenContentCallback = FullScreenContentCallback(
       onAdShowedFullScreenContent: (ad) {
-        _isShowingAd = true;
         commonDebugPrint('AppOpenAdManager: $ad onAdShowedFullScreenContent for scenario: $scenario');
+        _isShowingAd = true;
+        if (onAdShowed != null) onAdShowed();
       },
       onAdFailedToShowFullScreenContent: (ad, error) {
         commonDebugPrint('AppOpenAdManager: $ad onAdFailedToShowFullScreenContent for scenario $scenario: $error');
