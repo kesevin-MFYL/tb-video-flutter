@@ -4,7 +4,6 @@ import 'package:editvideo/manager/admob/ad_manager.dart';
 import 'package:editvideo/manager/admob/consent_manager.dart';
 import 'package:editvideo/manager/remote_config_manager.dart';
 import 'package:editvideo/routes/app_routes.dart';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -25,7 +24,7 @@ class LaunchController extends GetxController {
 
     // 2. 设置 7 秒超时器，如果 7 秒后仍未处理完毕，直接跳转 main
     _timeoutTimer = Timer(const Duration(seconds: 7), () {
-      debugPrint('LaunchController: 7 seconds timeout reached. Navigating to main.');
+      commonDebugPrint('LaunchController: 7 seconds timeout reached. Navigating to main.');
       _navigateToMain();
     });
 
@@ -34,7 +33,7 @@ class LaunchController extends GetxController {
 
     // 如果拉取失败或者配置为空，直接跳转 main
     if (!fetchSuccess || RemoteConfigManager().config == null) {
-      debugPrint('LaunchController: Failed to fetch config or config is null. Navigating to main.');
+      commonDebugPrint('LaunchController: Failed to fetch config or config is null. Navigating to main.');
       _navigateToMain();
       return;
     }
@@ -50,7 +49,7 @@ class LaunchController extends GetxController {
       if (canRequestAds) {
         // 初始化 AdMob SDK
         await MobileAds.instance.initialize();
-        debugPrint('LaunchController: MobileAds initialized successfully.');
+        commonDebugPrint('LaunchController: MobileAds initialized successfully.');
         
         // 5. 根据配置分别加载各个场景的广告
         final config = RemoteConfigManager().config!;
@@ -80,9 +79,9 @@ class LaunchController extends GetxController {
         _timeoutTimer?.cancel();
         timer.cancel();
 
-        debugPrint('LaunchController: Open ad is ready. Showing ad.');
+        commonDebugPrint('LaunchController: Open ad is ready. Showing ad.');
         AdManager.instance.showAdIfAvailable('open', onAdDismissed: () {
-          debugPrint('LaunchController: Open ad dismissed. Navigating to main.');
+          commonDebugPrint('LaunchController: Open ad dismissed. Navigating to main.');
           // 在原生全屏广告关闭时，给 Flutter 渲染一点恢复的缓冲时间（比如 100 毫秒）
           // 否则可能会因为原生转场动画和 GetX 路由切换同时发生而导致界面僵死或延迟
           // Future.delayed(const Duration(milliseconds: 100), () {
