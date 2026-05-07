@@ -11,23 +11,26 @@ class SettingController extends BaseController {
   @override
   void onInit() {
     super.onInit();
-    _checkPrivacyOptionsRequired();
+    //todo GDPR权限检查
+    // _checkPrivacyOptionsRequired();
   }
 
-  void _checkPrivacyOptionsRequired() async {
-    isPrivacyOptionsRequired = await ConsentManager.instance.isPrivacyOptionsRequired();
-    update();
-  }
+  //todo GDPR权限检查
+  // void _checkPrivacyOptionsRequired() async {
+  //   isPrivacyOptionsRequired = await ConsentManager.instance.isPrivacyOptionsRequired();
+  //   update();
+  // }
 
-  void showPrivacyOptions() {
-    ConsentManager.instance.showPrivacyOptionsForm((formError) {
-      if (formError != null) {
-        commonDebugPrint('SettingController: Failed to show privacy options form: ${formError.message}');
-      }
-      // 重新检查是否还需要显示隐私选项（比如用户改变了主意或删除了所有数据）
-      _checkPrivacyOptionsRequired();
-    });
-  }
+  //todo GDPR权限检查
+  // void showPrivacyOptions() {
+  //   ConsentManager.instance.showPrivacyOptionsForm((formError) {
+  //     if (formError != null) {
+  //       commonDebugPrint('SettingController: Failed to show privacy options form: ${formError.message}');
+  //     }
+  //     // 重新检查是否还需要显示隐私选项（比如用户改变了主意或删除了所有数据）
+  //     _checkPrivacyOptionsRequired();
+  //   });
+  // }
 
   Future<void> feedback() async {
     final Uri emailLaunchUri = Uri(

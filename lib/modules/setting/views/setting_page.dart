@@ -9,6 +9,7 @@ import 'package:editvideo/widget/page_base.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class SettingPage extends StatelessWidget {
   const SettingPage({super.key});
@@ -101,24 +102,46 @@ class SettingPage extends StatelessWidget {
                     ),
                   ),
 
-                  if (controller.isPrivacyOptionsRequired) ...[
-                    SizedBox(height: 16.h),
-                    CommonButton(
-                      minSize: 0,
-                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 19.h),
-                      borderRadius: BorderRadius.circular(24.r),
-                      color: CommonColors.color333333,
-                      onPressed: controller.showPrivacyOptions,
-                      child: Row(
-                        children: [
-                          Icon(Icons.privacy_tip_outlined, color: Colors.white, size: 24.w),
-                          SizedBox(width: 8.w),
-                          Expanded(child: CommonText.instance('Privacy Settings', 16.sp, fontWeight: CommonFontWeight.semiBold)),
-                          Image.asset(Assets.commonArrowRight, width: 24.w, height: 24.w),
-                        ],
-                      ),
+                  //todo GDPR权限检查
+                  // if (controller.isPrivacyOptionsRequired) ...[
+                  //   SizedBox(height: 16.h),
+                  //   CommonButton(
+                  //     minSize: 0,
+                  //     padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 19.h),
+                  //     borderRadius: BorderRadius.circular(24.r),
+                  //     color: CommonColors.color333333,
+                  //     onPressed: controller.showPrivacyOptions,
+                  //     child: Row(
+                  //       children: [
+                  //         Icon(Icons.privacy_tip_outlined, color: Colors.white, size: 24.w),
+                  //         SizedBox(width: 8.w),
+                  //         Expanded(child: CommonText.instance('Privacy Settings', 16.sp, fontWeight: CommonFontWeight.semiBold)),
+                  //         Image.asset(Assets.commonArrowRight, width: 24.w, height: 24.w),
+                  //       ],
+                  //     ),
+                  //   ),
+                  // ],
+
+                  SizedBox(height: 16.h),
+                  CommonButton(
+                    minSize: 0,
+                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 19.h),
+                    borderRadius: BorderRadius.circular(24.r),
+                    color: CommonColors.color333333,
+                    onPressed: () {
+                      MobileAds.instance.openAdInspector((error) {
+                        // Error will be non-null if ad inspector closed due to an error.
+                      });
+                    },
+                    child: Row(
+                      children: [
+                        Icon(Icons.privacy_tip_outlined, color: Colors.white, size: 24.w),
+                        SizedBox(width: 8.w),
+                        Expanded(child: CommonText.instance('广告检查器', 16.sp, fontWeight: CommonFontWeight.semiBold)),
+                        Image.asset(Assets.commonArrowRight, width: 24.w, height: 24.w),
+                      ],
                     ),
-                  ],
+                  ),
 
                 ],
               ),

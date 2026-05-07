@@ -57,12 +57,13 @@ class NativeAdManager {
     TemplateType templateType = TemplateType.medium,
   }) async {
     // 检查是否已经获得了用户的广告授权同意
-    var canRequestAds = await ConsentManager.instance.canRequestAds();
-    if (!canRequestAds) {
-      debugPrint('测试日志：当前用户未授权使用广告，不再进行广告拉取。');
-      onFailed();
-      return;
-    }
+    //todo GDPR权限检查
+    // var canRequestAds = await ConsentManager.instance.canRequestAds();
+    // if (!canRequestAds) {
+    //   debugPrint('测试日志：当前用户未授权使用广告，不再进行广告拉取。');
+    //   onFailed();
+    //   return;
+    // }
 
     if (isAdLoading(scenario)) {
       commonDebugPrint('NativeAdManager: NativeAd for scenario $scenario is already loading. Ignored duplicate request.');

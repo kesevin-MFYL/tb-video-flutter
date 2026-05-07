@@ -41,6 +41,7 @@ class LaunchController extends GetxController {
       if (progress >= 1.0) {
         progress = 1.0;
         timer.cancel();
+        debugPrint('测试日志：7秒超时，跳转主页');
         // 进度条满（即7秒超时），强行跳转主页
         commonDebugPrint('LaunchController: 7 seconds timeout reached. Navigating to main.');
         _navigateToMain();
@@ -64,14 +65,15 @@ class LaunchController extends GetxController {
       return;
     }
 
-    // 4. 收集隐私合规 (UMP) 并初始化 MobileAds
-    ConsentManager.instance.gatherConsent((formError) async {
-      if (formError != null) {
-        commonDebugPrint('LaunchController: gatherConsent error: ${formError.message}');
-      }
-      
-      _initializeMobileAdsSDK();
-    });
+    // // 4. 收集隐私合规 (UMP) 并初始化 MobileAds
+    //todo GDPR权限检查
+    // ConsentManager.instance.gatherConsent((formError) async {
+    //   if (formError != null) {
+    //     commonDebugPrint('LaunchController: gatherConsent error: ${formError.message}');
+    //   }
+    //
+    //   _initializeMobileAdsSDK();
+    // });
 
     _initializeMobileAdsSDK();
   }
@@ -82,9 +84,10 @@ class LaunchController extends GetxController {
     }
 
     // 检查用户是否同意了广告请求
-    bool canRequestAds = await ConsentManager.instance.canRequestAds();
-    commonDebugPrint('LaunchController: canRequestAds--$canRequestAds}');
-    if (canRequestAds) {
+    //todo GDPR权限检查
+    // bool canRequestAds = await ConsentManager.instance.canRequestAds();
+    // commonDebugPrint('LaunchController: canRequestAds--$canRequestAds}');
+    // if (canRequestAds) {
       debugPrint('测试日志：获取到广告授权 开始拉取广告');
       _isMobileAdsInitializeCalled = true;
 
@@ -99,7 +102,7 @@ class LaunchController extends GetxController {
 
       // 6. 尝试轮询展示 open 广告
       _tryShowOpenAd();
-    }
+    // }
   }
 
   void _tryShowOpenAd() {
