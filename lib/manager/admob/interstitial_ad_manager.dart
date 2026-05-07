@@ -84,10 +84,10 @@ class InterstitialAdManager {
   /// 展示指定场景的广告
   ///
   /// [onAdDismissed]：由 [AdManager] 传入的回调，用于在广告被关闭或因异常丢弃时触发重新加载逻辑。
-  void showAdIfAvailable(String scenario, {VoidCallback? onAdShowed, VoidCallback? onAdDismissed}) {
+  void showAdIfAvailable(String scenario, {ValueChanged<bool>? onAdDismissed}) {
     if (!isAdAvailable(scenario)) {
       commonDebugPrint('InterstitialAdManager: Tried to show ad before available for scenario: $scenario.');
-      if (onAdDismissed != null) onAdDismissed();
+      if (onAdDismissed != null) onAdDismissed(false);
       return;
     }
     if (_isShowingAd) {
@@ -100,7 +100,7 @@ class InterstitialAdManager {
     if (loadTime != null && DateTime.now().subtract(maxCacheDuration).isAfter(loadTime)) {
       commonDebugPrint('InterstitialAdManager: Maximum cache duration exceeded for scenario: $scenario. Loading another ad.');
       disposeAd(scenario);
-      if (onAdDismissed != null) onAdDismissed();
+      if (onAdDismissed != null) onAdDismissed(false);
       return;
     }
     
@@ -112,7 +112,6 @@ class InterstitialAdManager {
       onAdShowedFullScreenContent: (ad) {
         commonDebugPrint('InterstitialAdManager: $ad onAdShowedFullScreenContent for scenario: $scenario');
         _isShowingAd = true;
-        if (onAdShowed != null) onAdShowed();
       },
       onAdFailedToShowFullScreenContent: (ad, error) {
         commonDebugPrint('InterstitialAdManager: $ad onAdFailedToShowFullScreenContent for scenario $scenario: $error');
@@ -123,7 +122,7 @@ class InterstitialAdManager {
         commonDebugPrint('InterstitialAdManager: $ad onAdDismissedFullScreenContent for scenario: $scenario');
         _isShowingAd = false;
         disposeAd(scenario); // 用户关闭广告后销毁并清理缓存
-        if (onAdDismissed != null) onAdDismissed(); // 触发回调通知调度器重新拉取备用广告
+        if (onAdDismissed != null) onAdDismissed(true); // 触发回调通知调度器重新拉取备用广告
       },
     );
     

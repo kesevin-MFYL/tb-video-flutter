@@ -134,7 +134,10 @@ class AdManager {
     }
 
     // 闭包方法：当全屏广告（开屏/插屏）被用户关闭后触发，用于自动重新加载下一轮广告以备后用
-    void reloadNext() {
+    void reloadNext(bool isClosed) {
+      if (isClosed) {
+        _lastFullScreenAdShowTime = DateTime.now();
+      }
       if (onAdDismissed != null) onAdDismissed();
       if (_scenarioAdItems.containsKey(scenario) && _scenarioAdItems[scenario]!.isNotEmpty) {
         loadAd(scenario, _scenarioAdItems[scenario]!);
@@ -145,9 +148,6 @@ class AdManager {
     if (AppOpenAdManager.instance.isAdAvailable(scenario)) {
       AppOpenAdManager.instance.showAdIfAvailable(
         scenario,
-        onAdShowed: () {
-          _lastFullScreenAdShowTime = DateTime.now();
-        },
         onAdDismissed: reloadNext,
       );
     }
@@ -155,9 +155,6 @@ class AdManager {
     else if (InterstitialAdManager.instance.isAdAvailable(scenario)) {
       InterstitialAdManager.instance.showAdIfAvailable(
         scenario,
-        onAdShowed: () {
-          _lastFullScreenAdShowTime = DateTime.now();
-        },
         onAdDismissed: reloadNext,
       );
     }
