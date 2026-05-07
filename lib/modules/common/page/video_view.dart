@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/generated/assets.dart';
+import 'package:editvideo/manager/event_manager.dart';
 import 'package:editvideo/utils/text_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
@@ -46,10 +47,19 @@ class VideoViewState extends State<VideoView> {
 
   bool _isPlaying = false;
 
+  late StreamSubscription<EventBusModel> _createSendbirdSubscription;
+
   @override
   void initState() {
     super.initState();
     _initPlayer();
+
+    _createSendbirdSubscription = EventBusManager.instance.addObserver(EventBusName.playVideo, (value) async {
+      if (_isInitialized && !_videoPlayerController.value.isPlaying) {
+        _videoPlayerController.play();
+        _startHideTimer();
+      }
+    });
   }
 
   @override
@@ -102,7 +112,7 @@ class VideoViewState extends State<VideoView> {
 
     final currentPosition = _videoPlayerController.value.position;
     final isPlaying = _videoPlayerController.value.isPlaying;
-    
+
     if (_isPlaying != isPlaying) {
       _isPlaying = isPlaying;
       if (_isPlaying) {
@@ -198,6 +208,7 @@ class VideoViewState extends State<VideoView> {
     _videoPlayerController.removeListener(_videoListener);
     _videoPlayerController.dispose();
     _cancelHideTimer();
+    _createSendbirdSubscription.cancel();
     super.dispose();
   }
 

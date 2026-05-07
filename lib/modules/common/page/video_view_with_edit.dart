@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:editvideo/generated/assets.dart';
+import 'package:editvideo/manager/event_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:video_player/video_player.dart';
@@ -21,10 +23,19 @@ class VideoViewWithEditState extends State<VideoViewWithEdit> {
 
   bool _isPlaying = false;
 
+  late StreamSubscription<EventBusModel> _createSendbirdSubscription;
+
   @override
   void initState() {
     super.initState();
     _initPlayer();
+    _createSendbirdSubscription = EventBusManager.instance.addObserver(EventBusName.playVideo, (value) async {
+      if (_isInitialized && !_videoPlayerController.value.isPlaying) {
+        setState(() {
+          _videoPlayerController.play();
+        });
+      }
+    });
   }
 
   @override
@@ -91,6 +102,7 @@ class VideoViewWithEditState extends State<VideoViewWithEdit> {
     WakelockPlus.disable();
     _videoPlayerController.removeListener(_videoListener);
     _videoPlayerController.dispose();
+    _createSendbirdSubscription.cancel();
     super.dispose();
   }
 
