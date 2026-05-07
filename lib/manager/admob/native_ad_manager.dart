@@ -59,6 +59,7 @@ class NativeAdManager {
     // 检查是否已经获得了用户的广告授权同意
     var canRequestAds = await ConsentManager.instance.canRequestAds();
     if (!canRequestAds) {
+      debugPrint('测试日志：当前用户未授权使用广告，不再进行广告拉取。');
       onFailed();
       return;
     }
@@ -74,6 +75,7 @@ class NativeAdManager {
       adUnitId: item.placementid,
       listener: NativeAdListener(
         onAdLoaded: (ad) {
+          debugPrint('测试日志：场景$scenario--拉取广告成功-广告类型:${item.adtype}--广告id: ${item.placementid}--优先级：${item.adweight}');
           commonDebugPrint('NativeAdManager: NativeAd ${item.placementid} loaded for scenario: $scenario.');
           // 加载成功，记录广告实例和可用状态
           _nativeAds[scenario] = ad as NativeAd;
@@ -95,14 +97,15 @@ class NativeAdManager {
         onAdClicked: (ad) {},
         onAdImpression: (ad) {},
         onAdClosed: (ad) {
+          debugPrint('测试日志：场景$scenario--广告被关闭-广告类型:${item.adtype}--广告id: ${item.placementid}--优先级：${item.adweight}');
           commonDebugPrint('NativeAdManager: NativeAd ${item.placementid} closed for scenario: $scenario');
-          // 原生广告被关闭/销毁时，释放掉已经被关闭的广告
-          disposeAd(scenario);
-          
-          // 如果外层有通过 setListener 注册关闭监听，则触发回调通知外部（可用于触发新一轮加载等）
-          if (onCloseCallbacks.containsKey(scenario)) {
-            onCloseCallbacks[scenario]!(scenario);
-          }
+          // // 原生广告被关闭/销毁时，释放掉已经被关闭的广告
+          // disposeAd(scenario);
+          //
+          // // 如果外层有通过 setListener 注册关闭监听，则触发回调通知外部（可用于触发新一轮加载等）
+          // if (onCloseCallbacks.containsKey(scenario)) {
+          //   onCloseCallbacks[scenario]!(scenario);
+          // }
         },
         onAdOpened: (ad) {},
         onAdWillDismissScreen: (ad) {},

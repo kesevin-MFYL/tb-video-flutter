@@ -4,30 +4,55 @@ import 'package:editvideo/manager/admob/ad_manager.dart';
 import 'package:editvideo/manager/admob/consent_manager.dart';
 import 'package:editvideo/manager/remote_config_manager.dart';
 import 'package:editvideo/routes/app_routes.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class LaunchController extends GetxController {
   var _isMobileAdsInitializeCalled = false;
   var _hasNavigatedToMain = false;
-  Timer? _timeoutTimer;
   Timer? _checkAdTimer;
+  Timer? _progressTimer;
+
+  // 进度条的进度值 (0.0 到 1.0)
+  double progress = 0.0;
+  // 进度条的总时长 (7秒)
+  final int maxDurationMs = 7000;
+  // 进度条的更新间隔 (1秒)
+  final int updateIntervalMs = 1000;
+  int _elapsedMs = 0;
 
   @override
   void onInit() {
     super.onInit();
+    _startProgressTimer();
     _initializeAppAndAds();
+  }
+
+  void _startProgressTimer() {
+    _progressTimer = Timer.periodic(Duration(milliseconds: updateIntervalMs), (timer) {
+      if (_hasNavigatedToMain) {
+        timer.cancel();
+        return;
+      }
+      _elapsedMs += updateIntervalMs;
+      // 正常随时间增长的进度
+      progress = _elapsedMs / maxDurationMs;
+      if (progress >= 1.0) {
+        progress = 1.0;
+        timer.cancel();
+        // 进度条满（即7秒超时），强行跳转主页
+        commonDebugPrint('LaunchController: 7 seconds timeout reached. Navigating to main.');
+        _navigateToMain();
+      } else {
+        update();
+      }
+    });
   }
 
   Future<void> _initializeAppAndAds() async {
     // 1. 初始化 RemoteConfig 设置
     await RemoteConfigManager().initialize();
-
-    // 2. 设置 7 秒超时器，如果 7 秒后仍未处理完毕，直接跳转 main
-    _timeoutTimer = Timer(const Duration(seconds: 7), () {
-      commonDebugPrint('LaunchController: 7 seconds timeout reached. Navigating to main.');
-      _navigateToMain();
-    });
 
     // 3. 拉取远端配置
     bool fetchSuccess = await RemoteConfigManager().fetchAndActivateConfig();
@@ -60,6 +85,7 @@ class LaunchController extends GetxController {
     bool canRequestAds = await ConsentManager.instance.canRequestAds();
     commonDebugPrint('LaunchController: canRequestAds--$canRequestAds}');
     if (canRequestAds) {
+      debugPrint('测试日志：获取到广告授权 开始拉取广告');
       _isMobileAdsInitializeCalled = true;
 
       // 初始化 AdMob SDK
@@ -85,9 +111,13 @@ class LaunchController extends GetxController {
       }
 
       if (AdManager.instance.isAdAvailable('open')) {
-        // 取消超时定时器和检查定时器，因为我们要开始展示广告了
-        _timeoutTimer?.cancel();
+        // 取消检查定时器，因为我们要开始展示广告了
         timer.cancel();
+        _progressTimer?.cancel();
+        
+        // 发现广告时，瞬间将进度条填满
+        progress = 1.0;
+        update();
 
         commonDebugPrint('LaunchController: Open ad is ready. Showing ad.');
         AdManager.instance.showAdIfAvailable('open', onAdDismissed: () {
@@ -105,15 +135,15 @@ class LaunchController extends GetxController {
   void _navigateToMain() {
     if (_hasNavigatedToMain) return;
     _hasNavigatedToMain = true;
-    _timeoutTimer?.cancel();
     _checkAdTimer?.cancel();
+    _progressTimer?.cancel();
     Get.offAllNamed(Routes.main);
   }
 
   @override
   void onClose() {
-    _timeoutTimer?.cancel();
     _checkAdTimer?.cancel();
+    _progressTimer?.cancel();
     super.onClose();
   }
 }

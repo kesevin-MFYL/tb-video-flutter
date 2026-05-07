@@ -38,6 +38,7 @@ class AdManager {
   /// [adItems]  该场景下的广告配置列表（建议按 `adweight` 降序排列好传入）
   void loadAd(String scenario, List<AdItem> adItems) {
     if (adItems.isEmpty) {
+      debugPrint('测试日志：当前场景无有效广告项');
       commonDebugPrint('AdManager: No valid ad items for scenario: $scenario');
       return;
     }
@@ -57,6 +58,7 @@ class AdManager {
   void _loadAdFromItems(String scenario, List<AdItem> items, int index) {
     // 如果索引超出了列表长度，说明所有配置项都尝试完毕且全部失败
     if (index >= items.length) {
+      debugPrint('测试日志：场景-$scenario: 未拉取到任何广告');
       commonDebugPrint('AdManager: All ad items failed to load for scenario: $scenario.');
       // 通知原生广告的监听器，当前场景所有广告加载失败
       NativeAdManager.instance.notifyAdFailed(scenario);
@@ -64,10 +66,12 @@ class AdManager {
     }
 
     final currentItem = items[index];
+    debugPrint('测试日志：场景-$scenario: 正在尝试加载广告项: 广告类型:${currentItem.adtype}--广告id: ${currentItem.placementid}--优先级：${currentItem.adweight}');
     commonDebugPrint('AdManager: attempting to load adtype: ${currentItem.adtype} for scenario: $scenario (weight: ${currentItem.adweight})');
 
     // 闭包方法：当前广告项加载失败时触发，自动索引加一并尝试下一个配置项
     void onFailed() {
+      debugPrint('测试日志：场景-$scenario: 广告项加载失败，广告类型:${currentItem.adtype}--广告id: ${currentItem.placementid}--优先级：${currentItem.adweight}--尝试下一个配置项');
       commonDebugPrint('AdManager: adtype ${currentItem.adtype} failed for scenario $scenario, trying next...');
       _loadAdFromItems(scenario, items, index + 1);
     }
@@ -108,6 +112,7 @@ class AdManager {
   void showAdIfAvailable(String scenario, {VoidCallback? onAdDismissed}) {
     // 如果没有任何可用广告，则尝试重新发起一轮加载
     if (!isAdAvailable(scenario)) {
+      debugPrint('测试日志：场景$scenario下没有可展示的广告--重新拉取广告');
       commonDebugPrint('AdManager: Tried to show ad before available for scenario: $scenario.');
       if (onAdDismissed != null) onAdDismissed();
       if (_scenarioAdItems.containsKey(scenario) && _scenarioAdItems[scenario]!.isNotEmpty) {
@@ -136,6 +141,7 @@ class AdManager {
     // 闭包方法：当全屏广告（开屏/插屏）被用户关闭后触发，用于自动重新加载下一轮广告以备后用
     void reloadNext(bool isClosed) {
       if (isClosed) {
+        debugPrint('测试日志：场景$scenario下的广告已关闭--重新拉取广告');
         _lastFullScreenAdShowTime = DateTime.now();
       }
       if (onAdDismissed != null) onAdDismissed();
