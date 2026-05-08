@@ -56,14 +56,7 @@ class LaunchController extends GetxController {
     await RemoteConfigManager().initialize();
 
     // 3. 拉取远端配置
-    bool fetchSuccess = await RemoteConfigManager().fetchAndActivateConfig();
-
-    // 如果拉取失败或者配置为空，直接跳转 main
-    if (!fetchSuccess || RemoteConfigManager().config == null) {
-      commonDebugPrint('LaunchController: Failed to fetch config or config is null. Navigating to main.');
-      _navigateToMain();
-      return;
-    }
+    RemoteConfigManager().fetchAndActivateConfig();
 
     // // 4. 收集隐私合规 (UMP) 并初始化 MobileAds
     //todo GDPR权限检查

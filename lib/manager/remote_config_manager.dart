@@ -100,7 +100,7 @@ class RemoteConfigManager {
 
   AdConfig? get config => _config;
 
-  static const String _defaultAdRulesJson = '''
+  static String _defaultAdRulesJson = '''
   {
   "showCount": 100,
   "sameInterval": 15,
@@ -152,11 +152,13 @@ class RemoteConfigManager {
     final cachedRulesJson = Storage.getAdRulesConfig();
     if (cachedRulesJson != null && cachedRulesJson.isNotEmpty) {
       commonDebugPrint("Remote config: Initialize defaults with local Storage cache.");
-      await _remoteConfig.setDefaults({'ad_rules': cachedRulesJson});
-    } else {
-      commonDebugPrint("Remote config: Initialize defaults with hardcoded default json.");
-      await _remoteConfig.setDefaults(const {'ad_rules': _defaultAdRulesJson});
+      _defaultAdRulesJson = cachedRulesJson; // 将缓存赋值给 _defaultAdRulesJson 作为兜底
     }
+
+    await _remoteConfig.setDefaults({'ad_rules': _defaultAdRulesJson});
+
+    // 2. 同步初始化一次内存中的 _config 对象，确保在 fetchAndActivate 之前业务层也能读取到
+    _config = _getDefaultAdConfig();
     
     // 监听实时更新（Firebase 远端下发了新配置）
     _listenForUpdates();
@@ -185,18 +187,29 @@ class RemoteConfigManager {
   }
 
   // 拉取并激活配置，返回是否拉取并解析成功
-  Future<bool> fetchAndActivateConfig() async {
+  Future<void> fetchAndActivateConfig() async {
     try {
       // 从 Firebase 服务端拉取最新配置
       _remoteConfig.fetchAndActivate();
+      bool updated = await _remoteConfig.fetchAndActivate();
+      if (updated) {
+        debugPrint("Remote config updated.");
+      } else {
+        debugPrint("Remote config fetchAndActivate called, but no update.");
+      }
 
       // 无论是否有更新，都尝试将 RemoteConfig 中的数据转换为 AdConfig 对象
-      return _parseAndCacheConfig();
+      bool isSuccess = _parseAndCacheConfig();
+
+      if (isSuccess && _config != null) {
+        commonDebugPrint("Remote config: Reloading all ads with updated config.");
+        AdManager.instance.loadAd('open', _config!.open);
+        AdManager.instance.loadAd('behavior', _config!.behavior);
+        AdManager.instance.loadAd('NVhome', _config!.nvhome);
+      }
     } catch (e) {
       commonDebugPrint("Remote config: Failed to fetch and activate remote config: $e");
-      debugPrint('测试日志：获取失败，尝试使用已有的缓存或默认值');
       // 如果获取失败，尝试使用已有的缓存或默认值
-      return _parseAndCacheConfig();
     }
   }
 
@@ -222,7 +235,6 @@ class RemoteConfigManager {
         return true;
       }
     } else {
-      debugPrint('测试日志：获取到的json为空，使用本地默认配置');
       commonDebugPrint("Remote config: Ad config string is empty.");
       // 如果没有获取到，使用默认配置
       _config = _getDefaultAdConfig();

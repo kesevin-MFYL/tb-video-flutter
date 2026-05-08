@@ -45,6 +45,9 @@ class AdManager {
       commonDebugPrint('AdManager: No valid ad items for scenario: $scenario');
       return;
     }
+
+    // 缓存当前场景配置
+    _scenarioAdItems[scenario] = adItems;
     
     // 如果当前场景的广告配置循环还在处理中，则阻止后续并发请求，防止冲突
     if (_isScenarioLoading[scenario] == true) {
@@ -55,9 +58,6 @@ class AdManager {
     // 锁定该场景的加载状态
     _isScenarioLoading[scenario] = true;
 
-    // 缓存当前场景配置
-    _scenarioAdItems[scenario] = adItems;
-    
     // 每次重新发起场景加载前，清除该场景下已有的旧广告缓存，防止数据串台
     AppOpenAdManager.instance.disposeAd(scenario);
     InterstitialAdManager.instance.disposeAd(scenario);
