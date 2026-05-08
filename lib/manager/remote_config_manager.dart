@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:editvideo/config/log/logger.dart';
+import 'package:editvideo/manager/admob/ad_manager.dart';
 import 'package:editvideo/utils/storage.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
@@ -169,7 +170,14 @@ class RemoteConfigManager {
         // 激活最新配置
         await _remoteConfig.activate();
         // 解析并缓存到内存及本地 Storage 中
-        _parseAndCacheConfig();
+        bool isSuccess = _parseAndCacheConfig();
+
+        if (isSuccess && _config != null) {
+          commonDebugPrint("Remote config: Reloading all ads with updated config.");
+          AdManager.instance.loadAd('open', _config!.open);
+          AdManager.instance.loadAd('behavior', _config!.behavior);
+          AdManager.instance.loadAd('NVhome', _config!.nvhome);
+        }
       } catch (e) {
         commonDebugPrint("Remote config: Failed to activate updated config: $e");
       }

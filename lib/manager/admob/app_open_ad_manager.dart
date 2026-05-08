@@ -35,7 +35,7 @@ class AppOpenAdManager {
   ///
   /// 由统一的 [AdManager] 调度调用。如果当前加载失败，会触发 [onFailed] 回调，
   /// 通知 [AdManager] 继续尝试下一个优先级的配置项。
-  void loadAdItem(String scenario, AdItem item, {required VoidCallback onFailed}) async {
+  void loadAdItem(String scenario, AdItem item, {required VoidCallback onFailed, required VoidCallback onSuccess}) async {
     // 检查是否已经获得了用户的广告授权同意
     //todo GDPR权限检查
     // var canRequestAds = await ConsentManager.instance.canRequestAds();
@@ -63,6 +63,7 @@ class AppOpenAdManager {
           _appOpenLoadTimes[scenario] = DateTime.now();
           _appOpenAds[scenario] = ad;
           _isAdLoadingMap[scenario] = false;
+          onSuccess(); // 通知调度器该场景加载流程已成功闭环
         },
         onAdFailedToLoad: (error) {
           commonDebugPrint('AppOpenAdManager: AppOpenAd ${item.placementid} failed to load for scenario $scenario: $error');

@@ -20,6 +20,9 @@ class AdManager {
   /// 缓存每个场景的广告配置列表，主要用于广告展示完毕（关闭）后，自动重新发起下一轮加载
   final Map<String, List<AdItem>> _scenarioAdItems = {};
 
+  /// 标记某个场景的广告配置队列是否正在执行整体的加载循环流程
+  final Map<String, bool> _isScenarioLoading = {};
+
   /// 记录上一次全局展示全屏广告（open/interstitial）的时间戳
   DateTime? _lastFullScreenAdShowTime;
 
@@ -42,6 +45,16 @@ class AdManager {
       commonDebugPrint('AdManager: No valid ad items for scenario: $scenario');
       return;
     }
+    
+    // 如果当前场景的广告配置循环还在处理中，则阻止后续并发请求，防止冲突
+    if (_isScenarioLoading[scenario] == true) {
+      commonDebugPrint('AdManager: Scenario $scenario is already in the loading process. Ignored concurrent request.');
+      return;
+    }
+
+    // 锁定该场景的加载状态
+    _isScenarioLoading[scenario] = true;
+
     // 缓存当前场景配置
     _scenarioAdItems[scenario] = adItems;
     
@@ -60,6 +73,8 @@ class AdManager {
     if (index >= items.length) {
       debugPrint('测试日志：场景-$scenario: 未拉取到任何广告');
       commonDebugPrint('AdManager: All ad items failed to load for scenario: $scenario.');
+      // 释放锁
+      _isScenarioLoading[scenario] = false;
       // 通知原生广告的监听器，当前场景所有广告加载失败
       NativeAdManager.instance.notifyAdFailed(scenario);
       return;
@@ -75,17 +90,22 @@ class AdManager {
       commonDebugPrint('AdManager: adtype ${currentItem.adtype} failed for scenario $scenario, trying next...');
       _loadAdFromItems(scenario, items, index + 1);
     }
+    
+    // 闭包方法：当前广告加载成功时触发，解除整个场景的队列锁
+    void onSuccess() {
+      _isScenarioLoading[scenario] = false;
+    }
 
     // 根据当前配置项的 `adtype`，将任务分发给对应的具体管理器执行
     switch (currentItem.adtype) {
       case 'open':
-        AppOpenAdManager.instance.loadAdItem(scenario, currentItem, onFailed: onFailed);
+        AppOpenAdManager.instance.loadAdItem(scenario, currentItem, onFailed: onFailed, onSuccess: onSuccess);
         break;
       case 'interstitial':
-        InterstitialAdManager.instance.loadAdItem(scenario, currentItem, onFailed: onFailed);
+        InterstitialAdManager.instance.loadAdItem(scenario, currentItem, onFailed: onFailed, onSuccess: onSuccess);
         break;
       case 'native':
-        NativeAdManager.instance.loadAdItem(scenario, currentItem, onFailed: onFailed);
+        NativeAdManager.instance.loadAdItem(scenario, currentItem, onFailed: onFailed, onSuccess: onSuccess);
         break;
       default:
         // 遇到未知的广告类型直接跳过，尝试下一个

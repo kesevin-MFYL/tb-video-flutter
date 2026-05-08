@@ -54,6 +54,7 @@ class NativeAdManager {
     String scenario,
     AdItem item, {
     required VoidCallback onFailed,
+    required VoidCallback onSuccess,
     TemplateType templateType = TemplateType.medium,
   }) async {
     // 检查是否已经获得了用户的广告授权同意
@@ -82,6 +83,8 @@ class NativeAdManager {
           _nativeAds[scenario] = ad as NativeAd;
           _isAdLoadedMap[scenario] = true;
           _isAdLoadingMap[scenario] = false;
+          onSuccess(); // 通知调度器该场景加载流程已成功闭环
+          
           // 通知 UI 层广告已加载完毕，可以提取并渲染了
           if (onAdLoadedCallbacks.containsKey(scenario)) {
             onAdLoadedCallbacks[scenario]!(scenario);
