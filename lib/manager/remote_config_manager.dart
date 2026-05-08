@@ -208,7 +208,6 @@ class RemoteConfigManager {
   Future<void> fetchAndActivateConfig() async {
     try {
       // 从 Firebase 服务端拉取最新配置
-      _remoteConfig.fetchAndActivate();
       bool updated = await _remoteConfig.fetchAndActivate();
       if (updated) {
         debugPrint("Remote config updated.");
