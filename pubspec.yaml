@@ -51,6 +51,7 @@ flutter:
   assets:
     - assets/images/common/
     - assets/images/launch/
+    - assets/json/
 
 flutter_assets_generator:
   style: legacy

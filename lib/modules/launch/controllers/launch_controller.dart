@@ -41,7 +41,7 @@ class LaunchController extends GetxController {
       if (progress >= 1.0) {
         progress = 1.0;
         timer.cancel();
-        debugPrint('测试日志：7秒超时，跳转主页');
+        commonDebugPrint('测试日志：7秒超时，跳转主页', needSplit: false);
         // 进度条满（即7秒超时），强行跳转主页
         commonDebugPrint('LaunchController: 7 seconds timeout reached. Navigating to main.');
         _navigateToMain();
@@ -81,7 +81,7 @@ class LaunchController extends GetxController {
     // bool canRequestAds = await ConsentManager.instance.canRequestAds();
     // commonDebugPrint('LaunchController: canRequestAds--$canRequestAds}');
     // if (canRequestAds) {
-      debugPrint('测试日志：获取到广告授权 开始拉取广告');
+      commonDebugPrint('测试日志：获取到广告授权 开始拉取广告', needSplit: false);
       _isMobileAdsInitializeCalled = true;
 
       // 初始化 AdMob SDK

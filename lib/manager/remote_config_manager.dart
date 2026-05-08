@@ -4,6 +4,7 @@ import 'package:editvideo/manager/admob/ad_manager.dart';
 import 'package:editvideo/utils/storage.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 class AdItem {
   final String adsource;
@@ -100,60 +101,16 @@ class RemoteConfigManager {
 
   AdConfig? get config => _config;
 
-  static String _defaultAdRulesJson = '''
- {
-  "showCount": 100,
-  "sameInterval": 15,
-  "differentInterval": 30,
-  "timeOut": 10,
-  "openivtime": 30,
-  "PlayPointTime": 600,
-    "open": [
-        {
-            "adsource": "admob",
-            "adweight": 3,
-            "adtype": "open",
-            "placementid": "ca-app-pub-3940256099942544/9257395921"
-        },
-        {
-            "adsource": "admob",
-            "adweight": 2,
-            "adtype": "interstitial",
-            "placementid": "ca-app-pub-3940256099942544/1033173712"
-        },
-        {
-            "adsource": "admob",
-            "adweight": 1,
-            "adtype": "interstitial",
-            "placementid": "ca-app-pub-3940256099942544/1033173712"
-        }
-            ],
-    "behavior": [
-        {
-            "adsource": "admob",
-            "adweight": 2,
-            "adtype": "interstitial",
-            "placementid": "ca-app-pub-3940256099942544/1033173712"
-        },
-        {
-            "adsource": "admob",
-            "adweight": 1,
-            "adtype": "interstitial",
-            "placementid": "ca-app-pub-3940256099942544/1033173712"
-        }
-            ],
-     "NVhome": [
-        {
-            "adsource": "admob",
-            "adweight": 1,
-            "adtype": "native",
-            "placementid": "ca-app-pub-3940256099942544/2247696110"
-        }
-            ]       
-       }
-  ''';
+  static String _defaultAdRulesJson = '{}';
 
   Future<void> initialize() async {
+    try {
+      final String jsonString = await rootBundle.loadString('assets/json/default_ad_rules.json');
+      _defaultAdRulesJson = jsonString;
+    } catch (e) {
+      commonDebugPrint("Failed to load default_ad_rules.json: $e");
+    }
+
     // 配置 Remote Config 的设置
     await _remoteConfig.setConfigSettings(
       RemoteConfigSettings(
@@ -173,7 +130,7 @@ class RemoteConfigManager {
       _defaultAdRulesJson = cachedRulesJson; // 将缓存赋值给 _defaultAdRulesJson 作为兜底
     }
 
-    await _remoteConfig.setDefaults({'ad_rules': _defaultAdRulesJson});
+    await _remoteConfig.setDefaults({'ad_json_and': _defaultAdRulesJson});
 
     // 2. 同步初始化一次内存中的 _config 对象，确保在 fetchAndActivate 之前业务层也能读取到
     _config = _getDefaultAdConfig();
@@ -232,7 +189,7 @@ class RemoteConfigManager {
 
   bool _parseAndCacheConfig() {
     // 获取 JSON 字符串形式的配置
-    final configString = _remoteConfig.getString('ad_rules');
+    final configString = _remoteConfig.getString('ad_json_and');
     if (configString.isNotEmpty) {
       try {
         // 将 JSON 字符串解析为 Map
