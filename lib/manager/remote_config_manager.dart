@@ -9,12 +9,7 @@ class AdItem {
   final String adtype;
   final String placementid;
 
-  AdItem({
-    required this.adsource,
-    required this.adweight,
-    required this.adtype,
-    required this.placementid,
-  });
+  AdItem({required this.adsource, required this.adweight, required this.adtype, required this.placementid});
 
   factory AdItem.fromJson(Map<String, dynamic> json) {
     return AdItem(
@@ -27,12 +22,7 @@ class AdItem {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'adsource': adsource,
-      'adweight': adweight,
-      'adtype': adtype,
-      'placementid': placementid,
-    };
+    return {'adsource': adsource, 'adweight': adweight, 'adtype': adtype, 'placementid': placementid};
   }
 }
 
@@ -98,7 +88,9 @@ class AdConfig {
 
 class RemoteConfigManager {
   static final RemoteConfigManager _instance = RemoteConfigManager._internal();
+
   factory RemoteConfigManager() => _instance;
+
   RemoteConfigManager._internal();
 
   final FirebaseRemoteConfig _remoteConfig = FirebaseRemoteConfig.instance;
@@ -106,17 +98,84 @@ class RemoteConfigManager {
 
   AdConfig? get config => _config;
 
+  static const String _defaultAdRulesJson = '''
+  {
+  "showCount": 100,
+  "sameInterval": 15,
+  "differentInterval": 30,
+  "timeOut": 10,
+  "openivtime": 30,
+  "PlayPointTime": 600,
+  "open": [
+    {
+      "adsource": "admob",
+      "adweight": 1,
+      "adtype": "open",
+      "placementid": "ca-app-pub-3940256099942544/9257395921"
+    },
+    {
+      "adsource": "admob",
+      "adweight": 8,
+      "adtype": "interstitial",
+      "placementid": "ca-app-pub-3940256099942544/1033173712"
+    },
+    {
+      "adsource": "admob",
+      "adweight": 7,
+      "adtype": "open",
+      "placementid": "ca-app-pub-3940256099942544/9257395921"
+    }
+  ],
+  "NVhome": [
+    {
+      "adsource": "admob",
+      "adweight": 6,
+      "adtype": "native",
+      "placementid": "ca-app-pub-3940256099942544/2247696110"
+    },
+    {
+      "adsource": "admob",
+      "adweight": 7,
+      "adtype": "native",
+      "placementid": "ca-app-pub-3940256099942544/2247696110"
+    },
+    {
+      "adsource": "admob",
+      "adweight": 8,
+      "adtype": "native",
+      "placementid": "ca-app-pub-3940256099942544/2247696110"
+    }
+  ],
+  "behavior": [
+    {
+      "adsource": "admob",
+      "adweight": 6,
+      "adtype": "interstitial",
+      "placementid": "456"
+    },
+    {
+      "adsource": "admob",
+      "adweight": 4,
+      "adtype": "open",
+      "placementid": "ca-app-pub-3940256099942544/9257395921"
+    }
+  ]
+}
+  ''';
+
   Future<void> initialize() async {
     // 配置 Remote Config 的设置
-    await _remoteConfig.setConfigSettings(RemoteConfigSettings(
-      // 设置获取配置的超时时间为7秒
-      fetchTimeout: const Duration(seconds: 7),
-      // 【关键】开发阶段：建议设置较短的间隔以便调试，例如 0 秒
-      // 【重要】生产环境：务必遵循最低更新间隔为 1 小时 (3600 秒) 的官方建议，以避免性能问题
-      minimumFetchInterval: kDebugMode
-          ? const Duration(seconds: 0)
-          : const Duration(hours: 1),
-    ));
+    await _remoteConfig.setConfigSettings(
+      RemoteConfigSettings(
+        // 设置获取配置的超时时间为7秒
+        fetchTimeout: const Duration(seconds: 7),
+        // 【关键】开发阶段：建议设置较短的间隔以便调试，例如 0 秒
+        // 【重要】生产环境：务必遵循最低更新间隔为 1 小时 (3600 秒) 的官方建议，以避免性能问题
+        minimumFetchInterval: kDebugMode ? const Duration(seconds: 0) : const Duration(hours: 1),
+      ),
+    );
+
+    await _remoteConfig.setDefaults(const {'ad_rules': _defaultAdRulesJson});
   }
 
   // 拉取并激活配置，返回是否拉取并解析成功
@@ -129,12 +188,14 @@ class RemoteConfigManager {
       } else {
         commonDebugPrint("Remote config fetchAndActivate called, but no update.");
       }
-      
+
       // 无论是否有更新，都尝试将 RemoteConfig 中的数据转换为 AdConfig 对象
       return _parseAndCacheConfig();
     } catch (e) {
       commonDebugPrint("Remote config: Failed to fetch and activate remote config: $e");
-      return false;
+      debugPrint('测试日志：获取失败，尝试使用已有的缓存或默认值');
+      // 如果获取失败，尝试使用已有的缓存或默认值
+      return _parseAndCacheConfig();
     }
   }
 
@@ -151,13 +212,37 @@ class RemoteConfigManager {
         return true;
       } catch (e) {
         commonDebugPrint("Remote config: Error parsing ad config JSON: $e");
-        _config = null;
-        return false;
+        // 解析失败时回退到默认配置
+        _config = _getDefaultAdConfig();
+        return true;
       }
     } else {
+      debugPrint('测试日志： 未获取到远端配置，使用本地默认配置');
       commonDebugPrint("Remote config: Ad config string is empty.");
-      _config = null;
-      return false;
+      // 如果没有获取到，使用默认配置
+      _config = _getDefaultAdConfig();
+      return true;
+    }
+  }
+
+  AdConfig _getDefaultAdConfig() {
+    try {
+      final Map<String, dynamic> defaultMap = jsonDecode(_defaultAdRulesJson);
+      return AdConfig.fromJson(defaultMap);
+    } catch (e) {
+      debugPrint("Error parsing default ad config JSON: $e");
+      // 返回一个安全的默认值
+      return AdConfig(
+        showCount: 100,
+        sameInterval: 15,
+        differentInterval: 30,
+        timeOut: 10,
+        openivtime: 30,
+        playPointTime: 600,
+        open: [],
+        behavior: [],
+        nvhome: [],
+      );
     }
   }
 }
