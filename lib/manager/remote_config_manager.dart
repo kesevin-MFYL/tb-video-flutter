@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:editvideo/config/log/logger.dart';
+import 'package:editvideo/utils/storage.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 
@@ -109,50 +110,20 @@ class RemoteConfigManager {
   "open": [
     {
       "adsource": "admob",
-      "adweight": 1,
-      "adtype": "open",
-      "placementid": "ca-app-pub-3940256099942544/9257395921"
-    },
-    {
-      "adsource": "admob",
-      "adweight": 8,
+      "adweight": 3,
       "adtype": "interstitial",
       "placementid": "ca-app-pub-3940256099942544/1033173712"
-    },
-    {
-      "adsource": "admob",
-      "adweight": 7,
-      "adtype": "open",
-      "placementid": "ca-app-pub-3940256099942544/9257395921"
     }
   ],
   "NVhome": [
     {
       "adsource": "admob",
-      "adweight": 6,
-      "adtype": "native",
-      "placementid": "ca-app-pub-3940256099942544/2247696110"
-    },
-    {
-      "adsource": "admob",
-      "adweight": 7,
-      "adtype": "native",
-      "placementid": "ca-app-pub-3940256099942544/2247696110"
-    },
-    {
-      "adsource": "admob",
-      "adweight": 8,
+      "adweight": 2,
       "adtype": "native",
       "placementid": "ca-app-pub-3940256099942544/2247696110"
     }
   ],
   "behavior": [
-    {
-      "adsource": "admob",
-      "adweight": 6,
-      "adtype": "interstitial",
-      "placementid": "456"
-    },
     {
       "adsource": "admob",
       "adweight": 4,
@@ -175,19 +146,41 @@ class RemoteConfigManager {
       ),
     );
 
-    await _remoteConfig.setDefaults(const {'ad_rules': _defaultAdRulesJson});
+    // 设置应用内默认参数值
+    // 1. 尝试读取本地 Storage 中的缓存
+    final cachedRulesJson = Storage.getAdRulesConfig();
+    if (cachedRulesJson != null && cachedRulesJson.isNotEmpty) {
+      commonDebugPrint("Remote config: Initialize defaults with local Storage cache.");
+      await _remoteConfig.setDefaults({'ad_rules': cachedRulesJson});
+    } else {
+      commonDebugPrint("Remote config: Initialize defaults with hardcoded default json.");
+      await _remoteConfig.setDefaults(const {'ad_rules': _defaultAdRulesJson});
+    }
+    
+    // 监听实时更新（Firebase 远端下发了新配置）
+    _listenForUpdates();
+  }
+
+  // 监听 Firebase Remote Config 实时更新
+  void _listenForUpdates() {
+    _remoteConfig.onConfigUpdated.listen((event) async {
+      commonDebugPrint("Remote config: Received real-time update event.");
+      try {
+        // 激活最新配置
+        await _remoteConfig.activate();
+        // 解析并缓存到内存及本地 Storage 中
+        _parseAndCacheConfig();
+      } catch (e) {
+        commonDebugPrint("Remote config: Failed to activate updated config: $e");
+      }
+    });
   }
 
   // 拉取并激活配置，返回是否拉取并解析成功
   Future<bool> fetchAndActivateConfig() async {
     try {
       // 从 Firebase 服务端拉取最新配置
-      bool updated = await _remoteConfig.fetchAndActivate();
-      if (updated) {
-        commonDebugPrint("Remote config updated.");
-      } else {
-        commonDebugPrint("Remote config fetchAndActivate called, but no update.");
-      }
+      _remoteConfig.fetchAndActivate();
 
       // 无论是否有更新，都尝试将 RemoteConfig 中的数据转换为 AdConfig 对象
       return _parseAndCacheConfig();
@@ -208,6 +201,10 @@ class RemoteConfigManager {
         final Map<String, dynamic> configMap = jsonDecode(configString);
         // 将 Map 转换为你的 AdConfig 模型类
         _config = AdConfig.fromJson(configMap);
+        
+        // 成功解析后，保存最新的有效配置到本地 Storage，以便下次启动兜底
+        Storage.saveAdRulesConfig(configString);
+        
         commonDebugPrint("Remote config: Ad config parsed and cached: ${_config?.toJson()}");
         return true;
       } catch (e) {
@@ -217,7 +214,7 @@ class RemoteConfigManager {
         return true;
       }
     } else {
-      debugPrint('测试日志： 未获取到远端配置，使用本地默认配置');
+      debugPrint('测试日志：获取到的json为空，使用本地默认配置');
       commonDebugPrint("Remote config: Ad config string is empty.");
       // 如果没有获取到，使用默认配置
       _config = _getDefaultAdConfig();

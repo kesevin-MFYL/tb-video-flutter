@@ -6,6 +6,7 @@ class Storage {
   static const _kFirstOpen = '_first_open_key';
   static const _kSavedMemories = '_saved_memories_key';
   static const _kDraftMemories = '_draft_memories_key';
+  static const _kAdRulesConfig = '_ad_rules_config_key';
 
   // 本地化存储，存APP内部
   static GetStorage? _getStorage;
@@ -82,5 +83,14 @@ class Storage {
       return jsonList.map((e) => MemoryInfo.fromJson(e)).toList();
     }
     return [];
+  }
+
+  // === 广告规则配置 ===
+  static Future<void> saveAdRulesConfig(String configJson) async {
+    return _getStorage!.write(_kAdRulesConfig, configJson);
+  }
+
+  static String? getAdRulesConfig() {
+    return _getStorage!.read<String?>(_kAdRulesConfig);
   }
 }
