@@ -15,6 +15,7 @@ void _replaceFirebaseConfig() {
   _replaceFirebaseOptionsConfig();
   _replaceFirebaseJsonConfig();
   _replaceAndroidFirebaseConfig();
+  _replaceAdRulesConfig();
 }
 
 void _replaceFirebaseOptionsConfig() {
@@ -26,6 +27,19 @@ void _replaceFirebaseOptionsConfig() {
   final content = sourceFile.readAsStringSync();
   targetFile.writeAsStringSync(content);
   print('   ✓ FirebaseOptions 配置文件替换完成');
+}
+
+void _replaceAdRulesConfig() {
+  final sourceFile = File('manifest/prod/default_ad_rules.json');
+  final targetFile = File('assets/json/default_ad_rules.json');
+  
+  if (!sourceFile.existsSync()) {
+    throw '广告配置文件不存在: ${sourceFile.path}';
+  }
+  
+  final content = sourceFile.readAsStringSync();
+  targetFile.writeAsStringSync(content);
+  print('   ✓ default_ad_rules.json 配置文件替换完成');
 }
 
 void _replaceFirebaseJsonConfig() {

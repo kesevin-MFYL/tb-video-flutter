@@ -1,0 +1,50 @@
+{
+  "showCount": 100,
+  "sameInterval": 15,
+  "differentInterval": 30,
+  "timeOut": 10,
+  "openivtime": 30,
+  "PlayPointTime": 600,
+  "open": [
+    {
+      "adsource": "admob",
+      "adweight": 3,
+      "adtype": "open",
+      "placementid": "ca-app-pub-1894196503148136/4795162722"
+    },
+    {
+      "adsource": "admob",
+      "adweight": 2,
+      "adtype": "interstitial",
+      "placementid": "ca-app-pub-1894196503148136/8008033867"
+    },
+    {
+      "adsource": "admob",
+      "adweight": 1,
+      "adtype": "interstitial",
+      "placementid": "ca-app-pub-1894196503148136/7387490871"
+    }
+  ],
+  "behavior": [
+    {
+      "adsource": "admob",
+      "adweight": 2,
+      "adtype": "interstitial",
+      "placementid": "ca-app-pub-1894196503148136/5882837519"
+    },
+    {
+      "adsource": "admob",
+      "adweight": 1,
+      "adtype": "interstitial",
+      "placementid": "ca-app-pub-1894196503148136/9855917715"
+    }
+  ],
+  "NVhome": [
+    {
+      "adsource": "admob",
+      "adweight": 1,
+      "adtype": "native",
+      "placementid": "ca-app-pub-1894196503148136/8143765238"
+    }
+  ]
+}
