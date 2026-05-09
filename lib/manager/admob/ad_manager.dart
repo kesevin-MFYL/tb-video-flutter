@@ -23,6 +23,9 @@ class AdManager {
   /// 标记某个场景的广告配置队列是否正在执行整体的加载循环流程
   final Map<String, bool> _isScenarioLoading = {};
 
+  /// 标记当前是否全局正在展示某个全屏广告（防止重叠展示）
+  bool _isAnyFullScreenAdShowing = false;
+
   /// 记录上一次全局展示全屏广告（open/interstitial）的时间戳
   DateTime? _lastFullScreenAdShowTime;
 
@@ -125,11 +128,15 @@ class AdManager {
   /// 展示指定场景的广告
   ///
   /// 调用该方法时，调度器会检查内部哪个具体的广告管理器加载成功了，并调用其展示方法。
-  /// 展示指定场景的广告
-  ///
-  /// 调用该方法时，调度器会检查内部哪个具体的广告管理器加载成功了，并调用其展示方法。
   /// **注意**：原生广告（NativeAd）通常是作为 Widget 嵌入 UI 中的，不适用此弹窗展示方法。
   void showAdIfAvailable(String scenario, {VoidCallback? onAdDismissed}) {
+    // 检查是否有广告正在展示（主要是 open 和 behavior 场景互斥）
+    if ((scenario == 'open' || scenario == 'behavior') && _isAnyFullScreenAdShowing) {
+      commonDebugPrint('AdManager: Cannot show $scenario ad. Another full screen ad is already showing.');
+      if (onAdDismissed != null) onAdDismissed();
+      return;
+    }
+
     // 如果没有任何可用广告，则尝试重新发起一轮加载
     if (!isAdAvailable(scenario)) {
       commonDebugPrint('测试日志：场景$scenario下没有可展示的广告--重新拉取广告', needSplit: false);
@@ -160,6 +167,7 @@ class AdManager {
 
     // 闭包方法：当全屏广告（开屏/插屏）被用户关闭后触发，用于自动重新加载下一轮广告以备后用
     void reloadNext(bool isClosed) {
+      _isAnyFullScreenAdShowing = false;
       if (isClosed) {
         commonDebugPrint('测试日志：场景$scenario下的广告已关闭--重新拉取广告', needSplit: false);
         _lastFullScreenAdShowTime = DateTime.now();
@@ -172,6 +180,7 @@ class AdManager {
 
     // 优先尝试展示能够全屏展示的开屏广告
     if (AppOpenAdManager.instance.isAdAvailable(scenario)) {
+      _isAnyFullScreenAdShowing = true;
       AppOpenAdManager.instance.showAdIfAvailable(
         scenario,
         onAdDismissed: reloadNext,
@@ -179,6 +188,7 @@ class AdManager {
     }
     // 其次尝试展示插屏广告
     else if (InterstitialAdManager.instance.isAdAvailable(scenario)) {
+      _isAnyFullScreenAdShowing = true;
       InterstitialAdManager.instance.showAdIfAvailable(
         scenario,
         onAdDismissed: reloadNext,
