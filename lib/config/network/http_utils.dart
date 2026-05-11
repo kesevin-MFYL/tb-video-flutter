@@ -175,7 +175,7 @@ class HttpUtils {
   }
 
   static void _updateHeaders() {
-    dio.options.headers['TOKEN'] =
-        'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJlbHlzaW1hdGVkZXYiLCJjaGFubmVsIjoiVU5LTk9XTiIsImlkIjoxODU0NDY1MjM4NDEyMTgxNTA1LCJleHAiOjE3OTU4MzgzMTAsInRpbWVzdGFtcCI6MTc2NDMwMjMxMDAyM30.fwsXs5ZQhepT7oQyME8c1nysCbAHQB0gqyqUczWipBM';
+    // dio.options.headers['TOKEN'] =
+    //     'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJlbHlzaW1hdGVkZXYiLCJjaGFubmVsIjoiVU5LTk9XTiIsImlkIjoxODU0NDY1MjM4NDEyMTgxNTA1LCJleHAiOjE3OTU4MzgzMTAsInRpbWVzdGFtcCI6MTc2NDMwMjMxMDAyM30.fwsXs5ZQhepT7oQyME8c1nysCbAHQB0gqyqUczWipBM';
   }
 }

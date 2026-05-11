@@ -1,5 +1,7 @@
 import 'package:editvideo/base/base_controller.dart';
 import 'package:editvideo/config/log/logger.dart';
+import 'package:editvideo/config/network/api/common_api.dart';
+import 'package:editvideo/config/network/http_utils.dart';
 import 'package:editvideo/manager/admob/consent_manager.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -9,8 +11,9 @@ class SettingController extends BaseController {
   bool isPrivacyOptionsRequired = false;
 
   @override
-  void onInit() {
+  void onInit() async {
     super.onInit();
+    final result = await CommonApi.cloak();
     //todo GDPR权限检查
     // _checkPrivacyOptionsRequired();
   }
