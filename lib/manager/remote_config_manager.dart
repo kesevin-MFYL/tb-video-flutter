@@ -147,7 +147,7 @@ class RemoteConfigManager {
         // 激活最新配置
         await _remoteConfig.activate();
         // 解析并缓存到内存及本地 Storage 中
-        bool isSuccess = _parseAndCacheConfig();
+        bool isSuccess = parseAndCacheConfig();
 
         if (isSuccess && _config != null) {
           commonDebugPrint("Remote config: Reloading all ads with updated config.");
@@ -162,32 +162,11 @@ class RemoteConfigManager {
   }
 
   // 拉取并激活配置，返回是否拉取并解析成功
-  Future<void> fetchAndActivateConfig() async {
-    try {
-      // 从 Firebase 服务端拉取最新配置
-      bool updated = await _remoteConfig.fetchAndActivate();
-      if (updated) {
-        debugPrint("Remote config updated.");
-      } else {
-        debugPrint("Remote config fetchAndActivate called, but no update.");
-      }
-
-      // 无论是否有更新，都尝试将 RemoteConfig 中的数据转换为 AdConfig 对象
-      bool isSuccess = _parseAndCacheConfig();
-
-      if (isSuccess && _config != null) {
-        commonDebugPrint("Remote config: Reloading all ads with updated config.");
-        AdManager.instance.loadAd('open', _config!.open);
-        AdManager.instance.loadAd('behavior', _config!.behavior);
-        AdManager.instance.loadAd('NVhome', _config!.nvhome);
-      }
-    } catch (e) {
-      commonDebugPrint("Remote config: Failed to fetch and activate remote config: $e");
-      // 如果获取失败，尝试使用已有的缓存或默认值
-    }
+  Future<bool> fetchAndActivateConfig() async {
+    return await _remoteConfig.fetchAndActivate();
   }
 
-  bool _parseAndCacheConfig() {
+  bool parseAndCacheConfig() {
     // 获取 JSON 字符串形式的配置
     final configString = _remoteConfig.getString('ad_json_and');
     if (configString.isNotEmpty) {

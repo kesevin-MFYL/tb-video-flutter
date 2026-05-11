@@ -16,8 +16,10 @@ class LaunchController extends GetxController {
 
   // 进度条的进度值 (0.0 到 1.0)
   double progress = 0.0;
+
   // 进度条的总时长 (7秒)
   final int maxDurationMs = 7000;
+
   // 进度条的更新间隔 (1秒)
   final int updateIntervalMs = 1000;
   int _elapsedMs = 0;
@@ -56,7 +58,24 @@ class LaunchController extends GetxController {
     await RemoteConfigManager().initialize();
 
     // 3. 拉取远端配置
-    RemoteConfigManager().fetchAndActivateConfig();
+    RemoteConfigManager().fetchAndActivateConfig().then((updated) {
+      if (updated) {
+        debugPrint("Remote config updated.");
+      } else {
+        debugPrint("Remote config fetchAndActivate called, but no update.");
+      }
+
+      // 无论是否有更新，都尝试将 RemoteConfig 中的数据转换为 AdConfig 对象
+      bool isSuccess = RemoteConfigManager().parseAndCacheConfig();
+      final config = RemoteConfigManager().config;
+
+      if (isSuccess && config != null) {
+        commonDebugPrint("Remote config: Reloading all ads with updated config.");
+        AdManager.instance.loadAd('open', config.open);
+        AdManager.instance.loadAd('behavior', config.behavior);
+        AdManager.instance.loadAd('NVhome', config.nvhome);
+      }
+    });
 
     // // 4. 收集隐私合规 (UMP) 并初始化 MobileAds
     //todo GDPR权限检查
@@ -81,20 +100,20 @@ class LaunchController extends GetxController {
     // bool canRequestAds = await ConsentManager.instance.canRequestAds();
     // commonDebugPrint('LaunchController: canRequestAds--$canRequestAds}');
     // if (canRequestAds) {
-      commonDebugPrint('测试日志：获取到广告授权 开始拉取广告');
-      _isMobileAdsInitializeCalled = true;
+    commonDebugPrint('测试日志：获取到广告授权 开始拉取广告');
+    _isMobileAdsInitializeCalled = true;
 
-      // 初始化 AdMob SDK
-      MobileAds.instance.initialize();
+    // 初始化 AdMob SDK
+    MobileAds.instance.initialize();
 
-      // 5. 根据配置分别加载各个场景的广告
-      final config = RemoteConfigManager().config!;
-      AdManager.instance.loadAd('open', config.open);
-      AdManager.instance.loadAd('behavior', config.behavior);
-      AdManager.instance.loadAd('NVhome', config.nvhome);
+    // 5. 根据配置分别加载各个场景的广告
+    final config = RemoteConfigManager().config!;
+    AdManager.instance.loadAd('open', config.open);
+    AdManager.instance.loadAd('behavior', config.behavior);
+    AdManager.instance.loadAd('NVhome', config.nvhome);
 
-      // 6. 尝试轮询展示 open 广告
-      _tryShowOpenAd();
+    // 6. 尝试轮询展示 open 广告
+    _tryShowOpenAd();
     // }
   }
 
@@ -110,20 +129,23 @@ class LaunchController extends GetxController {
         // 取消检查定时器，因为我们要开始展示广告了
         timer.cancel();
         _progressTimer?.cancel();
-        
+
         // 发现广告时，瞬间将进度条填满
         progress = 1.0;
         update();
 
         commonDebugPrint('LaunchController: Open ad is ready. Showing ad.');
-        AdManager.instance.showAdIfAvailable('open', onAdDismissed: () {
-          commonDebugPrint('LaunchController: Open ad dismissed. Navigating to main.');
-          // 在原生全屏广告关闭时，给 Flutter 渲染一点恢复的缓冲时间（比如 100 毫秒）
-          // 否则可能会因为原生转场动画和 GetX 路由切换同时发生而导致界面僵死或延迟
-          // Future.delayed(const Duration(milliseconds: 100), () {
+        AdManager.instance.showAdIfAvailable(
+          'open',
+          onAdDismissed: () {
+            commonDebugPrint('LaunchController: Open ad dismissed. Navigating to main.');
+            // 在原生全屏广告关闭时，给 Flutter 渲染一点恢复的缓冲时间（比如 100 毫秒）
+            // 否则可能会因为原生转场动画和 GetX 路由切换同时发生而导致界面僵死或延迟
+            // Future.delayed(const Duration(milliseconds: 100), () {
             _navigateToMain();
-          // });
-        });
+            // });
+          },
+        );
       }
     });
   }
