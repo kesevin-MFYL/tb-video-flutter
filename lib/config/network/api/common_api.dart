@@ -1,8 +1,10 @@
 import 'package:editvideo/config/network/http_utils.dart';
 import 'package:editvideo/config/network/model/api_error.dart';
 import 'package:editvideo/config/network/model/api_result.dart';
-import 'package:editvideo/config/network/model/base_entity.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
+import 'package:get/get.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
 enum TbaParameterType {
   // 包名
@@ -25,13 +27,36 @@ enum TbaParameterType {
 
 class CommonApi {
   static Future<ApiResult<BaseResponse<String?>?, ApiError>> cloak() async {
+    String osType = '';
+    if (GetPlatform.isAndroid) {
+      osType = 'away';
+    } else if (GetPlatform.isIOS) {
+      osType = 'botulin';
+    }
+
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+    String model = '';
+    String osVersion = '';
+
+    if (GetPlatform.isAndroid) {
+      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+      model = androidInfo.model;
+      osVersion = androidInfo.version.release;
+    } else if (GetPlatform.isIOS) {
+      IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+      model = iosInfo.utsname.machine;
+      osVersion = iosInfo.systemVersion;
+    }
+
     final Map<String, dynamic> body = {
-      TbaParameterType.monument.name: 'com.movix.editvideo',///todo
-      TbaParameterType.mcdonald.name: 'away',///todo
-      TbaParameterType.burmese.name: '1.0.1',///todo
+      TbaParameterType.monument.name: 'com.movix.editvideo'/*packageInfo.packageName*/,
+      TbaParameterType.mcdonald.name: osType,
+      TbaParameterType.burmese.name: packageInfo.version,
       TbaParameterType.raman.name: DateTime.now().millisecondsSinceEpoch,
-      TbaParameterType.agenda.name: '',///todo
-      TbaParameterType.bless.name: '',///todo
+      TbaParameterType.agenda.name: model,
+      TbaParameterType.bless.name: osVersion,
     };
     return await HttpUtils.postRequest(
       'https://terrier.movixweb.com/unix/inductee',
