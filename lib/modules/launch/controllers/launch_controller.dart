@@ -133,7 +133,7 @@ class LaunchController extends GetxController {
     _hasNavigatedToMain = true;
     _checkAdTimer?.cancel();
     _progressTimer?.cancel();
-    Get.offAllNamed(Routes.main);
+    Get.offAllNamed(Routes.mainA);
   }
 
   @override

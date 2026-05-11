@@ -6,7 +6,7 @@ import 'package:editvideo/modules/setting/views/setting_page.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:get/get.dart';
 
-class MainController extends BaseController {
+class MainAController extends BaseController {
   var currentIndex = 0;
 
   final tabBarPages = [const HomePage(), SettingPage()];

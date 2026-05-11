@@ -1,5 +1,5 @@
 import 'package:editvideo/generated/assets.dart';
-import 'package:editvideo/modules/main/controllers/main_controller.dart';
+import 'package:editvideo/modules/main/controllers/main_a_controller.dart';
 import 'package:editvideo/utils/common_values.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/text_extension.dart';
@@ -10,8 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
-class MainPage extends StatelessWidget {
-  const MainPage({super.key});
+class MainAPage extends StatelessWidget {
+  const MainAPage({super.key});
 
   BottomNavigationBarItem tabbarItem({String? label, String? assets, String? selectedAssets}) {
     return BottomNavigationBarItem(
@@ -27,8 +27,8 @@ class MainPage extends StatelessWidget {
   }
 
   _bodyView(BuildContext context) {
-    return GetBuilder<MainController>(
-      init: MainController(),
+    return GetBuilder<MainAController>(
+      init: MainAController(),
       builder: (controller) {
         return Stack(
           alignment: Alignment.center,

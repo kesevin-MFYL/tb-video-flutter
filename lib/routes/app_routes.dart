@@ -3,11 +3,14 @@ class Routes {
 
   static const launch = '/launch';
 
-  /// 根页面
-  static const main = '/main';
+  /// a根页面
+  static const mainA = '/mainA';
 
   /// 公共页面
   static const editVideo = '/editVideo';
 
   static const webPage = '/webPage';
+
+  /// b根页面
+  static const mainB = '/mainB';
 }
