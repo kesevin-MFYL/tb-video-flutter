@@ -6,7 +6,7 @@ Logger get defaultLogger => LoggerConfig.instance.logger;
 
 void commonDebugPrint(
   Object? object, {
-  bool needSplit = true,
+  bool needSplit = false,
 }) {
   if (kDebugMode) {
     final content = object.toString();

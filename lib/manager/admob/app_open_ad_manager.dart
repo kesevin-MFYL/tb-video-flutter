@@ -40,7 +40,7 @@ class AppOpenAdManager {
     //todo GDPR权限检查
     // var canRequestAds = await ConsentManager.instance.canRequestAds();
     // if (!canRequestAds) {
-    //   commonDebugPrint('测试日志：当前用户未授权使用广告，不再进行广告拉取。', needSplit: false);
+    //   commonDebugPrint('测试日志：当前用户未授权使用广告，不再进行广告拉取。');
     //   onFailed();
     //   return;
     // }
@@ -57,7 +57,7 @@ class AppOpenAdManager {
       request: const AdRequest(),
       adLoadCallback: AppOpenAdLoadCallback(
         onAdLoaded: (ad) {
-          commonDebugPrint('测试日志：场景$scenario--拉取广告成功-广告类型:${item.adtype}--广告id: ${item.placementid}--优先级：${item.adweight}', needSplit: false);
+          commonDebugPrint('测试日志：场景$scenario--拉取广告成功-广告类型:${item.adtype}--广告id: ${item.placementid}--优先级：${item.adweight}');
           commonDebugPrint('AppOpenAdManager: AppOpenAd ${item.placementid} loaded for scenario: $scenario');
           // 加载成功，记录加载时间和广告实例
           _appOpenLoadTimes[scenario] = DateTime.now();
