@@ -9,7 +9,7 @@ abstract class ApiResponse {
   }
 
   bool isSuccess() {
-    return code != null && code == 0;
+    return code != null && code == 200;
   }
 
   ApiError? get error {
@@ -44,7 +44,7 @@ class BaseResponse<T> extends ApiResponse {
         data = construction(dataMap);
       }
     } else if (json is String) {
-      code = 0;
+      code = 200;
       if (isSuccess()) {
         data = construction(json);
       }

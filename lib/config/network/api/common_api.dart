@@ -2,6 +2,7 @@ import 'package:editvideo/config/network/http_utils.dart';
 import 'package:editvideo/config/network/model/api_error.dart';
 import 'package:editvideo/config/network/model/api_result.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
+import 'package:editvideo/models/ip_config_entity.dart';
 import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -11,7 +12,7 @@ enum TbaParameterType {
   monument,
   // 操作系统，对应的{“away”: “android”, “botulin”: “ios”, “madam”: “web”, “rattle”: “macos”, “precinct”: “windows”}
   mcdonald,
-  // 系统版本
+  // 版本号
   burmese,
   // 时间戳
   raman,
@@ -26,6 +27,7 @@ enum TbaParameterType {
 }
 
 class CommonApi {
+  /// 是否黑名单
   static Future<ApiResult<BaseResponse<String?>?, ApiError>> cloak() async {
     String osType = '';
     if (GetPlatform.isAndroid) {
@@ -50,6 +52,7 @@ class CommonApi {
       osVersion = iosInfo.systemVersion;
     }
 
+    ///todo 替换包名
     final Map<String, dynamic> body = {
       TbaParameterType.monument.name: 'com.movix.editvideo'/*packageInfo.packageName*/,
       TbaParameterType.mcdonald.name: osType,
@@ -60,9 +63,19 @@ class CommonApi {
     };
     return await HttpUtils.postRequest(
       'https://terrier.movixweb.com/unix/inductee',
-      body,
+      body: body,
       construction: (data) => data is String ? data : null,
       decoder: BaseResponse<String?>.fromJson,
     );
   }
+
+  /// 封禁地址
+  static Future<ApiResult<BaseResponse<IpConfigEntity>?, ApiError>> getIpAddress() async {
+    return await HttpUtils.postRequest(
+      '/TaaEbOP/VkcwZy/HgIshGoVv',
+      construction: IpConfigEntity.fromJson,
+      decoder: BaseResponse<IpConfigEntity>.fromJson,
+    );
+  }
+
 }

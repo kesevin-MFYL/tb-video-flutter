@@ -146,14 +146,18 @@ class RemoteConfigManager {
       try {
         // 激活最新配置
         await _remoteConfig.activate();
-        // 解析并缓存到内存及本地 Storage 中
-        bool isSuccess = parseAndCacheConfig();
+        
+        // 只有当 ad_json_and 更新时才重新加载广告
+        if (event.updatedKeys.contains('ad_json_and')) {
+          // 解析并缓存到内存及本地 Storage 中
+          bool isSuccess = parseAndCacheConfig();
 
-        if (isSuccess && _config != null) {
-          commonDebugPrint("Remote config: Reloading all ads with updated config.");
-          AdManager.instance.loadAd('open', _config!.open);
-          AdManager.instance.loadAd('behavior', _config!.behavior);
-          AdManager.instance.loadAd('NVhome', _config!.nvhome);
+          if (isSuccess && _config != null) {
+            commonDebugPrint("Remote config: Reloading all ads with updated config.");
+            AdManager.instance.loadAd('open', _config!.open);
+            AdManager.instance.loadAd('behavior', _config!.behavior);
+            AdManager.instance.loadAd('NVhome', _config!.nvhome);
+          }
         }
       } catch (e) {
         commonDebugPrint("Remote config: Failed to activate updated config: $e");

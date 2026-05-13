@@ -3,6 +3,7 @@ import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/manager/admob/ad_manager.dart';
 import 'package:editvideo/manager/admob/consent_manager.dart';
 import 'package:editvideo/manager/remote_config_manager.dart';
+import 'package:editvideo/manager/switch_manager.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
@@ -57,7 +58,7 @@ class LaunchController extends GetxController {
     // 1. 初始化 RemoteConfig 设置
     await RemoteConfigManager().initialize();
 
-    // 3. 拉取远端配置
+    // 2. 拉取远端配置
     RemoteConfigManager().fetchAndActivateConfig().then((updated) {
       if (updated) {
         debugPrint("Remote config updated.");
@@ -77,7 +78,9 @@ class LaunchController extends GetxController {
       }
     });
 
-    // // 4. 收集隐私合规 (UMP) 并初始化 MobileAds
+    SwitchManager.instance.excutePage();
+
+    // // 3. 收集隐私合规 (UMP) 并初始化 MobileAds
     //todo GDPR权限检查
     // ConsentManager.instance.gatherConsent((formError) async {
     //   if (formError != null) {

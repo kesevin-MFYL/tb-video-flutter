@@ -1,10 +1,14 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/config/network/api/api_path.dart';
 import 'package:editvideo/config/network/model/api_error.dart';
 import 'package:editvideo/config/network/model/api_result.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
+import 'package:get/get.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 typedef ConstructionAction<B> = B Function(dynamic data);
 typedef DecoderAction<T, B> = T Function(dynamic data, ConstructionAction<B> construction);
@@ -70,8 +74,8 @@ class HttpUtils {
 
   /// postRequest
   static Future<ApiResult<T, ApiError>> postRequest<T extends ApiResponse, B>(
-    String url,
-    dynamic body, {
+    String url, {
+    dynamic body,
     required ConstructionAction<B> construction,
     required DecoderAction<T, B> decoder,
     bool? hideCatch,
@@ -118,7 +122,7 @@ class HttpUtils {
     // }
 
     // 更新headers
-    _updateHeaders();
+    await _updateHeaders();
 
     commonDebugPrint(
       "Request start\nmethod: GET\nurl: ${(dio.options.baseUrl) + path}\nparameters: $query\nbody: $body\nheaders:${dio.options.headers}",
@@ -134,10 +138,12 @@ class HttpUtils {
       );
 
       try {
-        final deResponse = decoder(response.data, construction);
+        final decryptedData = _decryptResponseData(response.data);
+        commonDebugPrint('Response: _decryptResponseData---$decryptedData', needSplit: true);
+        final deResponse = decoder(decryptedData, construction);
         if (deResponse.isSuccess()) {
           commonDebugPrint(
-            "Response success\nmethod: $method\nurl: ${(dio.options.baseUrl) + path}\nparameters: $query\nbody: $body\nheaders:${dio.options.headers}\nresponse:${response.data}",
+            "Response success\nmethod: $method\nurl: ${(dio.options.baseUrl) + path}\nparameters: $query\nbody: $body\nheaders:${dio.options.headers}\nresponse:$decryptedData",
             needSplit: true,
           );
           return ApiResult.succss(deResponse);
@@ -150,6 +156,10 @@ class HttpUtils {
           return ApiResult.failure(error, responseData: deResponse);
         }
       } catch (e, stackTrace) {
+        commonDebugPrint(
+          "Response success\nmethod: $method\nurl: ${(dio.options.baseUrl) + path}\nparameters: $query\nbody: $body\nheaders:${dio.options.headers}\nresponse:${response.data}\nParsing response data exception: $e",
+          needSplit: true,
+        );
         return ApiResult.failure(ApiError('Parsing response data exception: $e', -1));
       }
     } on DioException catch (e, stackTrace) {
@@ -174,8 +184,79 @@ class HttpUtils {
     }
   }
 
-  static void _updateHeaders() {
-    // dio.options.headers['TOKEN'] =
-    //     'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJlbHlzaW1hdGVkZXYiLCJjaGFubmVsIjoiVU5LTk9XTiIsImlkIjoxODU0NDY1MjM4NDEyMTgxNTA1LCJleHAiOjE3OTU4MzgzMTAsInRpbWVzdGFtcCI6MTc2NDMwMjMxMDAyM30.fwsXs5ZQhepT7oQyME8c1nysCbAHQB0gqyqUczWipBM';
+  //todo
+  static String _pkgName = 'com.movix.editvideo';
+  static String _deviceId = '';
+  static String _appVersion = '';
+
+  static dynamic _decryptResponseData(dynamic data) {
+    if (data is String) {
+      try {
+        // 1. 去掉头部9个字符
+        String processed = data.length > 9 ? data.substring(9) : '';
+        
+        // 2. 大小写互换
+        StringBuffer swapped = StringBuffer();
+        for (int i = 0; i < processed.length; i++) {
+          String char = processed[i];
+          String lower = char.toLowerCase();
+          String upper = char.toUpperCase();
+          if (char == lower) {
+            swapped.write(upper);
+          } else {
+            swapped.write(lower);
+          }
+        }
+        
+        // 3. base64解码
+        String normalized = base64.normalize(swapped.toString());
+        String decodedStr = utf8.decode(base64Decode(normalized));
+        
+        // 尝试解析为 JSON
+        try {
+          return jsonDecode(decodedStr);
+        } catch (_) {
+          return decodedStr;
+        }
+      } catch (e) {
+        commonDebugPrint('Decrypt response data error: $e');
+        return data;
+      }
+    }
+    return data;
+  }
+
+  static Future<void> _updateHeaders() async {
+    if (_pkgName.isEmpty || _deviceId.isEmpty || _appVersion.isEmpty) {
+      PackageInfo packageInfo = await PackageInfo.fromPlatform();
+
+      if (_pkgName.isEmpty) {
+        _pkgName = packageInfo.packageName;
+      }
+      if (_deviceId.isEmpty) {
+        try {
+          DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+          if (GetPlatform.isAndroid) {
+            AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+            _deviceId = androidInfo.id;
+          } else if (GetPlatform.isIOS) {
+            IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+            _deviceId = iosInfo.identifierForVendor ?? '';
+          }
+        } catch (e) {
+          commonDebugPrint('Error getting device id: $e');
+        }
+      }
+      if (_appVersion.isEmpty) {
+        _appVersion = packageInfo.version;
+      }
+    }
+
+    //包名
+    dio.options.headers['pkg'] = _pkgName;
+    //设备id
+    dio.options.headers['dev'] = _deviceId;
+    //版本号
+    dio.options.headers['ver'] = _appVersion;
   }
 }

@@ -1,3 +1,3 @@
 class ApiPath {
-  static String baseUrl = 'https://terrier.movixweb.com/unix/inductee';
+  static String baseUrl = 'https://test.movixtoa.com';
 }
