@@ -8,6 +8,7 @@ import 'package:editvideo/config/network/model/base_response.dart';
 import 'package:editvideo/manager/remote_config_manager.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:get/get.dart';
 
 class SwitchManager {
   static final SwitchManager instance = SwitchManager._internal();
@@ -17,12 +18,36 @@ class SwitchManager {
   SwitchManager._internal();
 
   // 是否可以跳转B页面
-  bool canToB = false;
+  var canToB = false.obs;
 
   /// 执行页面跳转相关的前置逻辑。
   /// 此方法主要用于触发 Firebase Remote Config 的拉取和解析过程。
-  void excutePage() {
-    _getFirebaseRemoteConfig();
+  Future<void> excutePage() async {
+    await Future.wait([
+      _getCloak(),
+      _getFirebaseRemoteConfig(),
+    ]).then((List<bool> result) {
+      // 共同判断 canToB 的值，只有黑名单允许且 RemoteConfig 允许，才可跳转B页面
+      canToB.value = result[0] && result[1];
+      commonDebugPrint("SwitchManager final canToB: $canToB (cloakAllow: ${result[0]}, remoteAllow: ${result[1]})");
+    });
+  }
+
+  Future<bool> _getCloak({int retryCount = 0}) async {
+    if (retryCount > 3) {
+      return false;
+    }
+    final result = await CommonApi.cloak();
+    if (result.isSuccess) {
+      final data = result.responseData?.data;
+      commonDebugPrint('SwitchManager: cloak data: $data');
+      // 命中黑名单：addison 正常模式：tahoe
+      return data == 'tahoe';
+    } else {
+      // 重试
+      commonDebugPrint("SwitchManager: _getCloak Server API error: ${result.error?.message ?? ApiResponse.unknownErrorMsg}");
+      return await _getCloak(retryCount: retryCount + 1);
+    }
   }
 
   /// 异步获取并解析 Firebase Remote Config 的各项开关配置。
@@ -32,8 +57,8 @@ class SwitchManager {
   /// 2. `movix_cloak_add`：模拟器和 VPN 屏蔽控制。为 'open' 且当前环境触发命中时进行拦截。
   /// 3. `movix_country_cloak`：区域屏蔽控制。当下发配置包含当前设备的国家或省市时进行拦截。
   ///
-  /// 所有条件均通过后，将 [canToB] 置为 true。
-  void _getFirebaseRemoteConfig() async {
+  /// 所有条件均通过后，将 [remoteAllow] 置为 true。
+  Future<bool> _getFirebaseRemoteConfig() async {
     await RemoteConfigManager().fetchAndActivateConfig();
     
     final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.instance;
@@ -41,7 +66,7 @@ class SwitchManager {
     String movixCloakAdd = remoteConfig.getString('movix_cloak_add').isEmptyString() ? 'open' : remoteConfig.getString('movix_cloak_add');
     String movixCountryCloak = remoteConfig.getString('movix_country_cloak').isEmptyString() ? 'Minnesota' : remoteConfig.getString('movix_country_cloak');
 
-    bool allowToB = false; // 默认canToB为false
+    bool allowToB = false; // 默认为false
 
     // 1. 判断 movix_reffer_clo
     if (movixRefferClo == 'all') { // 默认值是 all
@@ -68,12 +93,12 @@ class SwitchManager {
       }
     }
 
-    canToB = allowToB;
-    commonDebugPrint("SwitchManager canToB: $canToB (reffer_clo: $movixRefferClo, cloak_add: $movixCloakAdd, country_cloak: $movixCountryCloak)");
+    commonDebugPrint("SwitchManager remoteAllow: $allowToB (reffer_clo: $movixRefferClo, cloak_add: $movixCloakAdd, country_cloak: $movixCountryCloak)");
+    return allowToB;
   }
 
   /// 带有容错和重试机制的完整地理位置检测
-  Future<bool> _checkLocationBlockWithRetry(String blockedConfig, {int retryCount = 0}) async {
+  Future<bool> _checkLocationBlockWithRetry(String blockedConfig) async {
     // 1. 优先调用 _getLocationBlockFromServer
     bool? serverResult = await _getLocationBlockFromServer(blockedConfig);
     if (serverResult != null) {
@@ -101,7 +126,7 @@ class SwitchManager {
   /// 优先调用自己的服务器接口获取 IP 和地理位置
   /// 如果成功，返回是否被阻断 (true/false)；如果失败/异常，返回 null
   Future<bool?> _getLocationBlockFromServer(String blockedConfig, {bool needRetry = false, int retryCount = 0}) async {
-    if (retryCount > 1) {
+    if (retryCount > 2) {
       return null;
     }
     final result = await CommonApi.getIpAddress();
@@ -125,7 +150,7 @@ class SwitchManager {
       }
       return false;
     } else {
-      commonDebugPrint("SwitchManager: Server API error: ${result.error?.message ?? ApiResponse.unknownErrorMsg}");
+      commonDebugPrint("SwitchManager: getIpAddress Server API error: ${result.error?.message ?? ApiResponse.unknownErrorMsg}");
       if (needRetry) {
         return await _getLocationBlockFromServer(blockedConfig, needRetry: true, retryCount: retryCount + 1);
       }

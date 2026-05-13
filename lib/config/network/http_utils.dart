@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/config/network/api/api_path.dart';
+import 'package:editvideo/config/network/api/common_api.dart';
 import 'package:editvideo/config/network/model/api_error.dart';
 import 'package:editvideo/config/network/model/api_result.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
@@ -125,45 +126,55 @@ class HttpUtils {
     // 更新headers
     await _updateHeaders();
 
-    await _loadEntityRules();
+    dynamic finalQuery = query;
+    dynamic finalBody = body;
+    bool shouldMapping = !CommonApi.noMappingPath.contains(path);
 
-    dynamic translatedQuery = _translateParams(query, _entityRules);
-    dynamic translatedBody = _translateParams(body, _entityRules);
+    if (shouldMapping) {
+      await _loadEntityRules();
+      finalQuery = _translateParams(query, _entityRules);
+      finalBody = _translateParams(body, _entityRules);
+    }
 
     commonDebugPrint(
-      "Request start\nmethod: $method\nurl: ${(dio.options.baseUrl) + path}\nparameters: $translatedQuery\nbody: $translatedBody\nheaders:${dio.options.headers}",
+      "Request start\nmethod: $method\nurl: ${(dio.options.baseUrl) + path}\nparameters: $finalQuery\nbody: $finalBody\nheaders:${dio.options.headers}",
       needSplit: true,
     );
 
     try {
       final response = await dio.request(
         path,
-        queryParameters: translatedQuery is Map<String, dynamic> ? translatedQuery : translatedQuery as Map<String, dynamic>?,
-        data: translatedBody,
+        queryParameters: finalQuery is Map<String, dynamic> ? finalQuery : finalQuery as Map<String, dynamic>?,
+        data: finalBody,
         options: Options(method: method),
       );
 
       try {
-        final decryptedData = _decryptResponseData(response.data);
-        final translatedResponseData = _translateResponseParams(decryptedData, _reverseEntityRules);
-        final deResponse = decoder(translatedResponseData, construction);
+        dynamic decryptedData = response.data;
+        if (shouldMapping) {
+          decryptedData = _decryptResponseData(response.data);
+          commonDebugPrint('Response: _decryptResponseData---$decryptedData', needSplit: true);
+        }
+        
+        final finalResponseData = shouldMapping ? _translateResponseParams(decryptedData, _reverseEntityRules) : decryptedData;
+        final deResponse = decoder(finalResponseData, construction);
         if (deResponse.isSuccess()) {
           commonDebugPrint(
-            "Response success\nmethod: $method\nurl: ${(dio.options.baseUrl) + path}\nparameters: $translatedQuery\nbody: $translatedBody\nheaders:${dio.options.headers}\nresponse:$translatedResponseData",
+            "Response success\nmethod: $method\nurl: ${(dio.options.baseUrl) + path}\nparameters: $finalQuery\nbody: $finalBody\nheaders:${dio.options.headers}\nresponse:$finalResponseData",
             needSplit: true,
           );
           return ApiResult.succss(deResponse);
         } else {
           final error = deResponse.error!;
           commonDebugPrint(
-            "Response error\nmethod: $method\nurl: ${(dio.options.baseUrl) + path}\nparameters: $translatedQuery\nbody: $translatedBody\nheaders:${dio.options.headers}\nerror:${error.toString()}",
+            "Response error\nmethod: $method\nurl: ${(dio.options.baseUrl) + path}\nparameters: $finalQuery\nbody: $finalBody\nheaders:${dio.options.headers}\nerror:${error.toString()}",
             needSplit: true,
           );
           return ApiResult.failure(error, responseData: deResponse);
         }
       } catch (e, stackTrace) {
         commonDebugPrint(
-          "Response success\nmethod: $method\nurl: ${(dio.options.baseUrl) + path}\nparameters: $translatedQuery\nbody: $translatedBody\nheaders:${dio.options.headers}\nresponse:${response.data}\nParsing response data exception: $e",
+          "Response success\nmethod: $method\nurl: ${(dio.options.baseUrl) + path}\nparameters: $finalQuery\nbody: $finalBody\nheaders:${dio.options.headers}\nresponse:${response.data}\nParsing response data exception: $e",
           needSplit: true,
         );
         return ApiResult.failure(ApiError('Parsing response data exception: $e', -1));
@@ -183,7 +194,7 @@ class HttpUtils {
 
       final error = ApiError.create(e);
       commonDebugPrint(
-        "Response error\nmethod: $method\nurl: ${(dio.options.baseUrl) + path}\nparameters: $translatedQuery\nbody: $translatedBody\nheaders:${dio.options.headers}\nerror:${error.toString()}",
+        "Response error\nmethod: $method\nurl: ${(dio.options.baseUrl) + path}\nparameters: $finalQuery\nbody: $finalBody\nheaders:${dio.options.headers}\nerror:${error.toString()}",
         needSplit: true,
       );
       return ApiResult.failure(error);

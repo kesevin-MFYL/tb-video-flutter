@@ -158,7 +158,7 @@ class LaunchController extends GetxController {
     _hasNavigatedToMain = true;
     _checkAdTimer?.cancel();
     _progressTimer?.cancel();
-    Get.offAllNamed(Routes.mainA);
+    Get.offAllNamed(SwitchManager.instance.canToB.value ? Routes.mainB : Routes.mainA);
   }
 
   @override

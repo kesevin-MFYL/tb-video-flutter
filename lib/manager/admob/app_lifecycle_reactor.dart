@@ -17,7 +17,7 @@ class AppLifecycleReactor {
     commonDebugPrint('New AppState state: $appState');
     if (appState == AppState.foreground) {
       AdManager.instance.showAdIfAvailable('open', onAdDismissed: () {
-        commonDebugPrint('app从后台切换回前台，关闭广告');
+        commonDebugPrint('app从后台切换回前台，关闭广告事件');
         EventBusManager.instance.post(EventBusName.playVideo);
       });
     }

@@ -28,7 +28,13 @@ enum TbaParameterType {
 
 class CommonApi {
 
+  static final cloakPath = 'https://terrier.movixweb.com/unix/inductee';
   static final ipAddressPath = '/TaaEbOP/VkcwZy/HgIshGoVv';
+
+  // 不需要映射
+  static final List<String> noMappingPath = [
+    cloakPath,
+  ];
 
   /// 是否黑名单
   static Future<ApiResult<BaseResponse<String?>?, ApiError>> cloak() async {
@@ -65,7 +71,7 @@ class CommonApi {
       TbaParameterType.bless.name: osVersion,
     };
     return await HttpUtils.postRequest(
-      'https://terrier.movixweb.com/unix/inductee',
+      cloakPath,
       body: body,
       construction: (data) => data is String ? data : null,
       decoder: BaseResponse<String?>.fromJson,
