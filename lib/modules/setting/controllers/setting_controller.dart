@@ -13,7 +13,7 @@ class SettingController extends BaseController {
   @override
   void onInit() async {
     super.onInit();
-    final result = await CommonApi.getIpAddress();
+    // final result = await CommonApi.getIpAddress();
     //todo GDPR权限检查
     // _checkPrivacyOptionsRequired();
   }

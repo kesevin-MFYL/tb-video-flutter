@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:editvideo/config/log/logger.dart';
+import 'package:editvideo/config/network/api/common_api.dart';
 import 'package:editvideo/manager/remote_config_manager.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
@@ -68,6 +69,19 @@ class SwitchManager {
 
     canToB = allowToB;
     commonDebugPrint("SwitchManager canToB: $canToB (reffer_clo: $movixRefferClo, cloak_add: $movixCloakAdd, country_cloak: $movixCountryCloak)");
+  }
+
+  Future<bool?> _getLocationBlockFromServer({int retryCount = 0}) async {
+    if (retryCount > 2) {
+      return null;
+    }
+    final result = await CommonApi.getIpAddress();
+    if (result.isSuccess) {
+      final data = result.responseData?.data;
+    } else {
+      return await _getLocationBlockFromServer(retryCount: retryCount + 1);
+    }
+    return false;
   }
 
   /// 检查当前设备的网络位置是否被屏蔽。

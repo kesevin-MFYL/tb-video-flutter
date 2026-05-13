@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/services.dart';
 import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/config/network/api/api_path.dart';
 import 'package:editvideo/config/network/model/api_error.dart';
@@ -124,40 +125,45 @@ class HttpUtils {
     // 更新headers
     await _updateHeaders();
 
+    await _loadEntityRules();
+
+    dynamic translatedQuery = _translateParams(query, _entityRules);
+    dynamic translatedBody = _translateParams(body, _entityRules);
+
     commonDebugPrint(
-      "Request start\nmethod: GET\nurl: ${(dio.options.baseUrl) + path}\nparameters: $query\nbody: $body\nheaders:${dio.options.headers}",
+      "Request start\nmethod: $method\nurl: ${(dio.options.baseUrl) + path}\nparameters: $translatedQuery\nbody: $translatedBody\nheaders:${dio.options.headers}",
       needSplit: true,
     );
 
     try {
       final response = await dio.request(
         path,
-        queryParameters: query,
-        data: body,
+        queryParameters: translatedQuery is Map<String, dynamic> ? translatedQuery : translatedQuery as Map<String, dynamic>?,
+        data: translatedBody,
         options: Options(method: method),
       );
 
       try {
         final decryptedData = _decryptResponseData(response.data);
-        commonDebugPrint('Response: _decryptResponseData---$decryptedData', needSplit: true);
-        final deResponse = decoder(decryptedData, construction);
+        final translatedResponseData = _translateResponseParams(decryptedData, _reverseEntityRules);
+        final deResponse = decoder(translatedResponseData, construction);
         if (deResponse.isSuccess()) {
           commonDebugPrint(
-            "Response success\nmethod: $method\nurl: ${(dio.options.baseUrl) + path}\nparameters: $query\nbody: $body\nheaders:${dio.options.headers}\nresponse:$decryptedData",
+            "Response success\nmethod: $method\nurl: ${(dio.options.baseUrl) + path}\nparameters: $translatedQuery\nbody: $translatedBody\nheaders:${dio.options.headers}\nresponse:$translatedResponseData",
             needSplit: true,
           );
           return ApiResult.succss(deResponse);
         } else {
           final error = deResponse.error!;
           commonDebugPrint(
-            "Response error\nmethod: $method\nurl: ${(dio.options.baseUrl) + path}\nparameters: $query\nbody: $body\nheaders:${dio.options.headers}\nerror:${error.toString()}",
+            "Response error\nmethod: $method\nurl: ${(dio.options.baseUrl) + path}\nparameters: $translatedQuery\nbody: $translatedBody\nheaders:${dio.options.headers}\nerror:${error.toString()}",
             needSplit: true,
           );
           return ApiResult.failure(error, responseData: deResponse);
         }
       } catch (e, stackTrace) {
         commonDebugPrint(
-          "Response success\nmethod: $method\nurl: ${(dio.options.baseUrl) + path}\nparameters: $query\nbody: $body\nheaders:${dio.options.headers}\nresponse:${response.data}\nParsing response data exception: $e",
+          "Response success\nmethod: $method\nurl: ${(dio.options.baseUrl) + path}\nparameters: $translatedQuery\nbody: $translatedBody\nheaders:${dio.options.headers}\nresponse:${response.data}\nParsing response data exception: $e",
           needSplit: true,
         );
         return ApiResult.failure(ApiError('Parsing response data exception: $e', -1));
@@ -177,17 +183,12 @@ class HttpUtils {
 
       final error = ApiError.create(e);
       commonDebugPrint(
-        "Response error\nmethod: $method\nurl: ${(dio.options.baseUrl) + path}\nparameters: $query\nbody: $body\nheaders:${dio.options.headers}\nerror:${error.toString()}",
+        "Response error\nmethod: $method\nurl: ${(dio.options.baseUrl) + path}\nparameters: $translatedQuery\nbody: $translatedBody\nheaders:${dio.options.headers}\nerror:${error.toString()}",
         needSplit: true,
       );
       return ApiResult.failure(error);
     }
   }
-
-  //todo
-  static String _pkgName = 'com.movix.editvideo';
-  static String _deviceId = '';
-  static String _appVersion = '';
 
   static dynamic _decryptResponseData(dynamic data) {
     if (data is String) {
@@ -226,6 +227,77 @@ class HttpUtils {
     return data;
   }
 
+  //todo
+  static String _pkgName = 'com.movix.editvideo';
+  static String _deviceId = '';
+  static String _appVersion = '';
+  static Map<String, dynamic>? _headerRules;
+  static Map<String, dynamic>? _entityRules;
+  static Map<String, String>? _reverseEntityRules;
+
+  static Future<void> _loadHeaderRules() async {
+    if (_headerRules == null) {
+      try {
+        final String jsonString = await rootBundle.loadString('assets/json/header_rules.json');
+        _headerRules = jsonDecode(jsonString);
+      } catch (e) {
+        commonDebugPrint('Error loading header rules: $e');
+        _headerRules = {};
+      }
+    }
+  }
+  
+  static Future<void> _loadEntityRules() async {
+    if (_entityRules == null) {
+      try {
+        final String jsonString = await rootBundle.loadString('assets/json/entity_rules.json');
+        _entityRules = jsonDecode(jsonString);
+        _reverseEntityRules = {};
+        _entityRules?.forEach((key, value) {
+          if (value is String) {
+            _reverseEntityRules![value] = key;
+          }
+        });
+      } catch (e) {
+        commonDebugPrint('Error loading entity rules: $e');
+        _entityRules = {};
+        _reverseEntityRules = {};
+      }
+    }
+  }
+
+  static dynamic _translateParams(dynamic data, Map<String, dynamic>? rules) {
+    if (rules == null || rules.isEmpty || data == null) return data;
+    
+    if (data is Map) {
+      Map<String, dynamic> result = {};
+      data.forEach((key, value) {
+        String newKey = rules[key] ?? key;
+        result[newKey] = _translateParams(value, rules);
+      });
+      return result;
+    } else if (data is List) {
+      return data.map((item) => _translateParams(item, rules)).toList();
+    }
+    return data;
+  }
+
+  static dynamic _translateResponseParams(dynamic data, Map<String, String>? reverseRules) {
+    if (reverseRules == null || reverseRules.isEmpty || data == null) return data;
+
+    if (data is Map) {
+      Map<String, dynamic> result = {};
+      data.forEach((key, value) {
+        String newKey = reverseRules[key] ?? key;
+        result[newKey] = _translateResponseParams(value, reverseRules);
+      });
+      return result;
+    } else if (data is List) {
+      return data.map((item) => _translateResponseParams(item, reverseRules)).toList();
+    }
+    return data;
+  }
+
   static Future<void> _updateHeaders() async {
     if (_pkgName.isEmpty || _deviceId.isEmpty || _appVersion.isEmpty) {
       PackageInfo packageInfo = await PackageInfo.fromPlatform();
@@ -252,11 +324,16 @@ class HttpUtils {
       }
     }
 
+    await _loadHeaderRules();
+    String pkgKey = _headerRules?['pkg'] ?? 'pkg';
+    String devKey = _headerRules?['dev'] ?? 'dev';
+    String verKey = _headerRules?['ver'] ?? 'ver';
+
     //包名
-    dio.options.headers['pkg'] = _pkgName;
+    dio.options.headers[pkgKey] = _pkgName;
     //设备id
-    dio.options.headers['dev'] = _deviceId;
+    dio.options.headers[devKey] = _deviceId;
     //版本号
-    dio.options.headers['ver'] = _appVersion;
+    dio.options.headers[verKey] = _appVersion;
   }
 }

@@ -27,6 +27,9 @@ enum TbaParameterType {
 }
 
 class CommonApi {
+
+  static final ipAddressPath = '/TaaEbOP/VkcwZy/HgIshGoVv';
+
   /// 是否黑名单
   static Future<ApiResult<BaseResponse<String?>?, ApiError>> cloak() async {
     String osType = '';
@@ -72,7 +75,7 @@ class CommonApi {
   /// 封禁地址
   static Future<ApiResult<BaseResponse<IpConfigEntity>?, ApiError>> getIpAddress() async {
     return await HttpUtils.postRequest(
-      '/TaaEbOP/VkcwZy/HgIshGoVv',
+      ipAddressPath,
       construction: IpConfigEntity.fromJson,
       decoder: BaseResponse<IpConfigEntity>.fromJson,
     );
