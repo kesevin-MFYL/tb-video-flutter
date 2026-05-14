@@ -92,21 +92,22 @@ class HomeBPage extends StatelessWidget {
               children: [
                 CommonText.instance(section.title ?? '', 14.sp, fontWeight: CommonFontWeight.bold),
                 Spacer(),
-                CommonButton(
-                  minSize: 0,
-                  borderRadius: BorderRadius.zero,
-                  spacing: 4.w,
-                  suffixDirectional: SuffixDirectional.right,
-                  suffixWidget: Image.asset(Assets.commonIconVideoArrowRight, width: 16.w, height: 16.w),
-                  onPressed: () => controller.viewAll(section),
-                  child: CommonText.instance(
-                    'View All',
-                    12.sp,
-                    color: CommonColors.primaryColor,
-                    decoration: TextDecoration.underline,
-                    decorationColor: CommonColors.primaryColor,
+                if (sectionType == SectionType.mediaList || sectionType == SectionType.imdbInterest)
+                  CommonButton(
+                    minSize: 0,
+                    borderRadius: BorderRadius.zero,
+                    spacing: 4.w,
+                    suffixDirectional: SuffixDirectional.right,
+                    suffixWidget: Image.asset(Assets.commonIconVideoArrowRight, width: 16.w, height: 16.w),
+                    onPressed: () => controller.viewAll(section),
+                    child: CommonText.instance(
+                      'View All',
+                      12.sp,
+                      color: CommonColors.primaryColor,
+                      decoration: TextDecoration.underline,
+                      decorationColor: CommonColors.primaryColor,
+                    ),
                   ),
-                ),
               ],
             ),
             SizedBox(height: 12.w),
@@ -121,10 +122,10 @@ class HomeBPage extends StatelessWidget {
     switch (sectionType) {
       case SectionType.imdbList: //合集list
         return _buildImdbList(section);
-      // case SectionType.mediaList: //单片
-      //   return _buildMediaList(section);
-      // case SectionType.imdbInterest: //兴趣分类
-      //   return _buildImdbInterest(section);
+      case SectionType.mediaList: //单片
+        return _buildMediaList(section);
+      case SectionType.imdbInterest: //兴趣分类
+        return _buildImdbInterest(section);
       // case SectionType.streamingmMedia: //渠道
       //   return _buildStreamingmMedia(section);
       default:
@@ -132,6 +133,7 @@ class HomeBPage extends StatelessWidget {
     }
   }
 
+  /// 合集
   Widget _buildImdbList(HomeSectionEntity section) {
     final dataList = section.dataList ?? [];
     final factor = Get.width / 375;
@@ -166,7 +168,7 @@ class HomeBPage extends StatelessWidget {
                         children: [
                           Container(
                             width: double.infinity,
-                            height: 80.w,
+                            height: 120.w,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(16.r),
                               color: CommonColors.color333333,
@@ -209,7 +211,134 @@ class HomeBPage extends StatelessWidget {
                             ),
                           ),
                         ],
-                      )
+                      ),
+                    ),
+
+                    SizedBox(height: 12.w),
+                    CommonText.instance(
+                      mediaItem.title ?? '',
+                      12.sp,
+                      fontWeight: CommonFontWeight.medium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  /// 单片
+  Widget _buildMediaList(HomeSectionEntity section) {
+    final dataList = section.dataList ?? [];
+    final factor = Get.width / 375;
+    final itemWidth = factor * 110;
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: EdgeInsets.zero,
+      child: Row(
+        children: dataList.map((mediaItem) {
+          final index = dataList.indexOf(mediaItem);
+          return Container(
+            margin: EdgeInsets.only(right: index != dataList.length - 1 ? 12.w : 0),
+            child: CommonButton(
+              minSize: 0,
+              borderRadius: BorderRadius.circular(16.r),
+              onPressed: () {},
+              child: Container(
+                width: itemWidth,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16.r),
+                  border: Border.all(color: CommonColors.color222222, width: 1.w),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16.r),
+                      child: Container(
+                        width: double.infinity,
+                        height: 165.w,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16.r),
+                          color: CommonColors.color333333,
+                        ),
+                        child: CommonImageView.normal(
+                          imageUrl: mediaItem.cover,
+                          alignment: Alignment.topCenter,
+                          width: double.infinity,
+                          height: double.infinity,
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(height: 12.w),
+                    CommonText.instance(
+                      mediaItem.title ?? '',
+                      12.sp,
+                      fontWeight: CommonFontWeight.medium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildImdbInterest(HomeSectionEntity section) {
+    final dataList = section.dataList ?? [];
+    final factor = Get.width / 375;
+    final itemWidth = factor * 140;
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: EdgeInsets.zero,
+      child: Row(
+        children: dataList.map((mediaItem) {
+          final index = dataList.indexOf(mediaItem);
+          return Container(
+            margin: EdgeInsets.only(right: index != dataList.length - 1 ? 12.w : 0),
+            child: CommonButton(
+              minSize: 0,
+              borderRadius: BorderRadius.circular(24.r),
+              color: CommonColors.color1B1B18,
+              onPressed: () {},
+              child: Container(
+                width: itemWidth,
+                padding: EdgeInsets.only(left: 10.w, top: 10.w, right: 10.w, bottom: 12.w),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24.r),
+                  border: Border.all(color: CommonColors.color222222, width: 1.w),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16.r),
+                      child: Container(
+                        width: double.infinity,
+                        height: 80.w,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16.r),
+                          color: CommonColors.color333333,
+                        ),
+                        child: CommonImageView.normal(
+                          imageUrl: mediaItem.cover,
+                          alignment: Alignment.topCenter,
+                          width: double.infinity,
+                          height: double.infinity,
+                        ),
+                      ),
                     ),
 
                     SizedBox(height: 12.w),
