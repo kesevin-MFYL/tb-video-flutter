@@ -1,7 +1,7 @@
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/modules/common/page/video_view_with_edit.dart';
-import 'package:editvideo/modules/main/controllers/edit_video_controller.dart';
+import 'package:editvideo/modules/v1/main/controllers/edit_video_controller.dart';
 import 'package:editvideo/utils/common_ui.dart';
 import 'package:editvideo/utils/common_values.dart';
 import 'package:editvideo/utils/text_extension.dart';

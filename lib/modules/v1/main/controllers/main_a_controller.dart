@@ -2,8 +2,8 @@ import 'package:editvideo/base/base_controller.dart';
 import 'package:editvideo/manager/admob/ad_manager.dart';
 import 'package:editvideo/manager/admob/app_lifecycle_reactor.dart';
 import 'package:editvideo/manager/switch_manager.dart';
-import 'package:editvideo/modules/home/views/home_page.dart';
-import 'package:editvideo/modules/setting/views/setting_page.dart';
+import 'package:editvideo/modules/v1/home/views/home_page.dart';
+import 'package:editvideo/modules/v1/setting/views/setting_page.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:get/get.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -25,7 +25,6 @@ class MainAController extends BaseController {
 
     _worker = ever(SwitchManager.instance.canToB, (canToB) async {
       if (canToB) {
-        await AppStateEventNotifier.stopListening();
         Get.offAllNamed(Routes.mainB);
       }
     });

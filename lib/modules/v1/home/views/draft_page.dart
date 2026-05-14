@@ -1,7 +1,7 @@
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/manager/admob/native_ad_manager.dart';
-import 'package:editvideo/modules/home/controllers/draft_controller.dart';
-import 'package:editvideo/modules/home/widget/video_cell.dart';
+import 'package:editvideo/modules/v1/home/controllers/draft_controller.dart';
+import 'package:editvideo/modules/v1/home/widget/video_cell.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:editvideo/widget/refresh/refresh.dart';

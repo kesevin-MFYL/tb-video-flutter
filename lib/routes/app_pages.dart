@@ -1,8 +1,8 @@
 import 'package:editvideo/modules/common/page/app_web_page.dart';
 import 'package:editvideo/modules/launch/views/launch_page.dart';
-import 'package:editvideo/modules/main/views/edit_video_page.dart';
-import 'package:editvideo/modules/main/views/main_a_page.dart';
-import 'package:editvideo/modules/main/views/main_b_page.dart';
+import 'package:editvideo/modules/v1/main/views/edit_video_page.dart';
+import 'package:editvideo/modules/v1/main/views/main_a_page.dart';
+import 'package:editvideo/modules/v2/main/views/main_b_page.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:get/get.dart';
 

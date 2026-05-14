@@ -1,7 +1,7 @@
 import 'package:editvideo/generated/assets.dart';
-import 'package:editvideo/modules/home/controllers/home_controller.dart';
-import 'package:editvideo/modules/home/views/draft_page.dart';
-import 'package:editvideo/modules/home/views/my_memory_page.dart';
+import 'package:editvideo/modules/v1/home/controllers/home_controller.dart';
+import 'package:editvideo/modules/v1/home/views/draft_page.dart';
+import 'package:editvideo/modules/v1/home/views/my_memory_page.dart';
 import 'package:editvideo/widget/page_base.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';

@@ -4,7 +4,7 @@ import 'dart:ui';
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/models/memory_info.dart';
-import 'package:editvideo/modules/home/controllers/my_memory_controller.dart';
+import 'package:editvideo/modules/v1/home/controllers/my_memory_controller.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/storage.dart';

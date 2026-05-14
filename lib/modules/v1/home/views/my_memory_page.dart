@@ -1,7 +1,7 @@
 import 'package:editvideo/manager/admob/ad_manager.dart';
 import 'package:editvideo/modules/common/page/play_video_page.dart';
-import 'package:editvideo/modules/home/controllers/my_memory_controller.dart';
-import 'package:editvideo/modules/home/widget/video_cell.dart';
+import 'package:editvideo/modules/v1/home/controllers/my_memory_controller.dart';
+import 'package:editvideo/modules/v1/home/widget/video_cell.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:editvideo/widget/refresh/refresh.dart';
 import 'package:flutter/material.dart';

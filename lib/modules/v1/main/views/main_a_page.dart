@@ -1,5 +1,5 @@
 import 'package:editvideo/generated/assets.dart';
-import 'package:editvideo/modules/main/controllers/main_a_controller.dart';
+import 'package:editvideo/modules/v1/main/controllers/main_a_controller.dart';
 import 'package:editvideo/utils/common_values.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/text_extension.dart';
