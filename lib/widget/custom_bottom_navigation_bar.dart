@@ -10,6 +10,7 @@ class CustomBottomNavigationBar extends StatefulWidget {
     this.backgroundColor,
     this.decoration,
     this.currentIndex = 0,
+    this.showMiddle = true,
     this.onTap,
   });
 
@@ -17,6 +18,7 @@ class CustomBottomNavigationBar extends StatefulWidget {
   final Color? backgroundColor;
   final Decoration? decoration;
   final int currentIndex;
+  final bool? showMiddle;
   final ValueChanged<int>? onTap;
 
   @override
@@ -68,7 +70,7 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
                   ),
                 ),
               ),
-              if (index < widget.items.length - 1) SizedBox(width: 70.w),
+              if (widget.showMiddle == true && index < widget.items.length - 1) SizedBox(width: 70.w),
             ];
           }).toList(),
         ),

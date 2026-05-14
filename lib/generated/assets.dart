@@ -14,8 +14,10 @@ class Assets {
   static const String commonLaunchBg = 'assets/images/common/launch_bg.png';
   static const String commonMemoryOn = 'assets/images/common/memory_on.png';
   static const String commonArrowDown = 'assets/images/common/arrow_down.png';
+  static const String commonExploreOn = 'assets/images/common/explore_on.png';
   static const String commonFieldDate = 'assets/images/common/field_date.png';
   static const String commonFieldMemo = 'assets/images/common/field_memo.png';
+  static const String commonHistoryOn = 'assets/images/common/history_on.png';
   static const String commonIconPause = 'assets/images/common/icon_pause.png';
   static const String commonMemoryOff = 'assets/images/common/memory_off.png';
   static const String commonPageEmpty = 'assets/images/common/page_empty.png';
@@ -24,7 +26,9 @@ class Assets {
   static const String commonVideoEdit = 'assets/images/common/video_edit.png';
   static const String commonVideoPlay = 'assets/images/common/video_play.png';
   static const String commonArrowRight = 'assets/images/common/arrow_right.png';
+  static const String commonExploreOff = 'assets/images/common/explore_off.png';
   static const String commonFieldTitle = 'assets/images/common/field_title.png';
+  static const String commonHistoryOff = 'assets/images/common/history_off.png';
   static const String commonIconPolicy = 'assets/images/common/icon_policy.png';
   static const String commonLaunchIcon = 'assets/images/common/launch_icon.png';
   static const String commonSaveEnable = 'assets/images/common/save_enable.png';
@@ -44,11 +48,12 @@ class Assets {
   static const String commonIconDatePicker = 'assets/images/common/icon_date_picker.png';
   static const String commonIconVideoError = 'assets/images/common/icon_video_error.png';
   static const String commonOperationDelete = 'assets/images/common/operation_delete.png';
+  static const String commonIconHistoryTitle = 'assets/images/common/icon_history_title.png';
   static const String commonIconSettingTitle = 'assets/images/common/icon_setting_title.png';
   static const String commonVideoDeleteWhite = 'assets/images/common/video_delete_white.png';
   static const String commonIconUserAgreement = 'assets/images/common/icon_user_agreement.png';
   static const String launchLaunchImage = 'assets/images/launch/launch_image.png';
+  static const String jsonEntityRules = 'assets/json/entity_rules.json';
   static const String jsonHeaderRules = 'assets/json/header_rules.json';
-  static const String jsonResponseRules = 'assets/json/response_rules.json';
   static const String jsonDefaultAdRules = 'assets/json/default_ad_rules.json';
 }

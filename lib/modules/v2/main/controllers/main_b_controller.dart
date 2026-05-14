@@ -1,22 +1,24 @@
 import 'package:editvideo/base/base_controller.dart';
-import 'package:editvideo/config/log/logger.dart';
-import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/manager/admob/app_lifecycle_reactor.dart';
-import 'package:get/get.dart';
+import 'package:editvideo/modules/v1/setting/views/setting_page.dart';
+import 'package:editvideo/modules/v2/explore/views/explore_page.dart';
+import 'package:editvideo/modules/v2/history/views/history_page.dart';
+import 'package:editvideo/modules/v2/home/views/home_b_page.dart';
 
 class MainBController extends BaseController {
+  var currentIndex = 0;
+
+  final tabBarPages = [const HomeBPage(), const ExplorePage(), const HistoryPage(), const SettingPage()];
 
   @override
   void handRegister() async {
     AppLifecycleReactor.instance.listenToAppStateChanges();
   }
 
-  @override
-  void fetchData() async {
-    final result = await HomeApi.getHomeSection();
-    if (result.isSuccess) {
-      final listData = result.responseData?.data;
-      commonDebugPrint('1111111-------${listData![0].title}');
+  void tabChanged(int index) {
+    if (currentIndex != index) {
+      currentIndex = index;
+      update();
     }
   }
 }
