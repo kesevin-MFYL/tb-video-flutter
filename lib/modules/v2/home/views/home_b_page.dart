@@ -99,7 +99,7 @@ class HomeBPage extends StatelessWidget {
                     spacing: 4.w,
                     suffixDirectional: SuffixDirectional.right,
                     suffixWidget: Image.asset(Assets.commonIconVideoArrowRight, width: 16.w, height: 16.w),
-                    onPressed: () => controller.viewAll(section),
+                    onPressed: () => controller.viewAll(sectionType, section),
                     child: CommonText.instance(
                       'View All',
                       12.sp,
@@ -121,11 +121,9 @@ class HomeBPage extends StatelessWidget {
   Widget _buildSectionSecondary(SectionType sectionType, HomeSectionEntity section) {
     switch (sectionType) {
       case SectionType.imdbList: //合集list
-        return _buildImdbList(section);
       case SectionType.mediaList: //单片
-        return _buildMediaList(section);
       case SectionType.imdbInterest: //兴趣分类
-        return _buildImdbInterest(section);
+        return _buildHorizontalList(sectionType, section);
       // case SectionType.streamingmMedia: //渠道
       //   return _buildStreamingmMedia(section);
       default:
@@ -133,11 +131,40 @@ class HomeBPage extends StatelessWidget {
     }
   }
 
-  /// 合集
-  Widget _buildImdbList(HomeSectionEntity section) {
+  Widget _buildHorizontalList(SectionType sectionType, HomeSectionEntity section) {
     final dataList = section.dataList ?? [];
     final factor = Get.width / 375;
-    final itemWidth = factor * 268;
+    
+    double itemWidth = 0;
+    double imageHeight = 0;
+    double buttonBorderRadius = 16.r;
+    Color? bgColor;
+    EdgeInsetsGeometry? containerPadding;
+    bool showListOverlay = false;
+
+    if (sectionType == SectionType.imdbList) {
+      itemWidth = factor * 268;
+      imageHeight = 120.w;
+      buttonBorderRadius = 24.r;
+      bgColor = CommonColors.color1B1B18;
+      containerPadding = EdgeInsets.only(left: 10.w, top: 10.w, right: 10.w, bottom: 12.w);
+      showListOverlay = true;
+    } else if (sectionType == SectionType.mediaList) {
+      itemWidth = factor * 110;
+      imageHeight = 165.w;
+      buttonBorderRadius = 16.r;
+      bgColor = null;
+      containerPadding = null;
+      showListOverlay = false;
+    } else if (sectionType == SectionType.imdbInterest) {
+      itemWidth = factor * 140;
+      imageHeight = 80.w;
+      buttonBorderRadius = 24.r;
+      bgColor = CommonColors.color1B1B18;
+      containerPadding = EdgeInsets.only(left: 10.w, top: 10.w, right: 10.w, bottom: 12.w);
+      showListOverlay = false;
+    }
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: EdgeInsets.zero,
@@ -148,14 +175,14 @@ class HomeBPage extends StatelessWidget {
             margin: EdgeInsets.only(right: index != dataList.length - 1 ? 12.w : 0),
             child: CommonButton(
               minSize: 0,
-              borderRadius: BorderRadius.circular(24.r),
-              color: CommonColors.color1B1B18,
+              borderRadius: BorderRadius.circular(buttonBorderRadius),
+              color: bgColor,
               onPressed: () {},
               child: Container(
                 width: itemWidth,
-                padding: EdgeInsets.only(left: 10.w, top: 10.w, right: 10.w, bottom: 12.w),
+                padding: containerPadding,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24.r),
+                  borderRadius: BorderRadius.circular(buttonBorderRadius),
                   border: Border.all(color: CommonColors.color222222, width: 1.w),
                 ),
                 child: Column(
@@ -168,7 +195,7 @@ class HomeBPage extends StatelessWidget {
                         children: [
                           Container(
                             width: double.infinity,
-                            height: 120.w,
+                            height: imageHeight,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(16.r),
                               color: CommonColors.color333333,
@@ -181,163 +208,37 @@ class HomeBPage extends StatelessWidget {
                             ),
                           ),
 
-                          Positioned(
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            child: Container(
-                              padding: EdgeInsets.all(10.w),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [CommonColors.color060600.withOpacity(0), CommonColors.color060600],
+                          if (showListOverlay)
+                            Positioned(
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              child: Container(
+                                padding: EdgeInsets.all(10.w),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [CommonColors.color060600.withOpacity(0), CommonColors.color060600],
+                                  ),
                                 ),
-                              ),
-                              child: CommonButton(
-                                minSize: 20.w,
-                                alignment: Alignment.centerLeft,
-                                borderRadius: BorderRadius.circular(10.r),
-                                spacing: 4.w,
-                                suffixDirectional: SuffixDirectional.left,
-                                suffixWidget: Image.asset(Assets.commonIconVideoList, width: 16.w, height: 16.w),
-                                child: CommonText.instance(
-                                  'List',
-                                  10.sp,
-                                  color: CommonColors.white.withOpacity(0.8),
-                                  fontWeight: CommonFontWeight.medium,
+                                child: CommonButton(
+                                  minSize: 20.w,
+                                  alignment: Alignment.centerLeft,
+                                  borderRadius: BorderRadius.circular(10.r),
+                                  spacing: 4.w,
+                                  suffixDirectional: SuffixDirectional.left,
+                                  suffixWidget: Image.asset(Assets.commonIconVideoList, width: 16.w, height: 16.w),
+                                  child: CommonText.instance(
+                                    'List',
+                                    10.sp,
+                                    color: CommonColors.white.withOpacity(0.8),
+                                    fontWeight: CommonFontWeight.medium,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
                         ],
-                      ),
-                    ),
-
-                    SizedBox(height: 12.w),
-                    CommonText.instance(
-                      mediaItem.title ?? '',
-                      12.sp,
-                      fontWeight: CommonFontWeight.medium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  /// 单片
-  Widget _buildMediaList(HomeSectionEntity section) {
-    final dataList = section.dataList ?? [];
-    final factor = Get.width / 375;
-    final itemWidth = factor * 110;
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: EdgeInsets.zero,
-      child: Row(
-        children: dataList.map((mediaItem) {
-          final index = dataList.indexOf(mediaItem);
-          return Container(
-            margin: EdgeInsets.only(right: index != dataList.length - 1 ? 12.w : 0),
-            child: CommonButton(
-              minSize: 0,
-              borderRadius: BorderRadius.circular(16.r),
-              onPressed: () {},
-              child: Container(
-                width: itemWidth,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16.r),
-                  border: Border.all(color: CommonColors.color222222, width: 1.w),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(16.r),
-                      child: Container(
-                        width: double.infinity,
-                        height: 165.w,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16.r),
-                          color: CommonColors.color333333,
-                        ),
-                        child: CommonImageView.normal(
-                          imageUrl: mediaItem.cover,
-                          alignment: Alignment.topCenter,
-                          width: double.infinity,
-                          height: double.infinity,
-                        ),
-                      ),
-                    ),
-
-                    SizedBox(height: 12.w),
-                    CommonText.instance(
-                      mediaItem.title ?? '',
-                      12.sp,
-                      fontWeight: CommonFontWeight.medium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildImdbInterest(HomeSectionEntity section) {
-    final dataList = section.dataList ?? [];
-    final factor = Get.width / 375;
-    final itemWidth = factor * 140;
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: EdgeInsets.zero,
-      child: Row(
-        children: dataList.map((mediaItem) {
-          final index = dataList.indexOf(mediaItem);
-          return Container(
-            margin: EdgeInsets.only(right: index != dataList.length - 1 ? 12.w : 0),
-            child: CommonButton(
-              minSize: 0,
-              borderRadius: BorderRadius.circular(24.r),
-              color: CommonColors.color1B1B18,
-              onPressed: () {},
-              child: Container(
-                width: itemWidth,
-                padding: EdgeInsets.only(left: 10.w, top: 10.w, right: 10.w, bottom: 12.w),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24.r),
-                  border: Border.all(color: CommonColors.color222222, width: 1.w),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(16.r),
-                      child: Container(
-                        width: double.infinity,
-                        height: 80.w,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16.r),
-                          color: CommonColors.color333333,
-                        ),
-                        child: CommonImageView.normal(
-                          imageUrl: mediaItem.cover,
-                          alignment: Alignment.topCenter,
-                          width: double.infinity,
-                          height: double.infinity,
-                        ),
                       ),
                     ),
 
