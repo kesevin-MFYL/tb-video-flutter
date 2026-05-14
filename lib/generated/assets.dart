@@ -44,14 +44,17 @@ class Assets {
   static const String commonIconLandscape = 'assets/images/common/icon_landscape.png';
   static const String commonOperationMore = 'assets/images/common/operation_more.png';
   static const String commonVideoPlayBig = 'assets/images/common/video_play_big.png';
+  static const String commonIconVideoList = 'assets/images/common/icon_video_list.png';
   static const String commonTakeVideoTips = 'assets/images/common/take_video_tips.png';
   static const String commonIconDatePicker = 'assets/images/common/icon_date_picker.png';
   static const String commonIconVideoError = 'assets/images/common/icon_video_error.png';
   static const String commonOperationDelete = 'assets/images/common/operation_delete.png';
   static const String commonIconHistoryTitle = 'assets/images/common/icon_history_title.png';
   static const String commonIconSettingTitle = 'assets/images/common/icon_setting_title.png';
+  static const String commonIconTabIndicator = 'assets/images/common/icon_tab_indicator.png';
   static const String commonVideoDeleteWhite = 'assets/images/common/video_delete_white.png';
   static const String commonIconUserAgreement = 'assets/images/common/icon_user_agreement.png';
+  static const String commonIconVideoArrowRight = 'assets/images/common/icon_video_arrow_right.png';
   static const String launchLaunchImage = 'assets/images/launch/launch_image.png';
   static const String jsonEntityRules = 'assets/json/entity_rules.json';
   static const String jsonHeaderRules = 'assets/json/header_rules.json';

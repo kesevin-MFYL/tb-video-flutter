@@ -1,5 +1,30 @@
 import 'package:editvideo/config/network/model/base_entity.dart';
 
+enum SectionType {
+  none('none'),
+  imdbList('imdb_list'),//合集list
+  mediaList('media_list'),//单片
+  imdbInterest('imdb_interest'),//兴趣分类
+  streamingmMedia('streaming_media');//渠道
+
+  final String value;
+
+  const SectionType(this.value);
+
+  static SectionType kind(String? kind) {
+    if (kind == imdbList.value) {
+      return imdbList;
+    } else if (kind == mediaList.value) {
+      return mediaList;
+    } else if (kind == imdbInterest.value) {
+      return imdbInterest;
+    } else if (kind == streamingmMedia.value) {
+      return streamingmMedia;
+    }
+    return none;
+  }
+}
+
 class HomeSectionEntity extends BaseEntity {
   int? id;
   String? title;

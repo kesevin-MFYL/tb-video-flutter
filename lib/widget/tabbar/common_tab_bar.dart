@@ -44,7 +44,7 @@ class CommonIndicatorTabBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return TabBar(
       controller: tabController,
-      padding: EdgeInsets.symmetric(horizontal: 12.w),
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
       overlayColor: WidgetStateProperty.all(Colors.transparent),
       tabAlignment: isScrollable ? TabAlignment.start : TabAlignment.center,
       isScrollable: isScrollable,
@@ -62,7 +62,7 @@ class CommonIndicatorTabBar extends StatelessWidget {
   _buildTabItem(TabBarItem tabBarItem, int index) {
     return Obx(() {
       return Padding(
-        padding: padding ?? EdgeInsets.only(left: index != 0 ? 10.w : 0, right: index != tabs.length - 1 ? 10.w : 0),
+        padding: padding ?? EdgeInsets.only(left: index != 0 ? 16.w : 0, right: index != tabs.length - 1 ? 16.w : 0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

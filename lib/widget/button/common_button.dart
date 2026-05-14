@@ -16,9 +16,9 @@ class CommonButton extends StatelessWidget {
     this.text,
     this.color,
     this.borderRadius = const BorderRadius.all(Radius.circular(8.0)),
-    this.border,
     this.disabledColor = CupertinoColors.quaternarySystemFill,
     this.minSize = kMinInteractiveDimensionCupertino,
+    this.alignment = Alignment.center,
     this.spacing,
     this.padding,
     this.suffixDirectional,
@@ -33,7 +33,6 @@ class CommonButton extends StatelessWidget {
   final Color disabledColor;
 
   final BorderRadius? borderRadius;
-  final Border? border;
 
   /// 最小尺寸
   final double? minSize;
@@ -52,6 +51,8 @@ class CommonButton extends StatelessWidget {
   final Widget? child;
 
   final String? text;
+
+  final AlignmentGeometry alignment;
 
   _getChild() {
     Widget childWidget = child ?? CommonText.instance(text ?? '', 16.sp, fontWeight: CommonFontWeight.bold);
@@ -97,6 +98,7 @@ class CommonButton extends StatelessWidget {
       padding: padding ?? EdgeInsets.zero,
       child: _getChild(),
       onPressed: onPressed,
+      alignment: alignment,
     );
   }
 }
