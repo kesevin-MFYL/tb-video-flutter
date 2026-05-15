@@ -2,11 +2,11 @@ import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/modules/v2/home/controllers/home_b_controller.dart';
+import 'package:editvideo/modules/v2/home/widget/media_cell.dart';
 import 'package:editvideo/modules/v2/home/widget/steaming_media_view.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/button/common_button.dart';
-import 'package:editvideo/widget/image/common_image_view.dart';
 import 'package:editvideo/widget/page_base.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:editvideo/widget/refresh/refresh.dart';
@@ -117,14 +117,14 @@ class HomeBPage extends StatelessWidget {
               ],
             ),
             SizedBox(height: 12.w),
-            _buildSectionSecondary(sectionType, section, controller),
+            _buildSubSection(sectionType, section, controller),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSectionSecondary(SectionType sectionType, HomeSectionEntity section, HomeBController controller) {
+  Widget _buildSubSection(SectionType sectionType, HomeSectionEntity section, HomeBController controller) {
     switch (sectionType) {
       case SectionType.imdbList: //合集list
       case SectionType.mediaList: //单片
@@ -177,89 +177,15 @@ class HomeBPage extends StatelessWidget {
       child: Row(
         children: dataList.map((mediaItem) {
           final index = dataList.indexOf(mediaItem);
-          return Container(
-            margin: EdgeInsets.only(right: index != dataList.length - 1 ? 12.w : 0),
-            child: CommonButton(
-              minSize: 0,
-              borderRadius: BorderRadius.circular(buttonBorderRadius),
-              color: bgColor,
-              onPressed: () {},
-              child: Container(
-                width: itemWidth,
-                padding: containerPadding,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(buttonBorderRadius),
-                  border: Border.all(color: CommonColors.color222222, width: 1.w),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(16.r),
-                      child: Stack(
-                        children: [
-                          Container(
-                            width: double.infinity,
-                            height: imageHeight,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16.r),
-                              color: CommonColors.color333333,
-                            ),
-                            child: CommonImageView.normal(
-                              imageUrl: mediaItem.cover,
-                              alignment: Alignment.topCenter,
-                              width: double.infinity,
-                              height: double.infinity,
-                            ),
-                          ),
-
-                          if (showListOverlay)
-                            Positioned(
-                              bottom: 0,
-                              left: 0,
-                              right: 0,
-                              child: Container(
-                                padding: EdgeInsets.all(10.w),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [CommonColors.color060600.withOpacity(0), CommonColors.color060600],
-                                  ),
-                                ),
-                                child: CommonButton(
-                                  minSize: 20.w,
-                                  alignment: Alignment.centerLeft,
-                                  borderRadius: BorderRadius.circular(10.r),
-                                  spacing: 4.w,
-                                  suffixDirectional: SuffixDirectional.left,
-                                  suffixWidget: Image.asset(Assets.commonIconVideoList, width: 16.w, height: 16.w),
-                                  child: CommonText.instance(
-                                    'List',
-                                    10.sp,
-                                    color: CommonColors.white.withOpacity(0.8),
-                                    fontWeight: CommonFontWeight.medium,
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-
-                    SizedBox(height: 12.w),
-                    CommonText.instance(
-                      mediaItem.title ?? '',
-                      12.sp,
-                      fontWeight: CommonFontWeight.medium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          return MediaCell(
+            mediaItem: mediaItem,
+            marginRight: index == dataList.length - 1 ? 0 : 16.w,
+            itemWidth: itemWidth,
+            imageHeight: imageHeight,
+            buttonBorderRadius: buttonBorderRadius,
+            bgColor: bgColor,
+            containerPadding: containerPadding,
+            showListOverlay: showListOverlay,
           );
         }).toList(),
       ),
@@ -278,13 +204,6 @@ class HomeBPage extends StatelessWidget {
         'DISNEY+'.size(style: CommonTextStyle.instance(12.sp, fontWeight: CommonFontWeight.medium)).height;
 
     final dataList = section.dataList ?? [];
-    return SteamingMediaView(
-      tabController: controller.tabController,
-      mediaItems: dataList,
-      itemWidth: itemWidth,
-      imageHeight: imageHeight,
-      tabBarViewHeight: tabBarViewHeight,
-    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -297,68 +216,16 @@ class HomeBPage extends StatelessWidget {
             isScrollable: true,
           ),
         ),
-
         SizedBox(
           height: tabBarViewHeight,
           child: TabBarView(
             controller: controller.tabController,
             children: dataList.map((mediaItem) {
               final mediaList = mediaItem.dataList ?? [];
-              return SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.zero,
-                child: Row(
-                  children: mediaList.map((subMediaItem) {
-                    final index = mediaList.indexOf(subMediaItem);
-                    return Container(
-                      margin: EdgeInsets.only(right: index != mediaList.length - 1 ? 12.w : 0),
-                      child: CommonButton(
-                        minSize: 0,
-                        borderRadius: BorderRadius.circular(16.r),
-                        onPressed: () {},
-                        child: Container(
-                          width: itemWidth,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16.r),
-                            border: Border.all(color: CommonColors.color222222, width: 1.w),
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(16.r),
-                                child: Container(
-                                  width: double.infinity,
-                                  height: imageHeight,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(16.r),
-                                    color: CommonColors.color333333,
-                                  ),
-                                  child: CommonImageView.normal(
-                                    imageUrl: subMediaItem.cover,
-                                    alignment: Alignment.topCenter,
-                                    width: double.infinity,
-                                    height: double.infinity,
-                                  ),
-                                ),
-                              ),
-
-                              SizedBox(height: 12.w),
-                              CommonText.instance(
-                                subMediaItem.title ?? '',
-                                12.sp,
-                                fontWeight: CommonFontWeight.medium,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
+              return SteamingMediaView(
+                mediaList: mediaList,
+                itemWidth: itemWidth,
+                imageHeight: imageHeight,
               );
             }).toList(),
           ),
