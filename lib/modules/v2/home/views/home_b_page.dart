@@ -8,6 +8,7 @@ import 'package:editvideo/widget/image/common_image_view.dart';
 import 'package:editvideo/widget/page_base.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:editvideo/widget/refresh/refresh.dart';
+import 'package:editvideo/widget/tabbar/common_tab_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -118,20 +119,20 @@ class HomeBPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionSecondary(SectionType sectionType, HomeSectionEntity section) {
+  Widget _buildSectionSecondary(SectionType sectionType, HomeSectionEntity section, HomeBController controller) {
     switch (sectionType) {
       case SectionType.imdbList: //合集list
       case SectionType.mediaList: //单片
       case SectionType.imdbInterest: //兴趣分类
-        return _buildHorizontalList(sectionType, section);
-      // case SectionType.streamingmMedia: //渠道
-      //   return _buildStreamingmMedia(section);
+        return _buildHorizontalList(sectionType, section, controller);
+      case SectionType.streamingMedia: //渠道
+        return _buildStreamingMedia(section, controller);
       default:
         return Container();
     }
   }
 
-  Widget _buildHorizontalList(SectionType sectionType, HomeSectionEntity section) {
+  Widget _buildHorizontalList(SectionType sectionType, HomeSectionEntity section, HomeBController controller) {
     final dataList = section.dataList ?? [];
     final factor = Get.width / 375;
     
@@ -257,6 +258,25 @@ class HomeBPage extends StatelessWidget {
           );
         }).toList(),
       ),
+    );
+  }
+
+  Widget _buildStreamingMedia(HomeSectionEntity section, HomeBController controller) {
+    final dataList = section.dataList ?? [];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CommonIndicatorTabBar(
+          tabController: controller.tabController,
+          tabs: dataList,
+          isScrollable: true,
+        ),
+        // TabBarView(
+        //   children: [
+        //
+        //   ],
+        // ),
+      ],
     );
   }
 }

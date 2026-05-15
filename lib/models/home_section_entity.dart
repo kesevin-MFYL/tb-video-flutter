@@ -1,11 +1,12 @@
 import 'package:editvideo/config/network/model/base_entity.dart';
+import 'package:editvideo/widget/tabbar/common_tab_bar.dart';
 
 enum SectionType {
   none('none'),
-  imdbList('imdb_list'),//合集list
-  mediaList('media_list'),//单片
-  imdbInterest('imdb_interest'),//兴趣分类
-  streamingmMedia('streaming_media');//渠道
+  imdbList('imdb_list'), //合集list
+  mediaList('media_list'), //单片
+  imdbInterest('imdb_interest'), //兴趣分类
+  streamingMedia('streaming_media'); //渠道
 
   final String value;
 
@@ -18,8 +19,8 @@ enum SectionType {
       return mediaList;
     } else if (kind == imdbInterest.value) {
       return imdbInterest;
-    } else if (kind == streamingmMedia.value) {
-      return streamingmMedia;
+    } else if (kind == streamingMedia.value) {
+      return streamingMedia;
     }
     return none;
   }
@@ -61,7 +62,7 @@ class HomeSectionEntity extends BaseEntity {
   }
 }
 
-class MediaItemEntity extends BaseEntity {
+class MediaItemEntity extends BaseEntity implements TabBarItem {
   int? id;
   String? imdbType;
   String? title;
@@ -146,4 +147,13 @@ class MediaItemEntity extends BaseEntity {
     }
     return data;
   }
+
+  @override
+  String? get markIcon => null;
+
+  @override
+  String? get tabIcon => null;
+
+  @override
+  String get tabText => title ?? '';
 }
