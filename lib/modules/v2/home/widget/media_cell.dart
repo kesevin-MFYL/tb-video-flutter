@@ -18,6 +18,7 @@ class MediaCell extends StatelessWidget {
     this.buttonBorderRadius = 16,
     this.bgColor,
     this.containerPadding,
+    this.showBorder = true,
     this.showListOverlay = false,
   });
 
@@ -29,6 +30,7 @@ class MediaCell extends StatelessWidget {
   final double buttonBorderRadius;
   final Color? bgColor;
   final EdgeInsetsGeometry? containerPadding;
+  final bool showBorder;
   final bool showListOverlay;
 
   @override
@@ -45,7 +47,7 @@ class MediaCell extends StatelessWidget {
           padding: containerPadding,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(buttonBorderRadius),
-            border: Border.all(color: CommonColors.color222222, width: 1.w),
+            border: showBorder ? Border.all(color: CommonColors.color222222, width: 1.w) : null,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -61,6 +63,7 @@ class MediaCell extends StatelessWidget {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16.r),
                         color: CommonColors.color333333,
+                        border: Border.all(color: CommonColors.color222222, width: 1.w),
                       ),
                       child: CommonImageView.normal(
                         imageUrl: mediaItem.cover,

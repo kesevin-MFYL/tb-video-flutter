@@ -152,7 +152,26 @@ class _MultiStatusViewState extends State<MultiStatusView> with AutomaticKeepAli
               mainAxisAlignment: MainAxisAlignment.center,
               children: widget.errorWidget != null
                   ? [widget.errorWidget!]
-                  : [CommonText.instance("Server Error", 16.sp)],
+                  : [
+                      Image.asset(Assets.commonPageError, width: 150.w, height: 150.w),
+                      SizedBox(height: 16.h),
+                      CommonText.instance(
+                        'Sourece loaded failed,please check your network',
+                        14.sp,
+                        color: CommonColors.white.withOpacity(0.5),
+                        fontWeight: CommonFontWeight.semiBold,
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 16.h),
+                      CommonButton(
+                        minSize: 40.h,
+                        borderRadius: BorderRadius.circular(20.r),
+                        padding: EdgeInsets.symmetric(horizontal: 24.w),
+                        color: CommonColors.primaryColor,
+                        onPressed: widget.action,
+                        child: CommonText.instance(widget.actionText ?? '', 14.sp, color: CommonColors.color060600, fontWeight: CommonFontWeight.medium),
+                      ),
+                    ],
             ),
           ),
         );

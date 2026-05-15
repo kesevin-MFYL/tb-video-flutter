@@ -28,7 +28,7 @@ class HomeBPage extends StatelessWidget {
           child: Stack(
             children: [
               Container(
-                height: 110.h,
+                height: 110.w,
                 decoration: const BoxDecoration(
                   image: DecorationImage(fit: BoxFit.cover, image: AssetImage(Assets.commonHomeBg)),
                 ),
@@ -37,7 +37,39 @@ class HomeBPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CommonText.instance('SearchBar', 20.sp),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.w),
+                      child: Row(
+                        children: [
+                          Image.asset(Assets.commonIconHomeLogo, width: 32.w, height: 32.w),
+                          SizedBox(width: 8.w),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: controller.toSearch,
+                              child: Container(
+                                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.w),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(24.r),
+                                  border: Border.all(color: CommonColors.primaryColor, width: 1.w),
+                                ),
+                                child: Row(
+                                  children: [
+                                    CommonText.instance(
+                                      'Search...',
+                                      14.sp,
+                                      color: CommonColors.white.withOpacity(0.5),
+                                      fontWeight: CommonFontWeight.medium,
+                                    ),
+                                    Spacer(),
+                                    Image.asset(Assets.commonIconSearch, width: 24.w, height: 24.w),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                     Expanded(
                       child: CommonRefresh.instance(
                         hasBefore: true,
@@ -45,13 +77,15 @@ class HomeBPage extends StatelessWidget {
                         child: MultiStatusView(
                           hasAppBar: false,
                           currentStatus: controller.multiStatusType,
+                          actionText: 'Try Again',
+                          action: () {},
                           child: CustomScrollView(
                             slivers: [
                               ...controller.homeSectionList.map((section) {
                                 final sectionType = SectionType.kind(section.kind);
                                 return _buildVideoSection(sectionType, section, controller);
                               }),
-                              SliverToBoxAdapter(child: SizedBox(height: 50.w)),
+                              SliverToBoxAdapter(child: SizedBox(height: 34.w)),
                             ],
                           ),
                         ),
@@ -88,7 +122,7 @@ class HomeBPage extends StatelessWidget {
 
   Widget _buildVideoSection(SectionType sectionType, HomeSectionEntity section, HomeBController controller) {
     return SliverPadding(
-      padding: EdgeInsets.only(left: 16.w, top: 32.w, right: 16.w),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.w),
       sliver: SliverToBoxAdapter(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -146,6 +180,7 @@ class HomeBPage extends StatelessWidget {
     double buttonBorderRadius = 16.r;
     Color? bgColor;
     EdgeInsetsGeometry? containerPadding;
+    bool showBorder = true;
     bool showListOverlay = false;
 
     if (sectionType == SectionType.imdbList) {
@@ -154,6 +189,7 @@ class HomeBPage extends StatelessWidget {
       buttonBorderRadius = 24.r;
       bgColor = CommonColors.color1B1B18;
       containerPadding = EdgeInsets.only(left: 10.w, top: 10.w, right: 10.w, bottom: 12.w);
+      showBorder = true;
       showListOverlay = true;
     } else if (sectionType == SectionType.mediaList) {
       itemWidth = factor * 110;
@@ -161,6 +197,7 @@ class HomeBPage extends StatelessWidget {
       buttonBorderRadius = 16.r;
       bgColor = null;
       containerPadding = null;
+      showBorder = false;
       showListOverlay = false;
     } else if (sectionType == SectionType.imdbInterest) {
       itemWidth = factor * 140;
@@ -168,6 +205,7 @@ class HomeBPage extends StatelessWidget {
       buttonBorderRadius = 24.r;
       bgColor = CommonColors.color1B1B18;
       containerPadding = EdgeInsets.only(left: 10.w, top: 10.w, right: 10.w, bottom: 12.w);
+      showBorder = true;
       showListOverlay = false;
     }
 
@@ -185,6 +223,7 @@ class HomeBPage extends StatelessWidget {
             buttonBorderRadius: buttonBorderRadius,
             bgColor: bgColor,
             containerPadding: containerPadding,
+            showBorder: showBorder,
             showListOverlay: showListOverlay,
             action: (mediaItem) => controller.mediaTap(sectionType, mediaItem),
           );

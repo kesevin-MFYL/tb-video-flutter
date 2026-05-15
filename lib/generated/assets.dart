@@ -21,6 +21,7 @@ class Assets {
   static const String commonIconPause = 'assets/images/common/icon_pause.png';
   static const String commonMemoryOff = 'assets/images/common/memory_off.png';
   static const String commonPageEmpty = 'assets/images/common/page_empty.png';
+  static const String commonPageError = 'assets/images/common/page_error.png';
   static const String commonSettingOn = 'assets/images/common/setting_on.png';
   static const String commonTakeVideo = 'assets/images/common/take_video.png';
   static const String commonVideoEdit = 'assets/images/common/video_edit.png';
@@ -30,6 +31,7 @@ class Assets {
   static const String commonFieldTitle = 'assets/images/common/field_title.png';
   static const String commonHistoryOff = 'assets/images/common/history_off.png';
   static const String commonIconPolicy = 'assets/images/common/icon_policy.png';
+  static const String commonIconSearch = 'assets/images/common/icon_search.png';
   static const String commonLaunchIcon = 'assets/images/common/launch_icon.png';
   static const String commonSaveEnable = 'assets/images/common/save_enable.png';
   static const String commonSettingOff = 'assets/images/common/setting_off.png';
@@ -41,6 +43,7 @@ class Assets {
   static const String commonIconPortrait = 'assets/images/common/icon_portrait.png';
   static const String commonSaveUnenable = 'assets/images/common/save_unenable.png';
   static const String commonIconFeedBack = 'assets/images/common/icon_feed_back.png';
+  static const String commonIconHomeLogo = 'assets/images/common/icon_home_logo.png';
   static const String commonIconLandscape = 'assets/images/common/icon_landscape.png';
   static const String commonOperationMore = 'assets/images/common/operation_more.png';
   static const String commonVideoPlayBig = 'assets/images/common/video_play_big.png';
