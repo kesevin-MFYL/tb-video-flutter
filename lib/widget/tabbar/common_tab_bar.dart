@@ -20,9 +20,11 @@ class CommonIndicatorTabBar extends StatefulWidget {
     required this.tabs,
     this.tabController,
     this.isScrollable = false,
-    this.padding,
+    this.tabBarPadding,
+    this.tabPadding,
     this.selectedTextStyle,
     this.unselectedTextStyle,
+    this.onChanged,
   });
 
   final List<TabBarItem> tabs;
@@ -32,11 +34,15 @@ class CommonIndicatorTabBar extends StatefulWidget {
   ///是否可滑动
   final bool isScrollable;
 
-  final EdgeInsetsGeometry? padding;
+  final EdgeInsetsGeometry? tabBarPadding;
+
+  final EdgeInsetsGeometry? tabPadding;
 
   final TextStyle? selectedTextStyle;
 
   final TextStyle? unselectedTextStyle;
+
+  final ValueChanged<int>? onChanged;
 
   @override
   State<CommonIndicatorTabBar> createState() => _CommonIndicatorTabBarState();
@@ -45,21 +51,38 @@ class CommonIndicatorTabBar extends StatefulWidget {
 class _CommonIndicatorTabBarState extends State<CommonIndicatorTabBar> with SingleTickerProviderStateMixin {
 
   late TabController _tabController;
-  int currentIndex = 0;
+  final currentIndex = 0.obs;
 
   @override
   void initState() {
     super.initState();
     _tabController = widget.tabController ?? TabController(length: widget.tabs.length, vsync: this);
+    _tabController.addListener(_handleTabSelection);
+  }
+
+  void _handleTabSelection() {
+    if (currentIndex.value != _tabController.index) {
+      currentIndex.value = _tabController.index;
+      widget.onChanged?.call(_tabController.index);
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabController.removeListener(_handleTabSelection);
+    if (widget.tabController == null) {
+      _tabController.dispose();
+    }
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return TabBar(
       controller: _tabController,
-      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      padding: widget.tabBarPadding ?? EdgeInsets.symmetric(horizontal: 16.w),
       overlayColor: WidgetStateProperty.all(Colors.transparent),
-      tabAlignment: widget.isScrollable ? TabAlignment.start : TabAlignment.center,
+      tabAlignment: widget.isScrollable ? TabAlignment.start : null,
       isScrollable: widget.isScrollable,
       dividerColor: Colors.transparent,
       dividerHeight: 0,
@@ -74,16 +97,24 @@ class _CommonIndicatorTabBarState extends State<CommonIndicatorTabBar> with Sing
 
   _buildTabItem(TabBarItem tabBarItem, int index) {
     return Obx(() {
+      final isSelected = currentIndex.value == index;
       return Padding(
-        padding: widget.padding ?? EdgeInsets.only(left: index != 0 ? 16.w : 0, right: index != widget.tabs.length - 1 ? 16.w : 0),
+        padding: widget.tabPadding ?? EdgeInsets.only(left: index != 0 ? 16.w : 0, right: index != widget.tabs.length - 1 ? 16.w : 0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               tabBarItem.tabText,
-              style: currentIndex == index ? _getSelectedStyle() : _getUnSelectedStyle(),
+              style: isSelected ? _getSelectedStyle() : _getUnSelectedStyle(),
             ),
-            Image.asset(Assets.commonIconTabIndicator, width: 48.w, height: 12.w),
+            Visibility(
+              visible: isSelected,
+              maintainSize: true,
+              maintainAnimation: true,
+              maintainState: true,
+              child: Image.asset(Assets.commonIconTabIndicator, width: 48.w, height: 12.w),
+            ),
           ],
         ),
       );

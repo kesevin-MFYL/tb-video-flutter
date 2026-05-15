@@ -2,6 +2,8 @@ import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/modules/v2/home/controllers/home_b_controller.dart';
+import 'package:editvideo/modules/v2/home/widget/steaming_media_view.dart';
+import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/button/common_button.dart';
 import 'package:editvideo/widget/image/common_image_view.dart';
@@ -44,10 +46,13 @@ class HomeBPage extends StatelessWidget {
                           hasAppBar: false,
                           currentStatus: controller.multiStatusType,
                           child: CustomScrollView(
-                            slivers: controller.homeSectionList.map((section) {
-                              final sectionType = SectionType.kind(section.kind);
-                              return _buildVideoSection(sectionType, section, controller);
-                            }).toList(),
+                            slivers: [
+                              ...controller.homeSectionList.map((section) {
+                                final sectionType = SectionType.kind(section.kind);
+                                return _buildVideoSection(sectionType, section, controller);
+                              }),
+                              SliverToBoxAdapter(child: SizedBox(height: 50.w)),
+                            ],
                           ),
                         ),
                       ),
@@ -112,7 +117,7 @@ class HomeBPage extends StatelessWidget {
               ],
             ),
             SizedBox(height: 12.w),
-            _buildSectionSecondary(sectionType, section),
+            _buildSectionSecondary(sectionType, section, controller),
           ],
         ),
       ),
@@ -135,7 +140,7 @@ class HomeBPage extends StatelessWidget {
   Widget _buildHorizontalList(SectionType sectionType, HomeSectionEntity section, HomeBController controller) {
     final dataList = section.dataList ?? [];
     final factor = Get.width / 375;
-    
+
     double itemWidth = 0;
     double imageHeight = 0;
     double buttonBorderRadius = 16.r;
@@ -262,20 +267,102 @@ class HomeBPage extends StatelessWidget {
   }
 
   Widget _buildStreamingMedia(HomeSectionEntity section, HomeBController controller) {
+    final factor = Get.width / 375;
+    final itemWidth = factor * 110;
+    final imageHeight = 165.w;
+
+    final tabBarViewHeight =
+        165.w +
+        12.w +
+        2.w +
+        'DISNEY+'.size(style: CommonTextStyle.instance(12.sp, fontWeight: CommonFontWeight.medium)).height;
+
     final dataList = section.dataList ?? [];
+    return SteamingMediaView(
+      tabController: controller.tabController,
+      mediaItems: dataList,
+      itemWidth: itemWidth,
+      imageHeight: imageHeight,
+      tabBarViewHeight: tabBarViewHeight,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CommonIndicatorTabBar(
-          tabController: controller.tabController,
-          tabs: dataList,
-          isScrollable: true,
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 12.w),
+          child: CommonIndicatorTabBar(
+            tabController: controller.tabController,
+            tabBarPadding: EdgeInsets.zero,
+            tabs: dataList,
+            isScrollable: true,
+          ),
         ),
-        // TabBarView(
-        //   children: [
-        //
-        //   ],
-        // ),
+
+        SizedBox(
+          height: tabBarViewHeight,
+          child: TabBarView(
+            controller: controller.tabController,
+            children: dataList.map((mediaItem) {
+              final mediaList = mediaItem.dataList ?? [];
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.zero,
+                child: Row(
+                  children: mediaList.map((subMediaItem) {
+                    final index = mediaList.indexOf(subMediaItem);
+                    return Container(
+                      margin: EdgeInsets.only(right: index != mediaList.length - 1 ? 12.w : 0),
+                      child: CommonButton(
+                        minSize: 0,
+                        borderRadius: BorderRadius.circular(16.r),
+                        onPressed: () {},
+                        child: Container(
+                          width: itemWidth,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16.r),
+                            border: Border.all(color: CommonColors.color222222, width: 1.w),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(16.r),
+                                child: Container(
+                                  width: double.infinity,
+                                  height: imageHeight,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(16.r),
+                                    color: CommonColors.color333333,
+                                  ),
+                                  child: CommonImageView.normal(
+                                    imageUrl: subMediaItem.cover,
+                                    alignment: Alignment.topCenter,
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                  ),
+                                ),
+                              ),
+
+                              SizedBox(height: 12.w),
+                              CommonText.instance(
+                                subMediaItem.title ?? '',
+                                12.sp,
+                                fontWeight: CommonFontWeight.medium,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
       ],
     );
   }
