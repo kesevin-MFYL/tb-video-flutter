@@ -186,6 +186,7 @@ class HomeBPage extends StatelessWidget {
             bgColor: bgColor,
             containerPadding: containerPadding,
             showListOverlay: showListOverlay,
+            action: (mediaItem) => controller.mediaTap(sectionType, mediaItem),
           );
         }).toList(),
       ),
@@ -204,33 +205,36 @@ class HomeBPage extends StatelessWidget {
         'DISNEY+'.size(style: CommonTextStyle.instance(12.sp, fontWeight: CommonFontWeight.medium)).height;
 
     final dataList = section.dataList ?? [];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.symmetric(vertical: 12.w),
-          child: CommonIndicatorTabBar(
-            tabController: controller.tabController,
-            tabBarPadding: EdgeInsets.zero,
-            tabs: dataList,
-            isScrollable: true,
-          ),
-        ),
-        SizedBox(
-          height: tabBarViewHeight,
-          child: TabBarView(
-            controller: controller.tabController,
-            children: dataList.map((mediaItem) {
-              final mediaList = mediaItem.dataList ?? [];
-              return SteamingMediaView(
-                mediaList: mediaList,
-                itemWidth: itemWidth,
-                imageHeight: imageHeight,
-              );
-            }).toList(),
-          ),
-        ),
-      ],
-    );
+    return dataList.isEmpty
+        ? Container()
+        : Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 12.w),
+                child: CommonIndicatorTabBar(
+                  tabController: controller.tabController,
+                  tabBarPadding: EdgeInsets.zero,
+                  tabs: dataList,
+                  isScrollable: true,
+                ),
+              ),
+              SizedBox(
+                height: tabBarViewHeight,
+                child: TabBarView(
+                  controller: controller.tabController,
+                  children: dataList.map((mediaItem) {
+                    final mediaList = mediaItem.dataList ?? [];
+                    return SteamingMediaView(
+                      mediaList: mediaList,
+                      itemWidth: itemWidth,
+                      imageHeight: imageHeight,
+                      action: (mediaItem) => controller.mediaTap(SectionType.streamingMedia, mediaItem),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+          );
   }
 }

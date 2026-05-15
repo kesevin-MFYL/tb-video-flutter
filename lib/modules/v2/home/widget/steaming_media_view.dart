@@ -4,11 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class SteamingMediaView extends StatefulWidget {
-  const SteamingMediaView({super.key, required this.mediaList, required this.itemWidth, required this.imageHeight});
+  const SteamingMediaView({
+    super.key,
+    required this.mediaList,
+    required this.itemWidth,
+    required this.imageHeight,
+    this.action,
+  });
 
   final List<MediaItemEntity> mediaList;
   final double itemWidth;
   final double imageHeight;
+  final void Function(MediaItemEntity mediaItem)? action;
 
   @override
   State<SteamingMediaView> createState() => _SteamingMediaViewState();
@@ -33,6 +40,7 @@ class _SteamingMediaViewState extends State<SteamingMediaView> with AutomaticKee
             itemWidth: widget.itemWidth,
             imageHeight: widget.imageHeight,
             buttonBorderRadius: 16.r,
+            action: widget.action,
           );
         }).toList(),
       ),
