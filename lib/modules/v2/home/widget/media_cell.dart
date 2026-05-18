@@ -40,12 +40,12 @@ class MediaCell extends StatelessWidget {
       child: CommonButton(
         minSize: 0,
         borderRadius: BorderRadius.zero,
-        color: bgColor,
         onPressed: () => action?.call(mediaItem),
         child: Container(
           width: itemWidth,
           padding: containerPadding,
           decoration: BoxDecoration(
+            color: bgColor,
             borderRadius: borderRadius == null ? null : BorderRadius.circular(borderRadius!),
             border: showBorder ? Border.all(color: CommonColors.color222222, width: 1.w) : null,
           ),

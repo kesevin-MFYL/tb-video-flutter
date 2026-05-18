@@ -60,7 +60,7 @@ class HomeBController extends BaseController {
 
   void viewAll(SectionType sectionType, HomeSectionEntity? section) {
     if (sectionType == SectionType.mediaList) {// 单片，进入单片二级页查看所有
-      EasyLoading.showToast('单片，进入单片二级页查看所有');
+      Get.toNamed(Routes.mediaListSubPage, arguments: section);
     } else if (sectionType == SectionType.imdbInterest) {// 分类，进入分类二级页查看所有
       EasyLoading.showToast('分类，进入分类二级页查看所有');
     }

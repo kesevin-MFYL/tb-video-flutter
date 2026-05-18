@@ -9,10 +9,7 @@ import 'package:editvideo/widget/page_status/multi_status_view.dart';
 class ImdbListSubController extends BaseController {
   var multiStatusType = MultiStatusType.statusLoading;
 
-  final refreshController = EasyRefreshController(
-    controlFinishRefresh: true,
-    controlFinishLoad: true,
-  );
+  final refreshController = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: true);
 
   late MediaItemEntity mediaItemEntity;
 
@@ -45,12 +42,8 @@ class ImdbListSubController extends BaseController {
   }
 
   ///todo 跳转播放页面
-  void toMediaPlayPage(MediaItemEntity mediaItemEntity) {
-
-  }
+  void toMediaPlayPage(MediaItemEntity mediaItemEntity) {}
 
   //todo 跳转搜索
-  void toSearch() {
-
-  }
+  void toSearch() {}
 }

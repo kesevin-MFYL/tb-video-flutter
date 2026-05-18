@@ -213,7 +213,6 @@ class HomeBPage extends StatelessWidget {
     required HomeBController controller,
   }) {
     final dataList = sectionType == SectionType.topPicks ? controller.topPicksList : section?.dataList ?? [];
-    final factor = Get.width / 375;
 
     double itemWidth = 0;
     double imageHeight = 0;
@@ -224,7 +223,7 @@ class HomeBPage extends StatelessWidget {
     bool showListOverlay = false;
 
     if (sectionType == SectionType.imdbList) {
-      itemWidth = factor * 268;
+      itemWidth = 268.w;
       imageHeight = 120.w;
       borderRadius = 24.r;
       bgColor = CommonColors.color1B1B18;
@@ -232,7 +231,7 @@ class HomeBPage extends StatelessWidget {
       showBorder = true;
       showListOverlay = true;
     } else if (sectionType == SectionType.mediaList || sectionType == SectionType.topPicks) {
-      itemWidth = factor * 110;
+      itemWidth = 110.w;
       imageHeight = 165.w;
       borderRadius = null;
       bgColor = null;
@@ -240,7 +239,7 @@ class HomeBPage extends StatelessWidget {
       showBorder = false;
       showListOverlay = false;
     } else if (sectionType == SectionType.imdbInterest) {
-      itemWidth = factor * 140;
+      itemWidth = 140.w;
       imageHeight = 80.w;
       borderRadius = 24.r;
       bgColor = CommonColors.color1B1B18;
@@ -273,8 +272,7 @@ class HomeBPage extends StatelessWidget {
   }
 
   Widget _buildStreamingMedia({HomeSectionEntity? section, required HomeBController controller}) {
-    final factor = Get.width / 375;
-    final itemWidth = factor * 110;
+    final itemWidth = 110.w;
     final imageHeight = 165.w;
 
     final tabBarViewHeight =

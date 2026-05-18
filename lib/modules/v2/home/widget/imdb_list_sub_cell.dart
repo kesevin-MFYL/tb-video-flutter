@@ -63,14 +63,18 @@ class ImdbListSubCell extends StatelessWidget {
                     if (mediaItem.certification.isNotEmptyString()) _buildTag(tagName: mediaItem.certification!),
                   ],
                 ),
-                SizedBox(height: 10.w),
-                CommonText.instance(
-                  mediaItem.description ?? '',
-                  12.sp,
-                  color: CommonColors.white.withOpacity(0.5),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
+
+                if (mediaItem.description.isNotEmptyString())
+                  ...[
+                    SizedBox(height: 10.w),
+                    CommonText.instance(
+                      mediaItem.description ?? '',
+                      12.sp,
+                      color: CommonColors.white.withOpacity(0.5),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
               ],
             ),
           ),

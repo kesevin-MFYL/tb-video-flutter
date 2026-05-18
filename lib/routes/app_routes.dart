@@ -14,5 +14,9 @@ class Routes {
   /// b根页面
   static const mainB = '/mainB';
 
+  /// 单片二级页
+  static const mediaListSubPage = '/mediaListSubPage';
+  /// 合集二级页
   static const imdbListSubPage = '/imdbListSubPage';
+
 }
