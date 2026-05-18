@@ -42,12 +42,9 @@ class HomeSectionEntity extends BaseEntity {
     }
     title = json['title'];
     kind = json['kind'];
-    if (json['data_list'] != null) {
-      dataList = [];
-      json['data_list'].forEach((v) {
-        dataList?.add(MediaItemEntity.fromJson(v));
-      });
-    }
+    dataList = json['data_list'] == null
+        ? null
+        : List.from(json['data_list']).map((e) => MediaItemEntity.fromJson(e)).toList();
   }
 
   @override
@@ -56,9 +53,7 @@ class HomeSectionEntity extends BaseEntity {
     data['_id'] = id;
     data['title'] = title;
     data['kind'] = kind;
-    if (dataList != null) {
-      data['data_list'] = dataList?.map((v) => v.toJson()).toList();
-    }
+    data['data_list'] = dataList?.map((e) => e.toJson()).toList();
     return data;
   }
 }
@@ -77,6 +72,8 @@ class MediaItemEntity extends BaseEntity implements TabBarItem {
   String? trailer;
   String? certification;
   String? imdbId;
+  String? description;
+  List<String>? countryCodeList;
   List<MediaItemEntity>? dataList;
 
   MediaItemEntity({
@@ -93,6 +90,8 @@ class MediaItemEntity extends BaseEntity implements TabBarItem {
     this.trailer,
     this.certification,
     this.imdbId,
+    this.description,
+    this.countryCodeList,
     this.dataList,
   });
 
@@ -119,12 +118,13 @@ class MediaItemEntity extends BaseEntity implements TabBarItem {
     trailer = json['trailer'];
     certification = json['certification'];
     imdbId = json['imdb_id'];
-    if (json['data_list'] != null) {
-      dataList = [];
-      json['data_list'].forEach((v) {
-        dataList?.add(MediaItemEntity.fromJson(v));
-      });
+    description = json['description'];
+    if (json['country_code_list'] != null) {
+      countryCodeList = json['country_code_list'].cast<String>();
     }
+    dataList = json['data_list'] == null
+        ? null
+        : List.from(json['data_list']).map((e) => MediaItemEntity.fromJson(e)).toList();
   }
 
   @override
@@ -143,9 +143,9 @@ class MediaItemEntity extends BaseEntity implements TabBarItem {
     data['trailer'] = trailer;
     data['certification'] = certification;
     data['imdb_id'] = imdbId;
-    if (dataList != null) {
-      data['data_list'] = dataList?.map((v) => v.toJson()).toList();
-    }
+    data['description'] = description;
+    data['country_code_list'] = countryCodeList;
+    data['data_list'] = dataList?.map((e) => e.toJson()).toList();
     return data;
   }
 

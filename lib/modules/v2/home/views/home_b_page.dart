@@ -87,7 +87,10 @@ class HomeBPage extends StatelessWidget {
                             hasAppBar: false,
                             currentStatus: controller.multiStatusType,
                             actionText: 'Try Again',
-                            action: () {},
+                            action: () {
+                              controller.multiStatusType = MultiStatusType.statusLoading;
+                              controller.getDataFromServer();
+                            },
                             child: CustomScrollView(
                               slivers: [
                                 // top picks

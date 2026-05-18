@@ -2,6 +2,7 @@ import 'package:editvideo/modules/common/page/app_web_page.dart';
 import 'package:editvideo/modules/launch/views/launch_page.dart';
 import 'package:editvideo/modules/v1/main/views/edit_video_page.dart';
 import 'package:editvideo/modules/v1/main/views/main_a_page.dart';
+import 'package:editvideo/modules/v2/home/views/imdb_list_sub_page.dart';
 import 'package:editvideo/modules/v2/main/views/main_b_page.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:get/get.dart';
@@ -14,6 +15,7 @@ class AppPages {
     ...MainPages.routes,
     // ...SettingPages.routes,
     ...CommonPages.routes,
+    ...MediaPages.routes,
   ];
 }
 
@@ -43,6 +45,17 @@ class MainPages {
     GetPage(
       name: Routes.mainB,
       page: () => MainBPage(),
+    ),
+  ];
+}
+
+class MediaPages {
+  MediaPages._();
+
+  static final routes = [
+    GetPage(
+      name: Routes.imdbListSubPage,
+      page: () => ImdbListSubPage(),
     ),
   ];
 }

@@ -47,11 +47,13 @@ class Assets {
   static const String commonIconLandscape = 'assets/images/common/icon_landscape.png';
   static const String commonOperationMore = 'assets/images/common/operation_more.png';
   static const String commonVideoPlayBig = 'assets/images/common/video_play_big.png';
+  static const String commonIconSubSearch = 'assets/images/common/icon_sub_search.png';
   static const String commonIconVideoList = 'assets/images/common/icon_video_list.png';
   static const String commonTakeVideoTips = 'assets/images/common/take_video_tips.png';
   static const String commonIconDatePicker = 'assets/images/common/icon_date_picker.png';
   static const String commonIconVideoError = 'assets/images/common/icon_video_error.png';
   static const String commonOperationDelete = 'assets/images/common/operation_delete.png';
+  static const String commonMediaPlaceholder = 'assets/images/common/media_placeholder.png';
   static const String commonIconHistoryTitle = 'assets/images/common/icon_history_title.png';
   static const String commonIconSettingTitle = 'assets/images/common/icon_setting_title.png';
   static const String commonIconTabIndicator = 'assets/images/common/icon_tab_indicator.png';

@@ -4,8 +4,10 @@ import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
 import 'package:editvideo/models/home_section_entity.dart';
+import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:get/get.dart';
 
 class HomeBController extends BaseController {
   var multiStatusType = MultiStatusType.statusLoading;
@@ -68,8 +70,7 @@ class HomeBController extends BaseController {
     if (sectionType == SectionType.mediaList) {// 单片，进入视频播放页
       EasyLoading.showToast('单片，进入视频播放页');
     } else if (sectionType == SectionType.imdbList) {// 合集，进入合集二级页
-      EasyLoading.showToast('合集，进入合集二级页');
-
+      Get.toNamed(Routes.imdbListSubPage, arguments: mediaItem);
     } else if (sectionType == SectionType.imdbInterest) {// 分类，进入分类详情页
       EasyLoading.showToast('分类，进入分类详情页');
 
@@ -79,6 +80,7 @@ class HomeBController extends BaseController {
     }
   }
 
+  //todo 跳转搜索
   void toSearch() {
 
   }

@@ -72,6 +72,16 @@ class MediaCell extends StatelessWidget {
                           alignment: Alignment.topCenter,
                           width: double.infinity,
                           height: double.infinity,
+                          errorWidget: (context, url, error) {
+                            return Center(
+                              child: Image.asset(
+                                Assets.commonMediaPlaceholder,
+                                width: 40.w,
+                                height: 40.w,
+                                fit: BoxFit.cover,
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ),

@@ -13,4 +13,6 @@ class Routes {
 
   /// b根页面
   static const mainB = '/mainB';
+
+  static const imdbListSubPage = '/imdbListSubPage';
 }

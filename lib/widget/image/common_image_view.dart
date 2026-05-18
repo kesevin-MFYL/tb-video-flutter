@@ -57,8 +57,8 @@ class CommonImageView extends StatelessWidget {
     final errorWidget = Center(
       child: Image.asset(
         placeholderName,
-        width: 80.w,
-        height: 80.w,
+        width: width,
+        height: height,
         fit: BoxFit.cover,
       ),
     );
