@@ -5,6 +5,7 @@ enum SectionType {
   none('none'),
   imdbList('imdb_list'), //合集list
   mediaList('media_list'), //单片
+  topPicks('top_picks'),
   imdbInterest('imdb_interest'), //兴趣分类
   streamingMedia('streaming_media'); //渠道
 

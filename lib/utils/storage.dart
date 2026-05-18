@@ -7,6 +7,7 @@ class Storage {
   static const _kSavedMemories = '_saved_memories_key';
   static const _kDraftMemories = '_draft_memories_key';
   static const _kAdRulesConfig = '_ad_rules_config_key';
+  static const _kSessionId = '_session_id_key';
 
   // 本地化存储，存APP内部
   static GetStorage? _getStorage;
@@ -92,5 +93,14 @@ class Storage {
 
   static String? getAdRulesConfig() {
     return _getStorage!.read<String?>(_kAdRulesConfig);
+  }
+
+  // === Session ID ===
+  static Future<void> saveSessionId(String sessionId) async {
+    return _getStorage!.write(_kSessionId, sessionId);
+  }
+
+  static String? getSessionId() {
+    return _getStorage!.read<String?>(_kSessionId);
   }
 }

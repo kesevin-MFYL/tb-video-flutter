@@ -81,9 +81,16 @@ class HomeBPage extends StatelessWidget {
                           action: () {},
                           child: CustomScrollView(
                             slivers: [
+                              // top picks
+                              _buildVideoSection(sectionType: SectionType.topPicks, controller: controller),
+
                               ...controller.homeSectionList.map((section) {
                                 final sectionType = SectionType.kind(section.kind);
-                                return _buildVideoSection(sectionType, section, controller);
+                                return _buildVideoSection(
+                                  sectionType: sectionType,
+                                  section: section,
+                                  controller: controller,
+                                );
                               }),
                               SliverToBoxAdapter(child: SizedBox(height: 34.w)),
                             ],
@@ -120,7 +127,15 @@ class HomeBPage extends StatelessWidget {
     );
   }
 
-  Widget _buildVideoSection(SectionType sectionType, HomeSectionEntity section, HomeBController controller) {
+  Widget _buildVideoSection({
+    required SectionType sectionType,
+    HomeSectionEntity? section,
+    required HomeBController controller,
+  }) {
+    if ((sectionType == SectionType.topPicks && controller.topPicksList.isEmpty) ||
+        (section?.dataList == null || section?.dataList!.isEmpty == true)) {
+      return SliverToBoxAdapter(child: Container());
+    }
     return SliverPadding(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.w),
       sliver: SliverToBoxAdapter(
@@ -130,7 +145,10 @@ class HomeBPage extends StatelessWidget {
           children: [
             Row(
               children: [
-                buildEmojiAlignedText(section.title ?? '', style: CommonTextStyle.instance(14.sp, fontWeight: CommonFontWeight.bold)),
+                buildEmojiAlignedText(
+                  sectionType == SectionType.topPicks ? '🎬Top Picks' : section?.title ?? '',
+                  style: CommonTextStyle.instance(14.sp, fontWeight: CommonFontWeight.bold),
+                ),
                 Spacer(),
                 if (sectionType == SectionType.mediaList || sectionType == SectionType.imdbInterest)
                   CommonButton(
@@ -151,28 +169,37 @@ class HomeBPage extends StatelessWidget {
               ],
             ),
             SizedBox(height: 12.w),
-            _buildSubSection(sectionType, section, controller),
+            _buildSubSection(sectionType: sectionType, section: section, controller: controller),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSubSection(SectionType sectionType, HomeSectionEntity section, HomeBController controller) {
+  Widget _buildSubSection({
+    required SectionType sectionType,
+    HomeSectionEntity? section,
+    required HomeBController controller,
+  }) {
     switch (sectionType) {
       case SectionType.imdbList: //合集list
       case SectionType.mediaList: //单片
+      case SectionType.topPicks:
       case SectionType.imdbInterest: //兴趣分类
-        return _buildHorizontalList(sectionType, section, controller);
+        return _buildHorizontalList(sectionType: sectionType, section: section, controller: controller);
       case SectionType.streamingMedia: //渠道
-        return _buildStreamingMedia(section, controller);
+        return _buildStreamingMedia(section: section, controller: controller);
       default:
         return Container();
     }
   }
 
-  Widget _buildHorizontalList(SectionType sectionType, HomeSectionEntity section, HomeBController controller) {
-    final dataList = section.dataList ?? [];
+  Widget _buildHorizontalList({
+    required SectionType sectionType,
+    HomeSectionEntity? section,
+    required HomeBController controller,
+  }) {
+    final dataList = sectionType == SectionType.topPicks ? controller.topPicksList : section?.dataList ?? [];
     final factor = Get.width / 375;
 
     double itemWidth = 0;
@@ -191,7 +218,7 @@ class HomeBPage extends StatelessWidget {
       containerPadding = EdgeInsets.only(left: 10.w, top: 10.w, right: 10.w, bottom: 12.w);
       showBorder = true;
       showListOverlay = true;
-    } else if (sectionType == SectionType.mediaList) {
+    } else if (sectionType == SectionType.mediaList || sectionType == SectionType.topPicks) {
       itemWidth = factor * 110;
       imageHeight = 165.w;
       borderRadius = null;
@@ -232,7 +259,7 @@ class HomeBPage extends StatelessWidget {
     );
   }
 
-  Widget _buildStreamingMedia(HomeSectionEntity section, HomeBController controller) {
+  Widget _buildStreamingMedia({HomeSectionEntity? section, required HomeBController controller}) {
     final factor = Get.width / 375;
     final itemWidth = factor * 110;
     final imageHeight = 165.w;
@@ -243,7 +270,7 @@ class HomeBPage extends StatelessWidget {
         2.w +
         'DISNEY+'.size(style: CommonTextStyle.instance(12.sp, fontWeight: CommonFontWeight.medium)).height;
 
-    final dataList = section.dataList ?? [];
+    final dataList = section?.dataList ?? [];
     return dataList.isEmpty
         ? Container()
         : TabPageView(
