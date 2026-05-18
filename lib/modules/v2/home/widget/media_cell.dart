@@ -15,10 +15,10 @@ class MediaCell extends StatelessWidget {
     this.itemWidth = 110,
     this.imageHeight = 165,
     this.marginRight = 12,
-    this.buttonBorderRadius = 16,
+    this.borderRadius,
     this.bgColor,
     this.containerPadding,
-    this.showBorder = true,
+    this.showBorder = false,
     this.showListOverlay = false,
   });
 
@@ -27,7 +27,7 @@ class MediaCell extends StatelessWidget {
   final double itemWidth;
   final double imageHeight;
   final double marginRight;
-  final double buttonBorderRadius;
+  final double? borderRadius;
   final Color? bgColor;
   final EdgeInsetsGeometry? containerPadding;
   final bool showBorder;
@@ -39,14 +39,14 @@ class MediaCell extends StatelessWidget {
       margin: EdgeInsets.only(right: marginRight),
       child: CommonButton(
         minSize: 0,
-        borderRadius: BorderRadius.circular(buttonBorderRadius),
+        borderRadius: BorderRadius.zero,
         color: bgColor,
         onPressed: () => action?.call(mediaItem),
         child: Container(
           width: itemWidth,
           padding: containerPadding,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(buttonBorderRadius),
+            borderRadius: borderRadius == null ? null : BorderRadius.circular(borderRadius!),
             border: showBorder ? Border.all(color: CommonColors.color222222, width: 1.w) : null,
           ),
           child: Column(
@@ -65,11 +65,14 @@ class MediaCell extends StatelessWidget {
                         color: CommonColors.color333333,
                         border: Border.all(color: CommonColors.color222222, width: 1.w),
                       ),
-                      child: CommonImageView.normal(
-                        imageUrl: mediaItem.cover,
-                        alignment: Alignment.topCenter,
-                        width: double.infinity,
-                        height: double.infinity,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16.r),
+                        child: CommonImageView.normal(
+                          imageUrl: mediaItem.cover,
+                          alignment: Alignment.topCenter,
+                          width: double.infinity,
+                          height: double.infinity,
+                        ),
                       ),
                     ),
 

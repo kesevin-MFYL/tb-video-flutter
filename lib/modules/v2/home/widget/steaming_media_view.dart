@@ -39,7 +39,6 @@ class _SteamingMediaViewState extends State<SteamingMediaView> with AutomaticKee
             marginRight: index == widget.mediaList.length - 1 ? 0 : 16.w,
             itemWidth: widget.itemWidth,
             imageHeight: widget.imageHeight,
-            buttonBorderRadius: 16.r,
             action: widget.action,
           );
         }).toList(),

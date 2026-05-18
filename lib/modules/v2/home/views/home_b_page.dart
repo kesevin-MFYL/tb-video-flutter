@@ -3,14 +3,14 @@ import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/modules/v2/home/controllers/home_b_controller.dart';
 import 'package:editvideo/modules/v2/home/widget/media_cell.dart';
-import 'package:editvideo/modules/v2/home/widget/steaming_media_view.dart';
+import 'package:editvideo/modules/v2/home/widget/tab_page_view.dart';
+import 'package:editvideo/utils/common_ui.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/button/common_button.dart';
 import 'package:editvideo/widget/page_base.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:editvideo/widget/refresh/refresh.dart';
-import 'package:editvideo/widget/tabbar/common_tab_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -130,7 +130,7 @@ class HomeBPage extends StatelessWidget {
           children: [
             Row(
               children: [
-                CommonText.instance(section.title ?? '', 14.sp, fontWeight: CommonFontWeight.bold),
+                buildEmojiAlignedText(section.title ?? '', style: CommonTextStyle.instance(14.sp, fontWeight: CommonFontWeight.bold)),
                 Spacer(),
                 if (sectionType == SectionType.mediaList || sectionType == SectionType.imdbInterest)
                   CommonButton(
@@ -177,16 +177,16 @@ class HomeBPage extends StatelessWidget {
 
     double itemWidth = 0;
     double imageHeight = 0;
-    double buttonBorderRadius = 16.r;
     Color? bgColor;
+    double? borderRadius;
     EdgeInsetsGeometry? containerPadding;
-    bool showBorder = true;
+    bool showBorder = false;
     bool showListOverlay = false;
 
     if (sectionType == SectionType.imdbList) {
       itemWidth = factor * 268;
       imageHeight = 120.w;
-      buttonBorderRadius = 24.r;
+      borderRadius = 24.r;
       bgColor = CommonColors.color1B1B18;
       containerPadding = EdgeInsets.only(left: 10.w, top: 10.w, right: 10.w, bottom: 12.w);
       showBorder = true;
@@ -194,7 +194,7 @@ class HomeBPage extends StatelessWidget {
     } else if (sectionType == SectionType.mediaList) {
       itemWidth = factor * 110;
       imageHeight = 165.w;
-      buttonBorderRadius = 16.r;
+      borderRadius = null;
       bgColor = null;
       containerPadding = null;
       showBorder = false;
@@ -202,7 +202,7 @@ class HomeBPage extends StatelessWidget {
     } else if (sectionType == SectionType.imdbInterest) {
       itemWidth = factor * 140;
       imageHeight = 80.w;
-      buttonBorderRadius = 24.r;
+      borderRadius = 24.r;
       bgColor = CommonColors.color1B1B18;
       containerPadding = EdgeInsets.only(left: 10.w, top: 10.w, right: 10.w, bottom: 12.w);
       showBorder = true;
@@ -220,7 +220,7 @@ class HomeBPage extends StatelessWidget {
             marginRight: index == dataList.length - 1 ? 0 : 16.w,
             itemWidth: itemWidth,
             imageHeight: imageHeight,
-            buttonBorderRadius: buttonBorderRadius,
+            borderRadius: borderRadius,
             bgColor: bgColor,
             containerPadding: containerPadding,
             showBorder: showBorder,
@@ -246,34 +246,12 @@ class HomeBPage extends StatelessWidget {
     final dataList = section.dataList ?? [];
     return dataList.isEmpty
         ? Container()
-        : Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 12.w),
-                child: CommonIndicatorTabBar(
-                  tabController: controller.tabController,
-                  tabBarPadding: EdgeInsets.zero,
-                  tabs: dataList,
-                  isScrollable: true,
-                ),
-              ),
-              SizedBox(
-                height: tabBarViewHeight,
-                child: TabBarView(
-                  controller: controller.tabController,
-                  children: dataList.map((mediaItem) {
-                    final mediaList = mediaItem.dataList ?? [];
-                    return SteamingMediaView(
-                      mediaList: mediaList,
-                      itemWidth: itemWidth,
-                      imageHeight: imageHeight,
-                      action: (mediaItem) => controller.mediaTap(SectionType.streamingMedia, mediaItem),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ],
+        : TabPageView(
+            mediaList: dataList,
+            tabBarViewHeight: tabBarViewHeight,
+            itemWidth: itemWidth,
+            imageHeight: imageHeight,
+            action: (mediaItem) => controller.mediaTap(SectionType.streamingMedia, mediaItem),
           );
   }
 }

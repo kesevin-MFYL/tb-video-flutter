@@ -1,0 +1,74 @@
+import 'package:editvideo/models/home_section_entity.dart';
+import 'package:editvideo/modules/v2/home/widget/steaming_media_view.dart';
+import 'package:editvideo/widget/tabbar/common_tab_bar.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+class TabPageView extends StatefulWidget {
+  const TabPageView({
+    super.key,
+    required this.mediaList,
+    this.tabBarViewHeight = 200,
+    this.itemWidth = 110,
+    this.imageHeight = 165,
+    this.action,
+  });
+
+  final List<MediaItemEntity> mediaList;
+  final double tabBarViewHeight;
+  final double itemWidth;
+  final double imageHeight;
+  final void Function(MediaItemEntity mediaItem)? action;
+
+  @override
+  State<TabPageView> createState() => _TabPageViewState();
+}
+
+class _TabPageViewState extends State<TabPageView> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: widget.mediaList.length, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 12.w),
+          child: CommonIndicatorTabBar(
+            tabController: _tabController,
+            tabBarPadding: EdgeInsets.zero,
+            tabs: widget.mediaList,
+            isScrollable: true,
+          ),
+        ),
+        SizedBox(
+          height: widget.tabBarViewHeight,
+          child: TabBarView(
+            controller: _tabController,
+            children: widget.mediaList.map((mediaItem) {
+              final mediaList = mediaItem.dataList ?? [];
+              return SteamingMediaView(
+                mediaList: mediaList,
+                itemWidth: widget.itemWidth,
+                imageHeight: widget.imageHeight,
+                action: (mediaItem) => widget.action?.call(mediaItem),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+}

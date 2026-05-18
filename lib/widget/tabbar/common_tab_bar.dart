@@ -100,20 +100,26 @@ class _CommonIndicatorTabBarState extends State<CommonIndicatorTabBar> with Sing
       final isSelected = currentIndex.value == index;
       return Padding(
         padding: widget.tabPadding ?? EdgeInsets.only(left: index != 0 ? 16.w : 0, right: index != widget.tabs.length - 1 ? 16.w : 0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Stack(
+          clipBehavior: Clip.none,
           children: [
-            Text(
-              tabBarItem.tabText,
-              style: isSelected ? _getSelectedStyle() : _getUnSelectedStyle(),
+            Padding(
+              padding: EdgeInsets.only(bottom: 12.w),
+              child: Text(
+                tabBarItem.tabText,
+                style: isSelected ? _getSelectedStyle() : _getUnSelectedStyle(),
+              ),
             ),
-            Visibility(
-              visible: isSelected,
-              maintainSize: true,
-              maintainAnimation: true,
-              maintainState: true,
-              child: Image.asset(Assets.commonIconTabIndicator, width: 48.w, height: 12.w),
+            Positioned(
+              left: 0,
+              bottom: 0,
+              child: Visibility(
+                visible: isSelected,
+                maintainSize: true,
+                maintainAnimation: true,
+                maintainState: true,
+                child: Image.asset(Assets.commonIconTabIndicator, width: 48.w, height: 12.w),
+              ),
             ),
           ],
         ),
