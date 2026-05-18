@@ -20,7 +20,12 @@ class HomeBController extends BaseController {
 
   @override
   void fetchData() async {
-    Future.wait([_getHomeSection(), _getTopPicks()]).then((list) {
+    getDataFromServer();
+
+  }
+
+  void getDataFromServer() async {
+    Future.wait([_getHomeSection(), getTopPicks()]).then((list) {
       update();
     });
   }
@@ -31,17 +36,21 @@ class HomeBController extends BaseController {
       final listData = result.responseData?.data;
       homeSectionList = listData ?? [];
       multiStatusType = homeSectionList.isEmpty ? MultiStatusType.statusEmpty : MultiStatusType.statusContent;
+      refreshController.finishRefresh();
     } else {
       commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
       multiStatusType = MultiStatusType.statusError;
     }
   }
 
-  Future<void> _getTopPicks() async {
+  Future<void> getTopPicks({bool needUpdate = false}) async {
     final result = await HomeApi.getTopPicks();
     if (result.isSuccess) {
       final listData = result.responseData?.data;
       topPicksList = listData ?? [];
+      if (needUpdate) {
+        update();
+      }
     } else {
       commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
     }

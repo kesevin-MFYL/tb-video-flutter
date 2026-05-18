@@ -14,6 +14,7 @@ import 'package:editvideo/widget/refresh/refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 class HomeBPage extends StatelessWidget {
   const HomeBPage({super.key});
@@ -23,104 +24,113 @@ class HomeBPage extends StatelessWidget {
     return GetBuilder<HomeBController>(
       init: HomeBController(),
       builder: (controller) {
-        return PageBase(
-          hasAppBar: false,
-          child: Stack(
-            children: [
-              Container(
-                height: 110.w,
-                decoration: const BoxDecoration(
-                  image: DecorationImage(fit: BoxFit.cover, image: AssetImage(Assets.commonHomeBg)),
+        return VisibilityDetector(
+          key: const Key('home_b'),
+          onVisibilityChanged: (info) async {
+            if (info.visibleFraction > 0.0) {
+              controller.getTopPicks(needUpdate: true);
+            }
+          },
+          child: PageBase(
+            hasAppBar: false,
+            child: Stack(
+              children: [
+                Container(
+                  height: 110.w,
+                  decoration: const BoxDecoration(
+                    image: DecorationImage(fit: BoxFit.cover, image: AssetImage(Assets.commonHomeBg)),
+                  ),
                 ),
-              ),
-              SafeArea(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.w),
-                      child: Row(
-                        children: [
-                          Image.asset(Assets.commonIconHomeLogo, width: 32.w, height: 32.w),
-                          SizedBox(width: 8.w),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: controller.toSearch,
-                              child: Container(
-                                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.w),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(24.r),
-                                  border: Border.all(color: CommonColors.primaryColor, width: 1.w),
-                                ),
-                                child: Row(
-                                  children: [
-                                    CommonText.instance(
-                                      'Search...',
-                                      14.sp,
-                                      color: CommonColors.white.withOpacity(0.5),
-                                      fontWeight: CommonFontWeight.medium,
-                                    ),
-                                    Spacer(),
-                                    Image.asset(Assets.commonIconSearch, width: 24.w, height: 24.w),
-                                  ],
+                SafeArea(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.w),
+                        child: Row(
+                          children: [
+                            Image.asset(Assets.commonIconHomeLogo, width: 32.w, height: 32.w),
+                            SizedBox(width: 8.w),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: controller.toSearch,
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.w),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(24.r),
+                                    border: Border.all(color: CommonColors.primaryColor, width: 1.w),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      CommonText.instance(
+                                        'Search...',
+                                        14.sp,
+                                        color: CommonColors.white.withOpacity(0.5),
+                                        fontWeight: CommonFontWeight.medium,
+                                      ),
+                                      Spacer(),
+                                      Image.asset(Assets.commonIconSearch, width: 24.w, height: 24.w),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    Expanded(
-                      child: CommonRefresh.instance(
-                        hasBefore: true,
-                        hasMore: false,
-                        child: MultiStatusView(
-                          hasAppBar: false,
-                          currentStatus: controller.multiStatusType,
-                          actionText: 'Try Again',
-                          action: () {},
-                          child: CustomScrollView(
-                            slivers: [
-                              // top picks
-                              _buildVideoSection(sectionType: SectionType.topPicks, controller: controller),
+                      Expanded(
+                        child: CommonRefresh.instance(
+                          controller: controller.refreshController,
+                          onRefresh: controller.getDataFromServer,
+                          hasMore: false,
+                          child: MultiStatusView(
+                            hasAppBar: false,
+                            currentStatus: controller.multiStatusType,
+                            actionText: 'Try Again',
+                            action: () {},
+                            child: CustomScrollView(
+                              slivers: [
+                                // top picks
+                                _buildVideoSection(sectionType: SectionType.topPicks, controller: controller),
 
-                              ...controller.homeSectionList.map((section) {
-                                final sectionType = SectionType.kind(section.kind);
-                                return _buildVideoSection(
-                                  sectionType: sectionType,
-                                  section: section,
-                                  controller: controller,
-                                );
-                              }),
-                              SliverToBoxAdapter(child: SizedBox(height: 34.w)),
-                            ],
+                                ...controller.homeSectionList.map((section) {
+                                  final sectionType = SectionType.kind(section.kind);
+                                  return _buildVideoSection(
+                                    sectionType: sectionType,
+                                    section: section,
+                                    controller: controller,
+                                  );
+                                }),
+                                SliverToBoxAdapter(child: SizedBox(height: 34.w)),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
 
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: IgnorePointer(
-                  ignoring: true,
-                  child: Container(
-                    height: 50.h,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Colors.transparent, Colors.black],
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: IgnorePointer(
+                    ignoring: true,
+                    child: Container(
+                      height: 50.h,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Colors.transparent, Colors.black],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
@@ -133,7 +143,7 @@ class HomeBPage extends StatelessWidget {
     required HomeBController controller,
   }) {
     if ((sectionType == SectionType.topPicks && controller.topPicksList.isEmpty) ||
-        (section?.dataList == null || section?.dataList!.isEmpty == true)) {
+        (sectionType != SectionType.topPicks && section?.dataList == null || section?.dataList!.isEmpty == true)) {
       return SliverToBoxAdapter(child: Container());
     }
     return SliverPadding(
