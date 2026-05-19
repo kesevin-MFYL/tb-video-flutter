@@ -8,6 +8,7 @@ import 'package:editvideo/config/network/model/list_response.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/models/imdb_list_sub_entity.dart';
 import 'package:editvideo/models/interest_all_entity.dart';
+import 'package:editvideo/models/interest_detail_entity.dart';
 import 'package:editvideo/utils/storage.dart';
 
 class HomeApi {
@@ -15,6 +16,7 @@ class HomeApi {
   static final homeTopPicksPath = '/rdVY/UyqKyY';
   static final imdbListSubDetailPath = '/HeXjjuHsiM/BBrKQVCZCK';
   static final interestAllPath = '/RvMBP/naoZHaxBK/alqJSasj';
+  static final interestDetailPath = '/dcr/PEOugQGkU/cVIfJt';
 
   /// 获取首页数据
   static Future<ApiResult<ListResponse<HomeSectionEntity>?, ApiError>> getHomeSection() async {
@@ -44,7 +46,7 @@ class HomeApi {
     );
   }
 
-  /// 获取top picks
+  /// 获取合集详情
   static Future<ApiResult<BaseResponse<ImdbListSubEntity>?, ApiError>> getImdbListSubDetail({required int? id}) async {
     final Map<String, dynamic> body = {
       '_id': id,
@@ -71,6 +73,19 @@ class HomeApi {
       interestAllPath,
       construction: InterestAllEntity.fromJson,
       decoder: ListResponse<InterestAllEntity>.fromJson,
+    );
+  }
+
+  /// 获取分类详情
+  static Future<ApiResult<BaseResponse<InterestDetailEntity>?, ApiError>> getInterestDetail({required int? id}) async {
+    final Map<String, dynamic> body = {
+      '_id': id,
+    };
+    return await HttpUtils.postRequest(
+      interestDetailPath,
+      body: body,
+      construction: InterestDetailEntity.fromJson,
+      decoder: BaseResponse<InterestDetailEntity>.fromJson,
     );
   }
 }

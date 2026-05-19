@@ -22,5 +22,7 @@ class Routes {
   static const interestAllPage = '/interestAllPage';
   /// 分类二级页
   static const interestSubPage = '/interestSubPage';
+  /// 分类详情
+  static const interestDetailPage = '/interestDetailPage';
 
 }

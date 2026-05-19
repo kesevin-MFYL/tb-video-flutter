@@ -39,6 +39,8 @@ class InterestAllController extends BaseController {
     Get.toNamed(Routes.interestSubPage, arguments: interestAllEntity);
   }
 
+  ///分类详情
   void toInterestDetail(MediaItemEntity mediaItemEntity, SectionType sectionType) {
+    Get.toNamed(Routes.interestDetailPage, arguments: mediaItemEntity);
   }
 }

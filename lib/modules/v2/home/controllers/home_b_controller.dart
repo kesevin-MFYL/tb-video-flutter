@@ -72,8 +72,8 @@ class HomeBController extends BaseController {
       // 合集，进入合集二级页
       Get.toNamed(Routes.imdbListSubPage, arguments: mediaItem);
     } else if (sectionType == SectionType.imdbInterest) {
-      // todo 分类，进入分类详情页
-      EasyLoading.showToast('分类，进入分类详情页');
+      // 进入分类详情页
+      Get.toNamed(Routes.interestDetailPage, arguments: mediaItem);
     } else if (sectionType == SectionType.streamingMedia) {
       // 渠道，进入视频播放页
       EasyLoading.showToast('渠道，进入视频播放页');
@@ -82,4 +82,7 @@ class HomeBController extends BaseController {
 
   //todo 跳转搜索
   void toSearch() {}
+
+  ///todo 跳转播放页面
+  void toMediaPlayPage(MediaItemEntity mediaItemEntity) {}
 }

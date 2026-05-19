@@ -2,6 +2,8 @@ import 'package:easy_refresh/easy_refresh.dart';
 import 'package:editvideo/base/base_controller.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/models/interest_all_entity.dart';
+import 'package:editvideo/routes/app_routes.dart';
+import 'package:get/get.dart';
 
 class InterestSubController extends BaseController {
   final refreshController = EasyRefreshController(controlFinishRefresh: false, controlFinishLoad: false);
@@ -23,6 +25,8 @@ class InterestSubController extends BaseController {
     update();
   }
 
-  ///todo 分类详情
-  void toInterestDetail(MediaItemEntity mediaItemEntity) {}
+  ///分类详情
+  void toInterestDetail(MediaItemEntity mediaItemEntity) {
+    Get.toNamed(Routes.interestDetailPage, arguments: mediaItemEntity);
+  }
 }
