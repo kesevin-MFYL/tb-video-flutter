@@ -10,6 +10,7 @@ class Routes {
   static const editVideo = '/editVideo';
 
   static const webPage = '/webPage';
+  static const searchPage = '/searchPage';
 
   /// b根页面
   static const mainB = '/mainB';

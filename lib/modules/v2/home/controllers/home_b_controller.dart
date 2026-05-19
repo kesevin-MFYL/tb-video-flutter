@@ -80,8 +80,10 @@ class HomeBController extends BaseController {
     }
   }
 
-  //todo 跳转搜索
-  void toSearch() {}
+  ///跳转搜索
+  void toSearch() {
+    Get.toNamed(Routes.searchPage);
+  }
 
   ///todo 跳转播放页面
   void toMediaPlayPage(MediaItemEntity mediaItemEntity) {}

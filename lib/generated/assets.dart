@@ -18,6 +18,7 @@ class Assets {
   static const String commonFieldDate = 'assets/images/common/field_date.png';
   static const String commonFieldMemo = 'assets/images/common/field_memo.png';
   static const String commonHistoryOn = 'assets/images/common/history_on.png';
+  static const String commonIconClear = 'assets/images/common/icon_clear.png';
   static const String commonIconPause = 'assets/images/common/icon_pause.png';
   static const String commonMemoryOff = 'assets/images/common/memory_off.png';
   static const String commonPageEmpty = 'assets/images/common/page_empty.png';
@@ -45,6 +46,7 @@ class Assets {
   static const String commonIconFeedBack = 'assets/images/common/icon_feed_back.png';
   static const String commonIconHomeLogo = 'assets/images/common/icon_home_logo.png';
   static const String commonIconLandscape = 'assets/images/common/icon_landscape.png';
+  static const String commonIconSearchBg = 'assets/images/common/icon_search_bg.png';
   static const String commonOperationMore = 'assets/images/common/operation_more.png';
   static const String commonVideoPlayBig = 'assets/images/common/video_play_big.png';
   static const String commonIconSubSearch = 'assets/images/common/icon_sub_search.png';

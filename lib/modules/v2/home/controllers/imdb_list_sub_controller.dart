@@ -4,7 +4,9 @@ import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
 import 'package:editvideo/models/home_section_entity.dart';
+import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
+import 'package:get/get.dart';
 
 class ImdbListSubController extends BaseController {
   var multiStatusType = MultiStatusType.statusLoading;
@@ -44,6 +46,9 @@ class ImdbListSubController extends BaseController {
   ///todo 跳转播放页面
   void toMediaPlayPage(MediaItemEntity mediaItemEntity) {}
 
-  //todo 跳转搜索
-  void toSearch() {}
+  ///跳转搜索
+  void toSearch() {
+    Get.toNamed(Routes.searchPage);
+  }
+
 }

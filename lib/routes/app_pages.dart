@@ -1,4 +1,5 @@
 import 'package:editvideo/modules/common/page/app_web_page.dart';
+import 'package:editvideo/modules/common/page/search_page.dart';
 import 'package:editvideo/modules/launch/views/launch_page.dart';
 import 'package:editvideo/modules/v1/main/views/edit_video_page.dart';
 import 'package:editvideo/modules/v1/main/views/main_a_page.dart';
@@ -103,6 +104,11 @@ class CommonPages {
     GetPage(
       name: Routes.editVideo,
       page: () => EditVideoPage(),
+    ),
+
+    GetPage(
+      name: Routes.searchPage,
+      page: () => SearchPage(),
     ),
   ];
 }
