@@ -7,12 +7,14 @@ import 'package:editvideo/config/network/model/base_response.dart';
 import 'package:editvideo/config/network/model/list_response.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/models/imdb_list_sub_entity.dart';
+import 'package:editvideo/models/interest_all_entity.dart';
 import 'package:editvideo/utils/storage.dart';
 
 class HomeApi {
   static final homeSectionPath = '/OHfDJYeUc/dkGIsWNmP/XkMzLSTL';
   static final homeTopPicksPath = '/rdVY/UyqKyY';
   static final imdbListSubDetailPath = '/HeXjjuHsiM/BBrKQVCZCK';
+  static final interestAllPath = '/RvMBP/naoZHaxBK/alqJSasj';
 
   /// 获取首页数据
   static Future<ApiResult<ListResponse<HomeSectionEntity>?, ApiError>> getHomeSection() async {
@@ -63,4 +65,12 @@ class HomeApi {
     return '$part1-$part2-$part3';
   }
 
+  /// 获取所有分类数据
+  static Future<ApiResult<ListResponse<InterestAllEntity>?, ApiError>> getAllInterest() async {
+    return await HttpUtils.postRequest(
+      interestAllPath,
+      construction: InterestAllEntity.fromJson,
+      decoder: ListResponse<InterestAllEntity>.fromJson,
+    );
+  }
 }

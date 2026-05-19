@@ -2,7 +2,7 @@ import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/modules/v2/home/controllers/home_b_controller.dart';
-import 'package:editvideo/modules/v2/home/widget/media_cell.dart';
+import 'package:editvideo/modules/v2/home/widget/media_scroller_view.dart';
 import 'package:editvideo/modules/v2/home/widget/tab_page_view.dart';
 import 'package:editvideo/utils/common_ui.dart';
 import 'package:editvideo/utils/extension.dart';
@@ -86,7 +86,6 @@ class HomeBPage extends StatelessWidget {
                           child: MultiStatusView(
                             hasAppBar: false,
                             currentStatus: controller.multiStatusType,
-                            actionText: 'Try Again',
                             action: () {
                               controller.multiStatusType = MultiStatusType.statusLoading;
                               controller.getDataFromServer();
@@ -150,37 +149,41 @@ class HomeBPage extends StatelessWidget {
       return SliverToBoxAdapter(child: Container());
     }
     return SliverPadding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.w),
+      padding: EdgeInsets.symmetric(vertical: 16.w),
       sliver: SliverToBoxAdapter(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                buildEmojiAlignedText(
-                  sectionType == SectionType.topPicks ? '🎬Top Picks' : section?.title ?? '',
-                  style: CommonTextStyle.instance(14.sp, fontWeight: CommonFontWeight.bold),
-                ),
-                Spacer(),
-                if (sectionType == SectionType.mediaList || sectionType == SectionType.imdbInterest)
-                  CommonButton(
-                    minSize: 0,
-                    borderRadius: BorderRadius.zero,
-                    spacing: 4.w,
-                    suffixDirectional: SuffixDirectional.right,
-                    suffixWidget: Image.asset(Assets.commonIconVideoArrowRight, width: 16.w, height: 16.w),
-                    onPressed: () => controller.viewAll(sectionType, section),
-                    child: CommonText.instance(
-                      'View All',
-                      12.sp,
-                      color: CommonColors.primaryColor,
-                      decoration: TextDecoration.underline,
-                      decorationColor: CommonColors.primaryColor,
-                    ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              child: Row(
+                children: [
+                  buildEmojiAlignedText(
+                    sectionType == SectionType.topPicks ? '🎬Top Picks' : section?.title ?? '',
+                    style: CommonTextStyle.instance(14.sp, fontWeight: CommonFontWeight.bold),
                   ),
-              ],
+                  Spacer(),
+                  if (sectionType == SectionType.mediaList || sectionType == SectionType.imdbInterest)
+                    CommonButton(
+                      minSize: 0,
+                      borderRadius: BorderRadius.zero,
+                      spacing: 4.w,
+                      suffixDirectional: SuffixDirectional.right,
+                      suffixWidget: Image.asset(Assets.commonIconVideoArrowRight, width: 16.w, height: 16.w),
+                      onPressed: () => controller.viewAll(sectionType, section),
+                      child: CommonText.instance(
+                        'View All',
+                        12.sp,
+                        color: CommonColors.primaryColor,
+                        decoration: TextDecoration.underline,
+                        decorationColor: CommonColors.primaryColor,
+                      ),
+                    ),
+                ],
+              ),
             ),
+
             SizedBox(height: 12.w),
             _buildSubSection(sectionType: sectionType, section: section, controller: controller),
           ],
@@ -214,67 +217,10 @@ class HomeBPage extends StatelessWidget {
   }) {
     final dataList = sectionType == SectionType.topPicks ? controller.topPicksList : section?.dataList ?? [];
 
-    double itemWidth = 0;
-    double imageHeight = 0;
-    Color? bgColor;
-    double? borderRadius;
-    EdgeInsetsGeometry? containerPadding;
-    bool showBorder = false;
-    bool showListOverlay = false;
-
-    if (sectionType == SectionType.imdbList) {
-      itemWidth = 268.w;
-      imageHeight = 120.w;
-      borderRadius = 24.r;
-      bgColor = CommonColors.color1B1B18;
-      containerPadding = EdgeInsets.only(left: 10.w, top: 10.w, right: 10.w, bottom: 12.w);
-      showBorder = true;
-      showListOverlay = true;
-    } else if (sectionType == SectionType.mediaList || sectionType == SectionType.topPicks) {
-      itemWidth = 110.w;
-      imageHeight = 165.w;
-      borderRadius = null;
-      bgColor = null;
-      containerPadding = null;
-      showBorder = false;
-      showListOverlay = false;
-    } else if (sectionType == SectionType.imdbInterest) {
-      itemWidth = 140.w;
-      imageHeight = 80.w;
-      borderRadius = 24.r;
-      bgColor = CommonColors.color1B1B18;
-      containerPadding = EdgeInsets.only(left: 10.w, top: 10.w, right: 10.w, bottom: 12.w);
-      showBorder = true;
-      showListOverlay = false;
-    }
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: EdgeInsets.zero,
-      child: Row(
-        children: dataList.map((mediaItem) {
-          final index = dataList.indexOf(mediaItem);
-          return MediaCell(
-            mediaItem: mediaItem,
-            marginRight: index == dataList.length - 1 ? 0 : 16.w,
-            itemWidth: itemWidth,
-            imageHeight: imageHeight,
-            borderRadius: borderRadius,
-            bgColor: bgColor,
-            containerPadding: containerPadding,
-            showBorder: showBorder,
-            showListOverlay: showListOverlay,
-            action: (mediaItem) => controller.mediaTap(sectionType, mediaItem),
-          );
-        }).toList(),
-      ),
-    );
+    return MediaScrollerView(mediaList: dataList, sectionType: sectionType, action: controller.mediaTap);
   }
 
   Widget _buildStreamingMedia({HomeSectionEntity? section, required HomeBController controller}) {
-    final itemWidth = 110.w;
-    final imageHeight = 165.w;
-
     final tabBarViewHeight =
         165.w +
         12.w +
@@ -284,12 +230,6 @@ class HomeBPage extends StatelessWidget {
     final dataList = section?.dataList ?? [];
     return dataList.isEmpty
         ? Container()
-        : TabPageView(
-            mediaList: dataList,
-            tabBarViewHeight: tabBarViewHeight,
-            itemWidth: itemWidth,
-            imageHeight: imageHeight,
-            action: (mediaItem) => controller.mediaTap(SectionType.streamingMedia, mediaItem),
-          );
+        : TabPageView(mediaList: dataList, tabBarViewHeight: tabBarViewHeight, action: controller.mediaTap);
   }
 }

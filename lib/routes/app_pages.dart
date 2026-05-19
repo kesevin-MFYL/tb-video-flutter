@@ -3,6 +3,7 @@ import 'package:editvideo/modules/launch/views/launch_page.dart';
 import 'package:editvideo/modules/v1/main/views/edit_video_page.dart';
 import 'package:editvideo/modules/v1/main/views/main_a_page.dart';
 import 'package:editvideo/modules/v2/home/views/imdb_list_sub_page.dart';
+import 'package:editvideo/modules/v2/home/views/interest_all_page.dart';
 import 'package:editvideo/modules/v2/home/views/media_list_sub_page.dart';
 import 'package:editvideo/modules/v2/main/views/main_b_page.dart';
 import 'package:editvideo/routes/app_routes.dart';
@@ -62,6 +63,11 @@ class MediaPages {
     GetPage(
       name: Routes.imdbListSubPage,
       page: () => ImdbListSubPage(),
+    ),
+
+    GetPage(
+      name: Routes.interestAllPage,
+      page: () => InterestAllPage(),
     ),
   ];
 }

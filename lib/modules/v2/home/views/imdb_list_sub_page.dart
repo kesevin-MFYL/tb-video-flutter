@@ -27,7 +27,6 @@ class ImdbListSubPage extends GetView<ImdbListSubController> {
             hasMore: false,
             child: MultiStatusView(
               currentStatus: controller.multiStatusType,
-              actionText: 'Try Again',
               action: () {
                 controller.multiStatusType = MultiStatusType.statusLoading;
                 controller.getImdbListSubDetail();

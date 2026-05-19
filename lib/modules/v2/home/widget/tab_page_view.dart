@@ -1,24 +1,15 @@
 import 'package:editvideo/models/home_section_entity.dart';
-import 'package:editvideo/modules/v2/home/widget/steaming_media_view.dart';
+import 'package:editvideo/modules/v2/home/widget/media_scroller_view.dart';
 import 'package:editvideo/widget/tabbar/common_tab_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class TabPageView extends StatefulWidget {
-  const TabPageView({
-    super.key,
-    required this.mediaList,
-    this.tabBarViewHeight = 200,
-    this.itemWidth = 110,
-    this.imageHeight = 165,
-    this.action,
-  });
+  const TabPageView({super.key, required this.mediaList, this.tabBarViewHeight = 200, this.action});
 
   final List<MediaItemEntity> mediaList;
   final double tabBarViewHeight;
-  final double itemWidth;
-  final double imageHeight;
-  final void Function(MediaItemEntity mediaItem)? action;
+  final void Function(MediaItemEntity mediaItem, SectionType sectionType)? action;
 
   @override
   State<TabPageView> createState() => _TabPageViewState();
@@ -45,7 +36,7 @@ class _TabPageViewState extends State<TabPageView> with SingleTickerProviderStat
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(vertical: 12.w),
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.w),
           child: CommonIndicatorTabBar(
             tabController: _tabController,
             tabBarPadding: EdgeInsets.zero,
@@ -59,11 +50,10 @@ class _TabPageViewState extends State<TabPageView> with SingleTickerProviderStat
             controller: _tabController,
             children: widget.mediaList.map((mediaItem) {
               final mediaList = mediaItem.dataList ?? [];
-              return SteamingMediaView(
+              return MediaScrollerView(
                 mediaList: mediaList,
-                itemWidth: widget.itemWidth,
-                imageHeight: widget.imageHeight,
-                action: (mediaItem) => widget.action?.call(mediaItem),
+                sectionType: SectionType.streamingMedia,
+                action: (mediaItem, sectionType) => widget.action?.call(mediaItem, sectionType),
               );
             }).toList(),
           ),

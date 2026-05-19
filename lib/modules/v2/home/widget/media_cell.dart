@@ -14,9 +14,8 @@ class MediaCell extends StatelessWidget {
     this.action,
     this.itemWidth = 110,
     this.imageHeight = 165,
-    this.marginRight = 12,
-    this.borderRadius,
     this.bgColor,
+    this.borderRadius,
     this.containerPadding,
     this.showBorder = false,
     this.showListOverlay = false,
@@ -26,110 +25,105 @@ class MediaCell extends StatelessWidget {
   final void Function(MediaItemEntity mediaItem)? action;
   final double itemWidth;
   final double imageHeight;
-  final double marginRight;
-  final double? borderRadius;
   final Color? bgColor;
+  final double? borderRadius;
   final EdgeInsetsGeometry? containerPadding;
   final bool showBorder;
   final bool showListOverlay;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(right: marginRight),
-      child: CommonButton(
-        minSize: 0,
-        borderRadius: BorderRadius.zero,
-        onPressed: () => action?.call(mediaItem),
-        child: Container(
-          width: itemWidth,
-          padding: containerPadding,
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: borderRadius == null ? null : BorderRadius.circular(borderRadius!),
-            border: showBorder ? Border.all(color: CommonColors.color222222, width: 1.w) : null,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(16.r),
-                child: Stack(
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      height: imageHeight,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16.r),
-                        color: CommonColors.color333333,
-                        border: Border.all(color: CommonColors.color222222, width: 1.w),
+    return CommonButton(
+      minSize: 0,
+      borderRadius: BorderRadius.zero,
+      onPressed: () => action?.call(mediaItem),
+      child: Container(
+        width: itemWidth,
+        padding: containerPadding,
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: borderRadius == null ? null : BorderRadius.circular(borderRadius!),
+          border: showBorder ? Border.all(color: CommonColors.color222222, width: 1.w) : null,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16.r),
+              child: Stack(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16.r),
+                      color: CommonColors.color333333,
+                      border: Border.all(color: CommonColors.color222222, width: 1.w),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16.r),
+                      child: CommonImageView.normal(
+                        imageUrl: mediaItem.cover,
+                        alignment: Alignment.topCenter,
+                        width: double.infinity,
+                        height: imageHeight,
+                        errorWidget: (context, url, error) {
+                          return Center(
+                            child: Image.asset(
+                              Assets.commonMediaPlaceholder,
+                              width: 40.w,
+                              height: 40.w,
+                              fit: BoxFit.cover,
+                            ),
+                          );
+                        },
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16.r),
-                        child: CommonImageView.normal(
-                          imageUrl: mediaItem.cover,
-                          alignment: Alignment.topCenter,
-                          width: double.infinity,
-                          height: double.infinity,
-                          errorWidget: (context, url, error) {
-                            return Center(
-                              child: Image.asset(
-                                Assets.commonMediaPlaceholder,
-                                width: 40.w,
-                                height: 40.w,
-                                fit: BoxFit.cover,
-                              ),
-                            );
-                          },
+                    ),
+                  ),
+
+                  if (showListOverlay)
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        padding: EdgeInsets.all(10.w),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [CommonColors.color060600.withOpacity(0), CommonColors.color060600],
+                          ),
+                        ),
+                        child: CommonButton(
+                          minSize: 20.w,
+                          alignment: Alignment.centerLeft,
+                          borderRadius: BorderRadius.circular(10.r),
+                          spacing: 4.w,
+                          suffixDirectional: SuffixDirectional.left,
+                          suffixWidget: Image.asset(Assets.commonIconVideoList, width: 16.w, height: 16.w),
+                          child: CommonText.instance(
+                            'List',
+                            10.sp,
+                            color: CommonColors.white.withOpacity(0.8),
+                            fontWeight: CommonFontWeight.medium,
+                          ),
                         ),
                       ),
                     ),
-
-                    if (showListOverlay)
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        child: Container(
-                          padding: EdgeInsets.all(10.w),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [CommonColors.color060600.withOpacity(0), CommonColors.color060600],
-                            ),
-                          ),
-                          child: CommonButton(
-                            minSize: 20.w,
-                            alignment: Alignment.centerLeft,
-                            borderRadius: BorderRadius.circular(10.r),
-                            spacing: 4.w,
-                            suffixDirectional: SuffixDirectional.left,
-                            suffixWidget: Image.asset(Assets.commonIconVideoList, width: 16.w, height: 16.w),
-                            child: CommonText.instance(
-                              'List',
-                              10.sp,
-                              color: CommonColors.white.withOpacity(0.8),
-                              fontWeight: CommonFontWeight.medium,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
+                ],
               ),
+            ),
 
-              SizedBox(height: 12.w),
-              CommonText.instance(
-                mediaItem.title ?? '',
-                12.sp,
-                fontWeight: CommonFontWeight.medium,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
+            SizedBox(height: 12.w),
+            CommonText.instance(
+              mediaItem.title ?? '',
+              12.sp,
+              fontWeight: CommonFontWeight.medium,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
       ),
     );

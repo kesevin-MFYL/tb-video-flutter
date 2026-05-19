@@ -12,10 +12,7 @@ import 'package:get/get.dart';
 class HomeBController extends BaseController {
   var multiStatusType = MultiStatusType.statusLoading;
 
-  final refreshController = EasyRefreshController(
-    controlFinishRefresh: true,
-    controlFinishLoad: true,
-  );
+  final refreshController = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: true);
 
   var homeSectionList = <HomeSectionEntity>[];
   var topPicksList = <MediaItemEntity>[];
@@ -23,7 +20,6 @@ class HomeBController extends BaseController {
   @override
   void fetchData() async {
     getDataFromServer();
-
   }
 
   void getDataFromServer() async {
@@ -59,29 +55,31 @@ class HomeBController extends BaseController {
   }
 
   void viewAll(SectionType sectionType, HomeSectionEntity? section) {
-    if (sectionType == SectionType.mediaList) {// 单片，进入单片二级页查看所有
+    if (sectionType == SectionType.mediaList) {
+      // 单片，进入单片二级页查看所有
       Get.toNamed(Routes.mediaListSubPage, arguments: section);
-    } else if (sectionType == SectionType.imdbInterest) {// 分类，进入分类二级页查看所有
-      EasyLoading.showToast('分类，进入分类二级页查看所有');
+    } else if (sectionType == SectionType.imdbInterest) {
+      // 分类，进入分类二级页查看所有
+      Get.toNamed(Routes.interestAllPage);
     }
   }
 
-  void mediaTap(SectionType sectionType, MediaItemEntity mediaItem) {
-    if (sectionType == SectionType.mediaList) {// 单片，进入视频播放页
+  void mediaTap(MediaItemEntity mediaItem, SectionType sectionType) {
+    if (sectionType == SectionType.mediaList) {
+      // 单片，进入视频播放页
       EasyLoading.showToast('单片，进入视频播放页');
-    } else if (sectionType == SectionType.imdbList) {// 合集，进入合集二级页
+    } else if (sectionType == SectionType.imdbList) {
+      // 合集，进入合集二级页
       Get.toNamed(Routes.imdbListSubPage, arguments: mediaItem);
-    } else if (sectionType == SectionType.imdbInterest) {// 分类，进入分类详情页
+    } else if (sectionType == SectionType.imdbInterest) {
+      // 分类，进入分类详情页
       EasyLoading.showToast('分类，进入分类详情页');
-
-    } else if (sectionType == SectionType.streamingMedia) {// 渠道，进入视频播放页
+    } else if (sectionType == SectionType.streamingMedia) {
+      // 渠道，进入视频播放页
       EasyLoading.showToast('渠道，进入视频播放页');
-
     }
   }
 
   //todo 跳转搜索
-  void toSearch() {
-
-  }
+  void toSearch() {}
 }

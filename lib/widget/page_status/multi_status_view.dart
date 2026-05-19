@@ -169,7 +169,7 @@ class _MultiStatusViewState extends State<MultiStatusView> with AutomaticKeepAli
                         padding: EdgeInsets.symmetric(horizontal: 24.w),
                         color: CommonColors.primaryColor,
                         onPressed: widget.action,
-                        child: CommonText.instance(widget.actionText ?? '', 14.sp, color: CommonColors.color060600, fontWeight: CommonFontWeight.medium),
+                        child: CommonText.instance(widget.actionText ?? 'ry Again', 14.sp, color: CommonColors.color060600, fontWeight: CommonFontWeight.medium),
                       ),
                     ],
             ),
