@@ -25,6 +25,7 @@ class MediaListSubPage extends GetView<MediaListSubController> {
           title: 'Trending',
           actions: _actionView(),
           child: CommonRefresh.instance(
+            controller: controller.refreshController,
             hasBefore: false,
             hasMore: false,
             child: GridView.builder(

@@ -12,7 +12,7 @@ import 'package:get/get.dart';
 class HomeBController extends BaseController {
   var multiStatusType = MultiStatusType.statusLoading;
 
-  final refreshController = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: true);
+  final refreshController = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: false);
 
   var homeSectionList = <HomeSectionEntity>[];
   var topPicksList = <MediaItemEntity>[];
@@ -72,7 +72,7 @@ class HomeBController extends BaseController {
       // 合集，进入合集二级页
       Get.toNamed(Routes.imdbListSubPage, arguments: mediaItem);
     } else if (sectionType == SectionType.imdbInterest) {
-      // 分类，进入分类详情页
+      // todo 分类，进入分类详情页
       EasyLoading.showToast('分类，进入分类详情页');
     } else if (sectionType == SectionType.streamingMedia) {
       // 渠道，进入视频播放页

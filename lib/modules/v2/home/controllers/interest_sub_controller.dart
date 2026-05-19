@@ -1,30 +1,28 @@
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:editvideo/base/base_controller.dart';
 import 'package:editvideo/models/home_section_entity.dart';
+import 'package:editvideo/models/interest_all_entity.dart';
 
-class MediaListSubController extends BaseController {
+class InterestSubController extends BaseController {
   final refreshController = EasyRefreshController(controlFinishRefresh: false, controlFinishLoad: false);
 
-  late HomeSectionEntity homeSectionEntity;
+  late InterestAllEntity interestAllEntity;
 
   var mediaList = <MediaItemEntity>[];
 
   @override
   void handArguments(arguments) {
-    if (arguments != null && arguments is HomeSectionEntity) {
-      homeSectionEntity = arguments;
+    if (arguments != null && arguments is InterestAllEntity) {
+      interestAllEntity = arguments;
     }
   }
 
   @override
   void fetchData() async {
-    mediaList = homeSectionEntity.dataList ?? [];
+    mediaList = interestAllEntity.dataList ?? [];
     update();
   }
 
-  ///todo 跳转播放页面
-  void toMediaPlayPage(MediaItemEntity mediaItemEntity) {}
-
-  //todo 跳转搜索
-  void toSearch() {}
+  ///todo 分类详情
+  void toInterestDetail(MediaItemEntity mediaItemEntity) {}
 }

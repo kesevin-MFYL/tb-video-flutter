@@ -5,13 +5,14 @@ import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/models/interest_all_entity.dart';
+import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:get/get.dart';
 
 class InterestAllController extends BaseController {
   var multiStatusType = MultiStatusType.statusLoading;
 
-  final refreshController = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: true);
+  final refreshController = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: false);
 
   var interestAllList = <InterestAllEntity>[];
 
@@ -35,7 +36,7 @@ class InterestAllController extends BaseController {
   }
 
   void viewAll(InterestAllEntity interestAllEntity) {
-    // Get.toNamed(Routes.mediaListSubPage, arguments: section);
+    Get.toNamed(Routes.interestSubPage, arguments: interestAllEntity);
   }
 
   void toInterestDetail(MediaItemEntity mediaItemEntity, SectionType sectionType) {

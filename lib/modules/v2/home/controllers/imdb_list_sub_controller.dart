@@ -9,7 +9,7 @@ import 'package:editvideo/widget/page_status/multi_status_view.dart';
 class ImdbListSubController extends BaseController {
   var multiStatusType = MultiStatusType.statusLoading;
 
-  final refreshController = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: true);
+  final refreshController = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: false);
 
   late MediaItemEntity mediaItemEntity;
 

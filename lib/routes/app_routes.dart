@@ -18,7 +18,9 @@ class Routes {
   static const mediaListSubPage = '/mediaListSubPage';
   /// 合集二级页
   static const imdbListSubPage = '/imdbListSubPage';
-  /// 分类二级页
+  /// 所有分类页
   static const interestAllPage = '/interestAllPage';
+  /// 分类二级页
+  static const interestSubPage = '/interestSubPage';
 
 }
