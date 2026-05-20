@@ -12,6 +12,8 @@ import 'package:editvideo/models/interest_detail_entity.dart';
 import 'package:editvideo/utils/storage.dart';
 
 class HomeApi {
+  static final searchMediaPath = '/NHOhEdapcW/pdhKdrLk';
+
   static final homeSectionPath = '/OHfDJYeUc/dkGIsWNmP/XkMzLSTL';
   static final homeTopPicksPath = '/rdVY/UyqKyY';
   static final imdbListSubDetailPath = '/HeXjjuHsiM/BBrKQVCZCK';
@@ -35,9 +37,7 @@ class HomeApi {
       await Storage.saveSessionId(sessionId);
     }
 
-    final Map<String, dynamic> body = {
-      'imdb_session_id': sessionId,
-    };
+    final Map<String, dynamic> body = {'imdb_session_id': sessionId};
     return await HttpUtils.postRequest(
       homeTopPicksPath,
       body: body,
@@ -48,9 +48,7 @@ class HomeApi {
 
   /// 获取合集详情
   static Future<ApiResult<BaseResponse<ImdbListSubEntity>?, ApiError>> getImdbListSubDetail({required int? id}) async {
-    final Map<String, dynamic> body = {
-      '_id': id,
-    };
+    final Map<String, dynamic> body = {'_id': id};
     return await HttpUtils.postRequest(
       imdbListSubDetailPath,
       body: body,
@@ -78,14 +76,31 @@ class HomeApi {
 
   /// 获取分类详情
   static Future<ApiResult<BaseResponse<InterestDetailEntity>?, ApiError>> getInterestDetail({required int? id}) async {
-    final Map<String, dynamic> body = {
-      '_id': id,
-    };
+    final Map<String, dynamic> body = {'_id': id};
     return await HttpUtils.postRequest(
       interestDetailPath,
       body: body,
       construction: InterestDetailEntity.fromJson,
       decoder: BaseResponse<InterestDetailEntity>.fromJson,
+    );
+  }
+
+  static Future<ApiResult<ListResponse<MediaItemEntity>?, ApiError>> searchMedia({
+    required String keyword,
+    required int pageNum,
+    int pageSize = 10,
+  }) async {
+    final Map<String, dynamic> body = {
+      'fuzzy_match': keyword,
+      'external_source': 'imdb',
+      'page_number': pageNum,
+      'page_size': pageSize,
+    };
+    return await HttpUtils.postRequest(
+      searchMediaPath,
+      body: body,
+      construction: MediaItemEntity.fromJson,
+      decoder: ListResponse<MediaItemEntity>.fromJson,
     );
   }
 }

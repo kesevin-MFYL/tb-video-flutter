@@ -72,6 +72,7 @@ class _CommonSearchBarState extends State<CommonSearchBar> {
       textInputAction: TextInputAction.search,
       autocorrect: true,
       enableSuggestions: true,
+      autofocus: true,
       selectionControls: MaterialTextSelectionControls(),
       maxLines: 1,
       textCapitalization: TextCapitalization.sentences,

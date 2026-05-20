@@ -3,7 +3,6 @@ import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/text_extension.dart';
-import 'package:editvideo/utils/time_utils.dart';
 import 'package:editvideo/widget/button/common_button.dart';
 import 'package:editvideo/widget/image/common_image_view.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +16,6 @@ class ImdbListSubCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final yearTag = TimeUtils.getYear(mediaItem.pubDate);
     return CommonButton(
       minSize: 0,
       borderRadius: BorderRadius.zero,
@@ -57,9 +55,8 @@ class ImdbListSubCell extends StatelessWidget {
                   spacing: 4.w, // 标签之间的水平间距
                   runSpacing: 4.h, // 标签之间的垂直间距
                   children: [
-                    if (mediaItem.countryCodeList != null && mediaItem.countryCodeList!.isNotEmpty)
-                      _buildTag(tagName: mediaItem.countryCodeList![0]),
-                    if (yearTag.isNotEmpty) _buildTag(tagName: yearTag),
+                    if (mediaItem.country.isNotEmptyString()) _buildTag(tagName: mediaItem.country!),
+                    if (mediaItem.year.isNotEmptyString()) _buildTag(tagName: mediaItem.year!),
                     if (mediaItem.certification.isNotEmptyString()) _buildTag(tagName: mediaItem.certification!),
                   ],
                 ),

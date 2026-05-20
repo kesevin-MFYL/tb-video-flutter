@@ -1,4 +1,5 @@
 import 'package:editvideo/config/network/model/base_entity.dart';
+import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/widget/tabbar/common_tab_bar.dart';
 
 enum SectionType {
@@ -157,4 +158,8 @@ class MediaItemEntity extends BaseEntity implements TabBarItem {
 
   @override
   String get tabText => title ?? '';
+
+  String? get country => countryCodeList != null && countryCodeList!.isNotEmpty ? countryCodeList!.first : null;
+
+  String? get year => pubDate.isNotEmptyString() && pubDate!.length >= 4 ? pubDate?.substring(0, 4) : null;
 }
