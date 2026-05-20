@@ -6,12 +6,27 @@ import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/models/page_model.dart';
+import 'package:editvideo/widget/bottom_sheet/delete_search_history_bottom_sheet.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
+import 'package:editvideo/utils/storage.dart';
 
 class SearchController extends BaseController {
   final refreshController = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: true);
+
+  @override
+  void fetchData() {
+    loadSearchHistory();
+  }
+
+  void loadSearchHistory() {
+    searchHistoryList.value = Storage.getSearchHistory();
+  }
+
+  /// 搜索历史
+  var searchHistoryList = <String>[].obs;
+  var isHistoryExpanded = false.obs;
 
   final textController = TextEditingController();
   final focusNode = FocusNode();
@@ -42,19 +57,19 @@ class SearchController extends BaseController {
   }
 
   /// 获取联想词
-  void getTriggerWords(String value) async {
+  void getTriggerWords() async {
     if (showTrigger.value == false) {
       showTrigger.value = true;
     }
+
+    final value = textController.text.trim();
 
     try {
       final dio = Dio();
       dio.options.connectTimeout = const Duration(seconds: 5);
       dio.options.receiveTimeout = const Duration(seconds: 5);
 
-      final response = await dio.get(
-        'https://v3.sg.media-imdb.com/suggestion/x/$value.json?includeVideos=1',
-      );
+      final response = await dio.get('https://v3.sg.media-imdb.com/suggestion/x/$value.json?includeVideos=1');
       if (response.statusCode == 200) {
         final data = response.data;
         if (data != null && data['d'] is List) {
@@ -77,9 +92,18 @@ class SearchController extends BaseController {
       FocusManager.instance.primaryFocus?.unfocus();
     }
     if (textController.text.trim().isEmpty) return;
+
+    Storage.addSearchHistory(textController.text.trim());
+    loadSearchHistory();
+
     showSearchResult.value = true;
     multiStatus = MultiStatusType.statusLoading;
     onRefresh();
+  }
+
+  void clearSearchHistory() {
+    Storage.clearSearchHistory();
+    searchHistoryList.clear();
   }
 
   void search(String keyword, {bool isRefresh = true}) async {
@@ -115,14 +139,33 @@ class SearchController extends BaseController {
   }
 
   void changeToHistory() {
-    if (FocusManager.instance.primaryFocus?.hasFocus == false) {
-      FocusManager.instance.primaryFocus?.requestFocus();
+    if (!focusNode.hasFocus) {
+      focusNode.requestFocus();
     }
+
     showTrigger.value = false;
     showSearchResult.value = false;
 
     triggerWordList.clear();
     mediaList.clear();
+    loadSearchHistory();
+  }
+
+  void changeToTrigger() {
+    if (!focusNode.hasFocus) {
+      focusNode.requestFocus();
+    }
+    getTriggerWords();
+    showSearchResult.value = false;
+  }
+
+  void showDeleteHistoryBottomSheet() {
+    unfocus();
+    DeleteSearchHistoryBottomSheet.show(
+      onConfirm: () {
+        clearSearchHistory();
+      },
+    );
   }
 
   @override

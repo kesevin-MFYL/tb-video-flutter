@@ -52,7 +52,7 @@ class HomePage extends StatelessWidget {
                                           bottom: 0,
                                           child: Image.asset(Assets.commonTabSelected, width: 93.w, height: 18.w),
                                         )
-                                      : SizedBox(),
+                                      : const SizedBox(),
                                 ],
                               ),
                             );
@@ -78,7 +78,7 @@ class HomePage extends StatelessWidget {
                                             bottom: 0,
                                             child: Image.asset(Assets.commonTabSelected, width: 93.w, height: 18.w),
                                           )
-                                        : SizedBox(),
+                                        : const SizedBox(),
                                   ],
                                 ),
                               ),

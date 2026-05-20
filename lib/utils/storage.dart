@@ -8,6 +8,7 @@ class Storage {
   static const _kDraftMemories = '_draft_memories_key';
   static const _kAdRulesConfig = '_ad_rules_config_key';
   static const _kSessionId = '_session_id_key';
+  static const _kSearchHistory = '_search_history_key';
 
   // 本地化存储，存APP内部
   static GetStorage? _getStorage;
@@ -24,6 +25,30 @@ class Storage {
 
   static bool? getFirstOpen() {
     return _getStorage!.read<bool?>(_kFirstOpen);
+  }
+
+  // === 搜索历史 ===
+  static Future<void> addSearchHistory(String keyword) async {
+    List<String> list = getSearchHistory();
+    list.remove(keyword);
+    list.insert(0, keyword);
+    if (list.length > 50) {
+      list = list.sublist(0, 50);
+    }
+    await _getStorage!.write(_kSearchHistory, jsonEncode(list));
+  }
+
+  static Future<void> clearSearchHistory() async {
+    await _getStorage!.remove(_kSearchHistory);
+  }
+
+  static List<String> getSearchHistory() {
+    final str = _getStorage!.read<String?>(_kSearchHistory);
+    if (str != null && str.isNotEmpty) {
+      final List<dynamic> jsonList = jsonDecode(str);
+      return jsonList.map((e) => e.toString()).toList();
+    }
+    return [];
   }
 
   // === 保存数据 ===

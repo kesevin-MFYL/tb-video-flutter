@@ -26,6 +26,8 @@ abstract class BaseController extends GetxController {
   void fetchData() {}
 
   void unfocus() {
-    FocusManager.instance.primaryFocus?.unfocus();
+    if (FocusManager.instance.primaryFocus?.hasFocus == true) {
+      FocusManager.instance.primaryFocus?.unfocus();
+    }
   }
 }
