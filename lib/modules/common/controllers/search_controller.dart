@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:editvideo/base/base_controller.dart';
@@ -15,14 +16,8 @@ import 'package:editvideo/utils/storage.dart';
 class SearchController extends BaseController {
   final refreshController = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: true);
 
-  @override
-  void fetchData() {
-    loadSearchHistory();
-  }
-
-  void loadSearchHistory() {
-    searchHistoryList.value = Storage.getSearchHistory();
-  }
+  Timer? _debounceTimer;
+  CancelToken? _cancelToken;
 
   /// 搜索历史
   var searchHistoryList = <String>[].obs;
@@ -56,35 +51,68 @@ class SearchController extends BaseController {
     search(textController.text, isRefresh: false);
   }
 
+  @override
+  void fetchData() {
+    loadSearchHistory();
+  }
+
+  void loadSearchHistory() {
+    searchHistoryList.value = Storage.getSearchHistory();
+  }
+
   /// 获取联想词
-  void getTriggerWords() async {
+  void getTriggerWords() {
     if (showTrigger.value == false) {
       showTrigger.value = true;
     }
 
-    final value = textController.text.trim();
-
-    try {
-      final dio = Dio();
-      dio.options.connectTimeout = const Duration(seconds: 5);
-      dio.options.receiveTimeout = const Duration(seconds: 5);
-
-      final response = await dio.get('https://v3.sg.media-imdb.com/suggestion/x/$value.json?includeVideos=1');
-      if (response.statusCode == 200) {
-        final data = response.data;
-        if (data != null && data['d'] is List) {
-          triggerWordList.clear();
-          for (var item in data['d']) {
-            if (item['l'] != null) {
-              triggerWordList.add(item['l'].toString());
-            }
-          }
-          update();
-        }
-      }
-    } catch (e) {
-      commonDebugPrint("getTriggerWords: Error fetching trigger words: $e");
+    if (_debounceTimer?.isActive ?? false) {
+      _debounceTimer!.cancel();
     }
+
+    _debounceTimer = Timer(const Duration(milliseconds: 100), () async {
+      final value = textController.text.trim();
+
+      _cancelToken?.cancel('Cancelled due to new request');
+      _cancelToken = CancelToken();
+
+      try {
+        final dio = Dio();
+        dio.options.connectTimeout = const Duration(seconds: 5);
+        dio.options.receiveTimeout = const Duration(seconds: 5);
+
+        // IMDB suggestion endpoint routes based on the first character
+        final firstChar = value[0].toLowerCase();
+        final encodedValue = Uri.encodeComponent(value);
+        final url = 'https://v3.sg.media-imdb.com/suggestion/$firstChar/$encodedValue.json?includeVideos=1';
+
+        final response = await dio.get(
+          url,
+          cancelToken: _cancelToken,
+        );
+        
+        if (response.statusCode == 200) {
+          final data = response.data;
+          if (data != null && data['d'] is List) {
+            triggerWordList.clear();
+            for (var item in data['d']) {
+              if (item['l'] != null) {
+                triggerWordList.add(item['l'].toString());
+              }
+            }
+            update();
+          }
+        }
+      } on DioException catch (e) {
+        if (CancelToken.isCancel(e)) {
+          commonDebugPrint("getTriggerWords: Request cancelled ($value)");
+        } else {
+          commonDebugPrint("getTriggerWords: Error fetching trigger words: $e");
+        }
+      } catch (e) {
+        commonDebugPrint("getTriggerWords: Error fetching trigger words: $e");
+      }
+    });
   }
 
   void toSearch() {
@@ -99,11 +127,6 @@ class SearchController extends BaseController {
     showSearchResult.value = true;
     multiStatus = MultiStatusType.statusLoading;
     onRefresh();
-  }
-
-  void clearSearchHistory() {
-    Storage.clearSearchHistory();
-    searchHistoryList.clear();
   }
 
   void search(String keyword, {bool isRefresh = true}) async {
@@ -168,8 +191,15 @@ class SearchController extends BaseController {
     );
   }
 
+  void clearSearchHistory() {
+    Storage.clearSearchHistory();
+    searchHistoryList.clear();
+  }
+
   @override
   void dispose() {
+    _debounceTimer?.cancel();
+    _cancelToken?.cancel();
     textController.dispose();
     focusNode.dispose();
     super.dispose();

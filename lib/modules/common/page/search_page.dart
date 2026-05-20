@@ -75,7 +75,7 @@ class SearchPage extends GetView<SearchController> {
                         controller.toSearch();
                       },
                       onFocusChange: (value) {
-                        if (controller.showSearchResult.value) {
+                        if (value && controller.showSearchResult.value) {
                           controller.changeToTrigger();
                         }
                       },

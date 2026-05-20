@@ -30,7 +30,7 @@ class DeleteSearchHistoryBottomSheet extends StatelessWidget {
               children: [
                 Center(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 24.h),
+                    padding: EdgeInsets.only(top: 24.w, bottom: 16.w),
                     child: CommonText.instance(
                       'Clear',
                       16.sp,
@@ -40,16 +40,16 @@ class DeleteSearchHistoryBottomSheet extends StatelessWidget {
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 16.h),
+                  padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 16.w),
                   child: CommonText.instance(
-                    'Please confirm whether to clear the search history.',
+                    'Please confirm whether to clear thesearch history.',
                     14.sp,
-                    color: CommonColors.white,
+                    color: CommonColors.white.withOpacity(0.8),
                     textAlign: TextAlign.center,
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h).copyWith(top: 32.h),
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.w),
                   child: Row(
                     children: [
                       Expanded(
@@ -88,7 +88,7 @@ class DeleteSearchHistoryBottomSheet extends StatelessWidget {
           Positioned(
             top: -40.w,
             left: 16.w,
-            child: Image.asset(Assets.commonVideoDelete, width: 80.w, height: 80.w, color: CommonColors.primaryColor),
+            child: Image.asset(Assets.commonIconBottomDeleteHistory, width: 80.w, height: 80.w),
           ),
         ],
       ),
