@@ -1,3 +1,4 @@
+import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/modules/common/controllers/search_controller.dart';
 import 'package:editvideo/modules/common/widget/search_media_cell.dart';
@@ -35,6 +36,7 @@ class SearchPage extends GetView<SearchController> {
                   children: [
                     CommonSearchBar(
                       controller: controller.textController,
+                      focusNode: controller.focusNode,
                       prefixWidget: Obx(() {
                         final showSearchResult = controller.showSearchResult.value;
                         return showSearchResult
@@ -71,6 +73,11 @@ class SearchPage extends GetView<SearchController> {
                       onSearchAction: (value) {
                         controller.toSearch();
                       },
+                      onFocusChange: (value) {
+                        if (controller.showSearchResult.value) {
+                          controller.showSearchResult.value = false;
+                        }
+                      },
                     ),
 
                     Expanded(child: _buildContent()),
@@ -102,18 +109,48 @@ class SearchPage extends GetView<SearchController> {
   }
 
   Widget _buildTriggerWords() {
-    return ListView.separated(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.w),
-      shrinkWrap: true,
-      separatorBuilder: (context, index) => Divider(height: 16.w, color: Colors.transparent),
-      itemCount: controller.triggerWordList.length,
-      itemBuilder: (context, index) {
-        final trigger = controller.triggerWordList[index];
-        return SizedBox(
-          height: 50,
-          child: CommonText.instance(trigger, 16.sp),
-        );
-      },
+    final keyword = controller.textController.text;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(left: 16.w, top: 20.w, right: 16.w, bottom: 16.w),
+          child: CommonText.instance('Search "$keyword"', 16.sp, color: CommonColors.colorDB88E6, fontWeight: CommonFontWeight.bold),
+        ),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          child: Divider(height: 1.w, color: CommonColors.white.withOpacity(0.15)),
+        ),
+        Expanded(
+          child: ListView.builder(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            itemCount: controller.triggerWordList.length,
+            itemBuilder: (context, index) {
+              final trigger = controller.triggerWordList[index];
+              return GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  controller.textController.text = trigger;
+                  controller.toSearch();
+                },
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 22.w),
+                  child: Row(
+                    children: [
+                      Image.asset(Assets.commonIconSubSearch, width: 16.w, height: 16.w),
+                      SizedBox(width: 8.w),
+                      Expanded(
+                        child: _buildHighlightedText(trigger, keyword),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -136,10 +173,46 @@ class SearchPage extends GetView<SearchController> {
           itemCount: controller.mediaList.length,
           itemBuilder: (context, index) {
             final mediaItem = controller.mediaList[index];
-            return SearchMediaCell(mediaItem: mediaItem, action: (media) {});
+            final keyword = controller.textController.text;
+            return SearchMediaCell(mediaItem: mediaItem, keyword: keyword, action: (media) {});
           },
         ),
       ),
+    );
+  }
+
+  Widget _buildHighlightedText(String text, String keyword) {
+    if (keyword.isEmpty) {
+      return CommonText.instance(text, 14.sp, color: CommonColors.white.withOpacity(0.5));
+    }
+
+    final pattern = RegExp(RegExp.escape(keyword), caseSensitive: false);
+    final spans = <TextSpan>[];
+
+    text.splitMapJoin(
+      pattern,
+      onMatch: (Match match) {
+        spans.add(TextSpan(
+          text: match.group(0),
+          style: CommonTextStyle.instance(14.sp),
+        ));
+        return '';
+      },
+      onNonMatch: (String nonMatch) {
+        if (nonMatch.isNotEmpty) {
+          spans.add(TextSpan(
+            text: nonMatch,
+            style: CommonTextStyle.instance(14.sp, color: CommonColors.white.withOpacity(0.5)),
+          ));
+        }
+        return '';
+      },
+    );
+
+    return RichText(
+      text: TextSpan(children: spans),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
     );
   }
 }

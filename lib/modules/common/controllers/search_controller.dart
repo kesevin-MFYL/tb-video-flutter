@@ -14,6 +14,7 @@ class SearchController extends BaseController {
   final refreshController = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: true);
 
   final textController = TextEditingController();
+  final focusNode = FocusNode();
 
   var multiStatus = MultiStatusType.statusLoading;
 
@@ -50,7 +51,6 @@ class SearchController extends BaseController {
       final dio = Dio();
       dio.options.connectTimeout = const Duration(seconds: 5);
       dio.options.receiveTimeout = const Duration(seconds: 5);
-
 
       final response = await dio.get(
         'https://v3.sg.media-imdb.com/suggestion/x/$value.json?includeVideos=1',
@@ -115,10 +115,20 @@ class SearchController extends BaseController {
   }
 
   void changeToHistory() {
+    if (FocusManager.instance.primaryFocus?.hasFocus == false) {
+      FocusManager.instance.primaryFocus?.requestFocus();
+    }
     showTrigger.value = false;
     showSearchResult.value = false;
 
     triggerWordList.clear();
     mediaList.clear();
+  }
+
+  @override
+  void dispose() {
+    textController.dispose();
+    focusNode.dispose();
+    super.dispose();
   }
 }

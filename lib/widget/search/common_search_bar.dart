@@ -10,14 +10,18 @@ class CommonSearchBar extends StatefulWidget {
   const CommonSearchBar({
     super.key,
     this.controller,
+    this.focusNode,
     this.onChanged,
     this.onClearAction,
     this.onSearchAction,
+    this.onFocusChange,
     this.prefixWidget,
     this.suffixWidget,
   });
 
   final TextEditingController? controller;
+
+  final FocusNode? focusNode;
 
   /// 内容变化
   final ValueChanged<String>? onChanged;
@@ -27,6 +31,8 @@ class CommonSearchBar extends StatefulWidget {
 
   /// 点击搜索按钮或者点击键盘（搜索）
   final ValueChanged<String?>? onSearchAction;
+
+  final ValueChanged<bool>? onFocusChange;
 
   final Widget? prefixWidget;
   final Widget? suffixWidget;
@@ -38,8 +44,9 @@ class CommonSearchBar extends StatefulWidget {
 class _CommonSearchBarState extends State<CommonSearchBar> {
   bool _showCleanButton = false;
   late final TextEditingController _controller = TextEditingController();
-
   TextEditingController get _getController => widget.controller ?? _controller;
+  late final FocusNode _focusNode = FocusNode();
+  FocusNode get _getFocusNode => widget.focusNode ?? _focusNode;
 
   @override
   void initState() {
@@ -56,11 +63,16 @@ class _CommonSearchBarState extends State<CommonSearchBar> {
         });
       }
     });
+
+    _getFocusNode.addListener(() {
+      widget.onFocusChange?.call(_getFocusNode.hasFocus);
+    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -76,6 +88,7 @@ class _CommonSearchBarState extends State<CommonSearchBar> {
       selectionControls: MaterialTextSelectionControls(),
       maxLines: 1,
       textCapitalization: TextCapitalization.sentences,
+      focusNode: _getFocusNode,
       style: CommonTextStyle.instance(14.sp, fontWeight: CommonFontWeight.medium),
       decoration: InputDecoration(
         contentPadding: EdgeInsets.zero,
