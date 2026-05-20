@@ -56,6 +56,7 @@ class Assets {
   static const String commonIconDatePicker = 'assets/images/common/icon_date_picker.png';
   static const String commonIconVideoError = 'assets/images/common/icon_video_error.png';
   static const String commonOperationDelete = 'assets/images/common/operation_delete.png';
+  static const String commonIconSubTitleBg = 'assets/images/common/icon_sub_title_bg.png';
   static const String commonMediaPlaceholder = 'assets/images/common/media_placeholder.png';
   static const String commonIconHistoryTitle = 'assets/images/common/icon_history_title.png';
   static const String commonIconSettingTitle = 'assets/images/common/icon_setting_title.png';

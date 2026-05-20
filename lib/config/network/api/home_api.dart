@@ -9,6 +9,8 @@ import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/models/imdb_list_sub_entity.dart';
 import 'package:editvideo/models/interest_all_entity.dart';
 import 'package:editvideo/models/interest_detail_entity.dart';
+import 'package:editvideo/models/media_filter_entity.dart';
+import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/storage.dart';
 
 class HomeApi {
@@ -19,6 +21,8 @@ class HomeApi {
   static final imdbListSubDetailPath = '/HeXjjuHsiM/BBrKQVCZCK';
   static final interestAllPath = '/RvMBP/naoZHaxBK/alqJSasj';
   static final interestDetailPath = '/dcr/PEOugQGkU/cVIfJt';
+
+  static final mediaFilterPath = '/RcfN/UPe/RFdlfVJD';
 
   /// 获取首页数据
   static Future<ApiResult<ListResponse<HomeSectionEntity>?, ApiError>> getHomeSection() async {
@@ -85,22 +89,42 @@ class HomeApi {
     );
   }
 
+  /// 搜索媒体资源
   static Future<ApiResult<ListResponse<MediaItemEntity>?, ApiError>> searchMedia({
-    required String keyword,
-    required int pageNum,
+    String? keyword,
+    int? type,
+    String? genre,
+    String? year,
+    String? countryCode,
+    int pageNum = 1,
     int pageSize = 10,
   }) async {
     final Map<String, dynamic> body = {
-      'fuzzy_match': keyword,
       'external_source': 'imdb',
       'page_number': pageNum,
       'page_size': pageSize,
     };
+
+    body.setIfNotNull(value: keyword, key: 'fuzzy_match');
+    body.setIfNotNull(value: type, key: 'media_type');
+    body.setIfNotNull(value: genre, key: 'genre');
+    body.setIfNotNull(value: year, key: 'year');
+    body.setIfNotNull(value: countryCode, key: 'country_code');
+
     return await HttpUtils.postRequest(
       searchMediaPath,
       body: body,
       construction: MediaItemEntity.fromJson,
       decoder: ListResponse<MediaItemEntity>.fromJson,
+    );
+  }
+
+  /// 获取媒体筛选条件
+  static Future<ApiResult<BaseResponse<MediaFilterEntity>?, ApiError>> getMediaFilter() async {
+    return await HttpUtils.getRequest(
+      mediaFilterPath,
+      construction: MediaFilterEntity.fromJson,
+      decoder: BaseResponse<MediaFilterEntity>.fromJson,
     );
   }
 }

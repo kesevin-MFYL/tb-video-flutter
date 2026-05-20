@@ -19,32 +19,45 @@ class ImdbListSubPage extends GetView<ImdbListSubController> {
       init: ImdbListSubController(),
       builder: (controller) {
         return PageBase(
+          isTransparentAppBar: true,
           title: controller.mediaItemEntity.title,
           actions: _actionView(),
-          child: CommonRefresh.instance(
-            controller: controller.refreshController,
-            onRefresh: controller.getImdbListSubDetail,
-            hasMore: false,
-            child: MultiStatusView(
-              currentStatus: controller.multiStatusType,
-              action: () {
-                controller.multiStatusType = MultiStatusType.statusLoading;
-                controller.getImdbListSubDetail();
-              },
-              child: ListView.separated(
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.w),
-                shrinkWrap: true,
-                separatorBuilder: (context, index) => Divider(height: 16.w, color: Colors.transparent),
-                itemCount: controller.imdbSubList.length,
-                itemBuilder: (context, index) {
-                  final item = controller.imdbSubList[index];
-                  return ImdbListSubCell(
-                    mediaItem: item,
-                    action: (mediaItem) => controller.toMediaPlayPage(mediaItem),
-                  );
-                },
+          child: Stack(
+            children: [
+              Container(
+                height: 96.w,
+                decoration: const BoxDecoration(
+                  image: DecorationImage(fit: BoxFit.cover, image: AssetImage(Assets.commonIconSubTitleBg)),
+                ),
               ),
-            ),
+              SafeArea(
+                child: CommonRefresh.instance(
+                  controller: controller.refreshController,
+                  onRefresh: controller.getImdbListSubDetail,
+                  hasMore: false,
+                  child: MultiStatusView(
+                    currentStatus: controller.multiStatusType,
+                    action: () {
+                      controller.multiStatusType = MultiStatusType.statusLoading;
+                      controller.getImdbListSubDetail();
+                    },
+                    child: ListView.separated(
+                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.w),
+                      shrinkWrap: true,
+                      separatorBuilder: (context, index) => Divider(height: 16.w, color: Colors.transparent),
+                      itemCount: controller.imdbSubList.length,
+                      itemBuilder: (context, index) {
+                        final item = controller.imdbSubList[index];
+                        return ImdbListSubCell(
+                          mediaItem: item,
+                          action: (mediaItem) => controller.toMediaPlayPage(mediaItem),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       },

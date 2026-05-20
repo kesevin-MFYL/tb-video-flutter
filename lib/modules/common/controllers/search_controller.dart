@@ -196,6 +196,10 @@ class SearchController extends BaseController {
     searchHistoryList.clear();
   }
 
+  void toMediaPlayPage(MediaItemEntity mediaItemEntity) {
+
+  }
+
   @override
   void dispose() {
     _debounceTimer?.cancel();

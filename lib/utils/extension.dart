@@ -46,3 +46,12 @@ extension StringExtension on String? {
     return painter.size;
   }
 }
+
+extension MapExtension on Map<String, dynamic> {
+  void setIfNotNull({required dynamic value, required String key}) {
+    if (value != null) {
+      this[key] = value;
+    }
+  }
+}
+
