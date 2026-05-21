@@ -9,6 +9,8 @@ import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:get/get.dart';
 
+enum MediaFilterType { mediaType, genres, year, country }
+
 class ExploreController extends BaseController {
   final refreshController = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: true);
 
@@ -20,12 +22,21 @@ class ExploreController extends BaseController {
   /// 搜索结果
   var mediaList = <MediaItemEntity>[];
 
-  var typeFFilter = <String>[];
+  var typeFilter = <String>['All', 'Movies', 'Tv shows'];
   var genresFilter = <String>[];
   var yearFilter = <String>[];
   var countryFilter = <String>[];
 
-  Future<void> onRefresh() async {
+  var typeFilterSelectedIndex = 0.obs;
+  var genresFilterSelectedIndex = 0.obs;
+  var yearFilterSelectedIndex = 0.obs;
+  var countryFilterSelectedIndex = 0.obs;
+
+  Future<void> onRefresh({bool showLoading = false}) async {
+    if (showLoading) {
+      multiStatus = MultiStatusType.statusLoading;
+      update();
+    }
     _search(isRefresh: true);
   }
 
@@ -48,9 +59,18 @@ class ExploreController extends BaseController {
     final result = await HomeApi.getMediaFilter();
     if (result.isSuccess) {
       final mediaFilterEntity = result.responseData?.data;
-      genresFilter = mediaFilterEntity?.genreList ?? [];
-      yearFilter = mediaFilterEntity?.yearList ?? [];
-      countryFilter = mediaFilterEntity?.countryCodeList ?? [];
+      genresFilter = ['All Genres'];
+      if (mediaFilterEntity?.genreList != null) {
+        genresFilter.addAll(mediaFilterEntity!.genreList!);
+      }
+      yearFilter = ['All Release Years'];
+      if (mediaFilterEntity?.yearList != null) {
+        yearFilter.addAll(mediaFilterEntity!.yearList!);
+      }
+      countryFilter = ['All Countries'];
+      if (mediaFilterEntity?.countryCodeList != null) {
+        countryFilter.addAll(mediaFilterEntity!.countryCodeList!);
+      }
     } else {
       commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
     }
@@ -60,11 +80,34 @@ class ExploreController extends BaseController {
     if (isRefresh) {
       _pageModel.resetPage();
     }
+
+    int? type;
+    if (typeFilterSelectedIndex.value == 1) {
+      type = 1;
+    } else if (typeFilterSelectedIndex.value == 2) {
+      type = 2;
+    }
+
+    String? genre;
+    if (genresFilterSelectedIndex > 0 && genresFilterSelectedIndex < genresFilter.length) {
+      genre = genresFilter[genresFilterSelectedIndex.value];
+    }
+
+    String? year;
+    if (yearFilterSelectedIndex > 0 && yearFilterSelectedIndex < yearFilter.length) {
+      year = yearFilter[yearFilterSelectedIndex.value];
+    }
+
+    String? countryCode;
+    if (countryFilterSelectedIndex > 0 && countryFilterSelectedIndex < countryFilter.length) {
+      countryCode = countryFilter[countryFilterSelectedIndex.value];
+    }
+
     final result = await HomeApi.searchMedia(
-      type: 1,
-      genre: '',
-      year: '',
-      countryCode: '',
+      type: type,
+      genre: genre,
+      year: year,
+      countryCode: countryCode,
       pageNum: _pageModel.page,
       pageSize: _pageModel.pageSize,
     );
@@ -84,10 +127,46 @@ class ExploreController extends BaseController {
         refreshController.finishLoad();
       }
 
-      // update();
+      update();
     } else {
       commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
       multiStatus = MultiStatusType.statusError;
+      update();
+    }
+  }
+
+  void changeFilter(int index, MediaFilterType mediaFilterType) {
+    switch (mediaFilterType) {
+      case MediaFilterType.mediaType:
+        if (typeFilterSelectedIndex.value == index) return;
+        typeFilterSelectedIndex.value = index;
+      case MediaFilterType.genres:
+        if (genresFilterSelectedIndex.value == index) return;
+        genresFilterSelectedIndex.value = index;
+      case MediaFilterType.year:
+        if (yearFilterSelectedIndex.value == index) return;
+        yearFilterSelectedIndex.value = index;
+      case MediaFilterType.country:
+        if (countryFilterSelectedIndex.value == index) return;
+        countryFilterSelectedIndex.value = index;
+      default:
+        return;
+    }
+    onRefresh(showLoading: true);
+  }
+
+  int getSelectedIndex(MediaFilterType mediaFilterType) {
+    switch (mediaFilterType) {
+      case MediaFilterType.mediaType:
+        return typeFilterSelectedIndex.value;
+      case MediaFilterType.genres:
+        return genresFilterSelectedIndex.value;
+      case MediaFilterType.year:
+        return yearFilterSelectedIndex.value;
+      case MediaFilterType.country:
+        return countryFilterSelectedIndex.value;
+      default:
+        return -1;
     }
   }
 

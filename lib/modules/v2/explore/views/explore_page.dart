@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
-class ExplorePage extends StatelessWidget {
+class ExplorePage extends GetView<ExploreController> {
   const ExplorePage({super.key});
 
   @override
@@ -62,9 +62,13 @@ class ExplorePage extends StatelessWidget {
                       child: NestedScrollView(
                         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
                           return <Widget>[
-                            _buildFilter(filterList: controller.genresFilter),
-                            _buildFilter(filterList: controller.yearFilter),
-                            _buildFilter(filterList: controller.countryFilter),
+                            _buildFilter(filterList: controller.typeFilter, mediaFilterType: MediaFilterType.mediaType),
+                            _buildFilter(filterList: controller.genresFilter, mediaFilterType: MediaFilterType.genres),
+                            _buildFilter(filterList: controller.yearFilter, mediaFilterType: MediaFilterType.year),
+                            _buildFilter(
+                              filterList: controller.countryFilter,
+                              mediaFilterType: MediaFilterType.country,
+                            ),
                           ];
                         },
                         body: CommonRefresh.instance(
@@ -76,12 +80,11 @@ class ExplorePage extends StatelessWidget {
                             hasAppBar: false,
                             currentStatus: controller.multiStatus,
                             action: () {
-                              controller.multiStatus = MultiStatusType.statusLoading;
-                              controller.onRefresh();
+                              controller.onRefresh(showLoading: true);
                             },
                             child: GridView.builder(
                               shrinkWrap: true,
-                              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.w),
+                              padding: EdgeInsets.only(left: 16.w, right: 16.w, bottom: 16.w),
                               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 3,
                                 crossAxisSpacing: 8.w,
@@ -132,33 +135,46 @@ class ExplorePage extends StatelessWidget {
     );
   }
 
-  Widget _buildFilter({required List<String> filterList}) {
+  Widget _buildFilter({required List<String> filterList, required MediaFilterType mediaFilterType}) {
     return SliverToBoxAdapter(
       child: filterList.isNotEmpty
-          ? SizedBox(
-              width: double.infinity,
-              height: 24.w,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.symmetric(horizontal: 16.w),
-                shrinkWrap: true,
-                separatorBuilder: (context, index) => Divider(indent: 16.w, color: Colors.transparent),
-                itemCount: filterList.length,
-                itemBuilder: (context, index) {
-                  final item = filterList[index];
-                  return GestureDetector(
-                    onTap: () {},
-                    child: Container(
-                      alignment: Alignment.center,
-                      padding: EdgeInsets.symmetric(horizontal: 8.w),
-                      decoration: BoxDecoration(
-                        color: CommonColors.color1B1B18,
-                        borderRadius: BorderRadius.circular(12.r),
-                      ),
-                      child: CommonText.instance(item, 12.sp, color: CommonColors.white.withOpacity(0.5)),
-                    ),
-                  );
-                },
+          ? Padding(
+              padding: EdgeInsets.only(bottom: 12.w),
+              child: SizedBox(
+                width: double.infinity,
+                height: 28.w,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: EdgeInsets.symmetric(horizontal: 16.w),
+                  shrinkWrap: true,
+                  separatorBuilder: (context, index) => SizedBox(width: 8.w),
+                  itemCount: filterList.length,
+                  itemBuilder: (context, index) {
+                    final item = filterList[index];
+                    return Obx(() {
+                      final selectedIndex = controller.getSelectedIndex(mediaFilterType);
+                      final isSelected = index == selectedIndex;
+                      return GestureDetector(
+                        onTap: () {
+                          controller.changeFilter(index, mediaFilterType);
+                        },
+                        child: Container(
+                          alignment: Alignment.center,
+                          padding: EdgeInsets.symmetric(horizontal: 12.w),
+                          decoration: BoxDecoration(
+                            color: isSelected ? CommonColors.primaryColor.withOpacity(0.15) : CommonColors.color1B1B18,
+                            borderRadius: BorderRadius.circular(14.r),
+                          ),
+                          child: CommonText.instance(
+                            item,
+                            12.sp,
+                            color: isSelected ? CommonColors.primaryColor : CommonColors.white.withOpacity(0.5),
+                          ),
+                        ),
+                      );
+                    });
+                  },
+                ),
               ),
             )
           : const SizedBox(),

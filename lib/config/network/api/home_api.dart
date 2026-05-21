@@ -106,7 +106,7 @@ class HomeApi {
     };
 
     body.setIfNotNull(value: keyword, key: 'fuzzy_match');
-    body.setIfNotNull(value: type, key: 'media_type');
+    body.setIfNotNull(value: type, key: 'type');
     body.setIfNotNull(value: genre, key: 'genre');
     body.setIfNotNull(value: year, key: 'year');
     body.setIfNotNull(value: countryCode, key: 'country_code');
