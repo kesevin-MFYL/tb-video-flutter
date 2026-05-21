@@ -71,9 +71,6 @@ class ExploreController extends BaseController {
   @override
   void handRegister() {
     scrollController.addListener(() {
-      if (popShowing.value == true) {
-        popShowing.value = false;
-      }
       var totalScrollRange = scrollController.position.maxScrollExtent;
       var offset = scrollController.offset;
       showFilterTotal.value = (offset / totalScrollRange).clamp(0.0, 1.0) == 1.0;

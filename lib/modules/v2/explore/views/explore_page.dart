@@ -61,64 +61,86 @@ class ExplorePage extends GetView<ExploreController> {
                     ),
 
                     Expanded(
-                      child: Stack(
-                        children: [
-                          NestedScrollView(
-                            controller: controller.scrollController,
-                            headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
-                              return <Widget>[
-                                _buildFilter(
-                                  filterList: controller.typeFilter,
-                                  mediaFilterType: MediaFilterType.mediaType,
-                                ),
-                                _buildFilter(
-                                  filterList: controller.genresFilter,
-                                  mediaFilterType: MediaFilterType.genres,
-                                ),
-                                _buildFilter(filterList: controller.yearFilter, mediaFilterType: MediaFilterType.year),
-                                _buildFilter(
-                                  filterList: controller.countryFilter,
-                                  mediaFilterType: MediaFilterType.country,
-                                ),
-                              ];
-                            },
-                            body: CommonRefresh.instance(
-                              controller: controller.refreshController,
-                              onRefresh: controller.onRefresh,
-                              hasMore: controller.hasMore,
-                              onLoad: controller.onLoadMore,
-                              child: MultiStatusView(
-                                hasAppBar: false,
-                                currentStatus: controller.multiStatus,
-                                action: () {
-                                  controller.onRefresh(showLoading: true);
-                                },
-                                child: GridView.builder(
-                                  shrinkWrap: true,
-                                  padding: EdgeInsets.only(left: 16.w, right: 16.w, bottom: 16.w),
-                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 3,
-                                    crossAxisSpacing: 8.w,
-                                    mainAxisSpacing: 16.w,
-                                    childAspectRatio: _getRatio(),
+                      child: NotificationListener<ScrollNotification>(
+                        onNotification: (ScrollNotification notification) {
+                          if (notification is ScrollUpdateNotification) {
+                            if (controller.popShowing.value) {
+                              controller.popShowing.value = false;
+                            }
+                          }
+                          return false;
+                        },
+                        child: Stack(
+                          children: [
+                            NestedScrollView(
+                              controller: controller.scrollController,
+                              headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+                                return <Widget>[
+                                  _buildFilter(
+                                    filterList: controller.typeFilter,
+                                    mediaFilterType: MediaFilterType.mediaType,
                                   ),
-                                  itemCount: controller.mediaList.length,
-                                  itemBuilder: (context, index) {
-                                    var mediaItem = controller.mediaList[index];
-                                    return MediaCell(
-                                      mediaItem: mediaItem,
-                                      itemWidth: double.infinity,
-                                      imageHeight: 165.w,
-                                      action: (mediaItem) => controller.toMediaPlayPage(mediaItem),
-                                    );
+                                  _buildFilter(
+                                    filterList: controller.genresFilter,
+                                    mediaFilterType: MediaFilterType.genres,
+                                  ),
+                                  _buildFilter(
+                                    filterList: controller.yearFilter,
+                                    mediaFilterType: MediaFilterType.year,
+                                  ),
+                                  _buildFilter(
+                                    filterList: controller.countryFilter,
+                                    mediaFilterType: MediaFilterType.country,
+                                  ),
+                                ];
+                              },
+                              body: CommonRefresh.instance(
+                                controller: controller.refreshController,
+                                onRefresh: controller.onRefresh,
+                                hasMore: controller.hasMore,
+                                onLoad: controller.onLoadMore,
+                                child: MultiStatusView(
+                                  hasAppBar: false,
+                                  currentStatus: controller.multiStatus,
+                                  action: () {
+                                    controller.onRefresh(showLoading: true);
                                   },
+                                  child: GridView.builder(
+                                    shrinkWrap: true,
+                                    padding: EdgeInsets.only(left: 16.w, right: 16.w, bottom: 16.w),
+                                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 3,
+                                      crossAxisSpacing: 8.w,
+                                      mainAxisSpacing: 16.w,
+                                      childAspectRatio: _getRatio(),
+                                    ),
+                                    itemCount: controller.mediaList.length,
+                                    itemBuilder: (context, index) {
+                                      var mediaItem = controller.mediaList[index];
+                                      return MediaCell(
+                                        mediaItem: mediaItem,
+                                        itemWidth: double.infinity,
+                                        imageHeight: 165.w,
+                                        action: (mediaItem) => controller.toMediaPlayPage(mediaItem),
+                                      );
+                                    },
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
 
-                          Positioned(top: 0, left: 0, right: 0, child: _buildFilterTotal()),
-                        ],
+                            Positioned(top: 0, left: 0, right: 0, child: _buildFilterTotal()),
+
+                            Positioned(
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              child: Obx(() {
+                                return controller.popShowing.value ? _buildFilterPop() : const SizedBox();
+                              }),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -202,7 +224,7 @@ class ExplorePage extends GetView<ExploreController> {
 
   Widget _buildFilterTotal() {
     return Obx(() {
-      if (!controller.showFilterTotal.value) return const SizedBox();
+      if (!controller.showFilterTotal.value || controller.popShowing.value) return const SizedBox();
       final names = controller.selectedFilterNames;
       if (names.isEmpty) return const SizedBox();
 
@@ -236,12 +258,35 @@ class ExplorePage extends GetView<ExploreController> {
     });
   }
 
+  Widget _buildFilterPop() {
+    return ClipRect(
+      child: AnimatedSlide(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutCubic,
+        offset: Offset.zero,
+        child: Container(
+          color: CommonColors.background,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildFilterItem(filterList: controller.typeFilter, mediaFilterType: MediaFilterType.mediaType),
+              _buildFilterItem(filterList: controller.genresFilter, mediaFilterType: MediaFilterType.genres),
+              _buildFilterItem(filterList: controller.yearFilter, mediaFilterType: MediaFilterType.year),
+              _buildFilterItem(filterList: controller.countryFilter, mediaFilterType: MediaFilterType.country),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   double _getRatio() {
     final height =
         164 +
-        8 +
-        2 +
-        'The Hobbit'.size(style: CommonTextStyle.instance(13.sp, fontWeight: CommonFontWeight.medium)).height;
+            8 +
+            2 +
+            'The Hobbit'.size(style: CommonTextStyle.instance(13.sp, fontWeight: CommonFontWeight.medium)).height;
     return 109 / height;
   }
 }
