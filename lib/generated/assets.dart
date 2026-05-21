@@ -42,6 +42,7 @@ class Assets {
   static const String commonTabSelected = 'assets/images/common/tab_selected.png';
   static const String commonVideoDelete = 'assets/images/common/video_delete.png';
   static const String commonIconPortrait = 'assets/images/common/icon_portrait.png';
+  static const String commonIconSelected = 'assets/images/common/icon_selected.png';
   static const String commonSaveUnenable = 'assets/images/common/save_unenable.png';
   static const String commonIconExpandUp = 'assets/images/common/icon_expand_up.png';
   static const String commonIconFeedBack = 'assets/images/common/icon_feed_back.png';
@@ -51,11 +52,13 @@ class Assets {
   static const String commonOperationMore = 'assets/images/common/operation_more.png';
   static const String commonVideoPlayBig = 'assets/images/common/video_play_big.png';
   static const String commonIconSubSearch = 'assets/images/common/icon_sub_search.png';
+  static const String commonIconUnselected = 'assets/images/common/icon_unselected.png';
   static const String commonIconVideoList = 'assets/images/common/icon_video_list.png';
   static const String commonTakeVideoTips = 'assets/images/common/take_video_tips.png';
   static const String commonIconDatePicker = 'assets/images/common/icon_date_picker.png';
   static const String commonIconVideoError = 'assets/images/common/icon_video_error.png';
   static const String commonOperationDelete = 'assets/images/common/operation_delete.png';
+  static const String commonIconHistoryEdit = 'assets/images/common/icon_history_edit.png';
   static const String commonIconSubTitleBg = 'assets/images/common/icon_sub_title_bg.png';
   static const String commonMediaPlaceholder = 'assets/images/common/media_placeholder.png';
   static const String commonIconHistoryTitle = 'assets/images/common/icon_history_title.png';
