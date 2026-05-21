@@ -6,6 +6,8 @@ import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/page_base.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
+import 'package:editvideo/widget/pop/pop_container.dart';
+import 'package:editvideo/widget/pop/pop_utils.dart';
 import 'package:editvideo/widget/refresh/refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -33,7 +35,9 @@ class ExplorePage extends GetView<ExploreController> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // search bar
                     Padding(
+                      key: controller.filterGlobalKey,
                       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.w),
                       child: GestureDetector(
                         onTap: controller.toSearch,
@@ -121,12 +125,7 @@ class ExplorePage extends GetView<ExploreController> {
                             ),
                           ),
 
-                          Positioned(
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            child: _buildFilterTotal(),
-                          ),
+                          Positioned(top: 0, left: 0, right: 0, child: _buildFilterTotal()),
                         ],
                       ),
                     ),
@@ -161,48 +160,52 @@ class ExplorePage extends GetView<ExploreController> {
 
   Widget _buildFilter({required List<String> filterList, required MediaFilterType mediaFilterType}) {
     return SliverToBoxAdapter(
-      child: filterList.isNotEmpty
-          ? Padding(
-              padding: EdgeInsets.only(bottom: 12.w),
-              child: SizedBox(
-                width: double.infinity,
-                height: 28.w,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  padding: EdgeInsets.symmetric(horizontal: 16.w),
-                  shrinkWrap: true,
-                  separatorBuilder: (context, index) => SizedBox(width: 8.w),
-                  itemCount: filterList.length,
-                  itemBuilder: (context, index) {
-                    final item = filterList[index];
-                    return Obx(() {
-                      final selectedIndex = controller.getSelectedIndex(mediaFilterType);
-                      final isSelected = index == selectedIndex;
-                      return GestureDetector(
-                        onTap: () {
-                          controller.changeFilter(index, mediaFilterType);
-                        },
-                        child: Container(
-                          alignment: Alignment.center,
-                          padding: EdgeInsets.symmetric(horizontal: 12.w),
-                          decoration: BoxDecoration(
-                            color: isSelected ? CommonColors.primaryColor.withOpacity(0.15) : CommonColors.color1B1B18,
-                            borderRadius: BorderRadius.circular(14.r),
-                          ),
-                          child: CommonText.instance(
-                            item,
-                            12.sp,
-                            color: isSelected ? CommonColors.primaryColor : CommonColors.white.withOpacity(0.5),
-                          ),
-                        ),
-                      );
-                    });
-                  },
-                ),
-              ),
-            )
-          : const SizedBox(),
+      child: _buildFilterItem(filterList: filterList, mediaFilterType: mediaFilterType),
     );
+  }
+
+  Widget _buildFilterItem({required List<String> filterList, required MediaFilterType mediaFilterType}) {
+    return filterList.isNotEmpty
+        ? Padding(
+            padding: EdgeInsets.only(bottom: 12.w),
+            child: SizedBox(
+              width: double.infinity,
+              height: 28.w,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                shrinkWrap: true,
+                separatorBuilder: (context, index) => SizedBox(width: 8.w),
+                itemCount: filterList.length,
+                itemBuilder: (context, index) {
+                  final item = filterList[index];
+                  return Obx(() {
+                    final selectedIndex = controller.getSelectedIndex(mediaFilterType);
+                    final isSelected = index == selectedIndex;
+                    return GestureDetector(
+                      onTap: () {
+                        controller.changeFilter(index, mediaFilterType);
+                      },
+                      child: Container(
+                        alignment: Alignment.center,
+                        padding: EdgeInsets.symmetric(horizontal: 12.w),
+                        decoration: BoxDecoration(
+                          color: isSelected ? CommonColors.primaryColor.withOpacity(0.15) : CommonColors.color1B1B18,
+                          borderRadius: BorderRadius.circular(14.r),
+                        ),
+                        child: CommonText.instance(
+                          item,
+                          12.sp,
+                          color: isSelected ? CommonColors.primaryColor : CommonColors.white.withOpacity(0.5),
+                        ),
+                      ),
+                    );
+                  });
+                },
+              ),
+            ),
+          )
+        : const SizedBox();
   }
 
   Widget _buildFilterTotal() {
@@ -213,36 +216,56 @@ class ExplorePage extends GetView<ExploreController> {
 
       final text = names.join(' · ');
 
-      return Container(
-        color: CommonColors.background,
-        padding: EdgeInsets.only(left: 16.w, right: 16.w, bottom: 12.w),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Expanded(
-              child: CommonText.instance(
-                text,
-                12.sp,
-                color: CommonColors.white.withOpacity(0.5),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+      return GestureDetector(
+        onTap: () {
+          _showFilterPop();
+        },
+        child: Container(
+          color: CommonColors.background,
+          padding: EdgeInsets.only(left: 16.w, right: 16.w, bottom: 12.w),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: CommonText.instance(
+                  text,
+                  12.sp,
+                  color: CommonColors.white.withOpacity(0.5),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-            SizedBox(width: 8.w),
-            GestureDetector(
-              onTap: () {
-
-              },
-              child: Image.asset(
-                Assets.commonIconFilterArrowDown,
-                width: 16.w,
-                height: 16.w,
-              ),
-            ),
-          ],
+              SizedBox(width: 8.w),
+              Image.asset(Assets.commonIconFilterArrowDown, width: 16.w, height: 16.w),
+            ],
+          ),
         ),
       );
     });
+  }
+
+  _showFilterPop() {
+    PopUtils.show(
+      Get.context!,
+      PopContainer(
+        onDismiss: () {},
+        topOffset: controller.filterWidgetY,
+        child: Container(
+          color: CommonColors.background,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildFilterItem(filterList: controller.typeFilter, mediaFilterType: MediaFilterType.mediaType),
+              _buildFilterItem(filterList: controller.genresFilter, mediaFilterType: MediaFilterType.genres),
+              _buildFilterItem(filterList: controller.yearFilter, mediaFilterType: MediaFilterType.year),
+              _buildFilterItem(filterList: controller.countryFilter, mediaFilterType: MediaFilterType.country),
+            ],
+          ),
+        ),
+      ),
+      offsetLT: Offset(0, controller.filterWidgetY + 1),
+      highlights: controller.highlights,
+    );
   }
 
   double _getRatio() {
