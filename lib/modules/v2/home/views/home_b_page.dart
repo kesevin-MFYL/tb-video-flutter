@@ -120,7 +120,7 @@ class HomeBPage extends StatelessWidget {
                   child: IgnorePointer(
                     ignoring: true,
                     child: Container(
-                      height: 50.h,
+                      height: 32.h,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,

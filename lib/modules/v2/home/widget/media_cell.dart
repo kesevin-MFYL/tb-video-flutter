@@ -46,8 +46,8 @@ class MediaCell extends StatelessWidget {
           border: showBorder ? Border.all(color: CommonColors.color222222, width: 1.w) : null,
         ),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(16.r),
@@ -115,7 +115,6 @@ class MediaCell extends StatelessWidget {
               ),
             ),
 
-            SizedBox(height: 12.w),
             CommonText.instance(
               mediaItem.title ?? '',
               12.sp,
