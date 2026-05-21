@@ -58,52 +58,76 @@ class ExplorePage extends GetView<ExploreController> {
                         ),
                       ),
                     ),
+
                     Expanded(
-                      child: NestedScrollView(
-                        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
-                          return <Widget>[
-                            _buildFilter(filterList: controller.typeFilter, mediaFilterType: MediaFilterType.mediaType),
-                            _buildFilter(filterList: controller.genresFilter, mediaFilterType: MediaFilterType.genres),
-                            _buildFilter(filterList: controller.yearFilter, mediaFilterType: MediaFilterType.year),
-                            _buildFilter(
-                              filterList: controller.countryFilter,
-                              mediaFilterType: MediaFilterType.country,
-                            ),
-                          ];
-                        },
-                        body: CommonRefresh.instance(
-                          controller: controller.refreshController,
-                          onRefresh: controller.onRefresh,
-                          hasMore: controller.hasMore,
-                          onLoad: controller.onLoadMore,
-                          child: MultiStatusView(
-                            hasAppBar: false,
-                            currentStatus: controller.multiStatus,
-                            action: () {
-                              controller.onRefresh(showLoading: true);
-                            },
-                            child: GridView.builder(
-                              shrinkWrap: true,
-                              padding: EdgeInsets.only(left: 16.w, right: 16.w, bottom: 16.w),
-                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 3,
-                                crossAxisSpacing: 8.w,
-                                mainAxisSpacing: 16.w,
-                                childAspectRatio: _getRatio(),
-                              ),
-                              itemCount: controller.mediaList.length,
-                              itemBuilder: (context, index) {
-                                var mediaItem = controller.mediaList[index];
-                                return MediaCell(
-                                  mediaItem: mediaItem,
-                                  itemWidth: double.infinity,
-                                  imageHeight: 165.w,
-                                  action: (mediaItem) => controller.toMediaPlayPage(mediaItem),
-                                );
+                      child: Stack(
+                        children: [
+                          Positioned.fill(
+                            child: NestedScrollView(
+                              controller: controller.scrollController,
+                              headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+                                return <Widget>[
+                                  _buildFilter(
+                                    filterList: controller.typeFilter,
+                                    mediaFilterType: MediaFilterType.mediaType,
+                                  ),
+                                  _buildFilter(
+                                    filterList: controller.genresFilter,
+                                    mediaFilterType: MediaFilterType.genres,
+                                  ),
+                                  _buildFilter(
+                                    filterList: controller.yearFilter,
+                                    mediaFilterType: MediaFilterType.year,
+                                  ),
+                                  _buildFilter(
+                                    filterList: controller.countryFilter,
+                                    mediaFilterType: MediaFilterType.country,
+                                  ),
+                                ];
                               },
+                              body: CommonRefresh.instance(
+                                controller: controller.refreshController,
+                                onRefresh: controller.onRefresh,
+                                hasMore: controller.hasMore,
+                                onLoad: controller.onLoadMore,
+                                child: MultiStatusView(
+                                  hasAppBar: false,
+                                  currentStatus: controller.multiStatus,
+                                  action: () {
+                                    controller.onRefresh(showLoading: true);
+                                  },
+                                  child: GridView.builder(
+                                    shrinkWrap: true,
+                                    padding: EdgeInsets.only(left: 16.w, right: 16.w, bottom: 16.w),
+                                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 3,
+                                      crossAxisSpacing: 8.w,
+                                      mainAxisSpacing: 16.w,
+                                      childAspectRatio: _getRatio(),
+                                    ),
+                                    itemCount: controller.mediaList.length,
+                                    itemBuilder: (context, index) {
+                                      var mediaItem = controller.mediaList[index];
+                                      return MediaCell(
+                                        mediaItem: mediaItem,
+                                        itemWidth: double.infinity,
+                                        imageHeight: 165.w,
+                                        action: (mediaItem) => controller.toMediaPlayPage(mediaItem),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+
+                          Positioned(
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            child: _buildFilterTotal(),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -179,6 +203,46 @@ class ExplorePage extends GetView<ExploreController> {
             )
           : const SizedBox(),
     );
+  }
+
+  Widget _buildFilterTotal() {
+    return Obx(() {
+      if (!controller.showFilterTotal.value) return const SizedBox();
+      final names = controller.selectedFilterNames;
+      if (names.isEmpty) return const SizedBox();
+
+      final text = names.join(' · ');
+
+      return Container(
+        color: CommonColors.background,
+        padding: EdgeInsets.only(left: 16.w, right: 16.w, bottom: 12.w),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
+              child: CommonText.instance(
+                text,
+                12.sp,
+                color: CommonColors.white.withOpacity(0.5),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            SizedBox(width: 8.w),
+            GestureDetector(
+              onTap: () {
+
+              },
+              child: Image.asset(
+                Assets.commonIconFilterArrowDown,
+                width: 16.w,
+                height: 16.w,
+              ),
+            ),
+          ],
+        ),
+      );
+    });
   }
 
   double _getRatio() {

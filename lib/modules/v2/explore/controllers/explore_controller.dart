@@ -7,12 +7,15 @@ import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/models/page_model.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 enum MediaFilterType { mediaType, genres, year, country }
 
 class ExploreController extends BaseController {
   final refreshController = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: true);
+
+  final scrollController = ScrollController();
 
   var multiStatus = MultiStatusType.statusLoading;
 
@@ -32,6 +35,25 @@ class ExploreController extends BaseController {
   var yearFilterSelectedIndex = 0.obs;
   var countryFilterSelectedIndex = 0.obs;
 
+  var showFilterTotal = false.obs;
+
+  List<String> get selectedFilterNames {
+    List<String> names = [];
+    if (typeFilter.isNotEmpty && typeFilterSelectedIndex.value < typeFilter.length) {
+      names.add(typeFilter[typeFilterSelectedIndex.value]);
+    }
+    if (genresFilter.isNotEmpty && genresFilterSelectedIndex.value < genresFilter.length) {
+      names.add(genresFilter[genresFilterSelectedIndex.value]);
+    }
+    if (yearFilter.isNotEmpty && yearFilterSelectedIndex.value < yearFilter.length) {
+      names.add(yearFilter[yearFilterSelectedIndex.value]);
+    }
+    if (countryFilter.isNotEmpty && countryFilterSelectedIndex.value < countryFilter.length) {
+      names.add(countryFilter[countryFilterSelectedIndex.value]);
+    }
+    return names;
+  }
+
   Future<void> onRefresh({bool showLoading = false}) async {
     if (showLoading) {
       multiStatus = MultiStatusType.statusLoading;
@@ -42,6 +64,15 @@ class ExploreController extends BaseController {
 
   Future<void> onLoadMore() async {
     _search(isRefresh: false);
+  }
+
+  @override
+  void handRegister() {
+    scrollController.addListener(() {
+      var totalScrollRange = scrollController.position.maxScrollExtent;
+      var offset = scrollController.offset;
+      showFilterTotal.value = (offset / totalScrollRange).clamp(0.0, 1.0) == 1.0;
+    });
   }
 
   @override
