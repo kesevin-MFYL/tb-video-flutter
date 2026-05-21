@@ -70,6 +70,8 @@ class ExploreController extends BaseController {
 
   @override
   void handRegister() {
+    _pageModel.pageSize = 27;
+
     scrollController.addListener(() {
       var totalScrollRange = scrollController.position.maxScrollExtent;
       var offset = scrollController.offset;
@@ -83,7 +85,7 @@ class ExploreController extends BaseController {
   }
 
   void getDataFromServer() async {
-    Future.wait([_getMediaFilter(), _search()]).then((list) {
+    Future.wait([_getMediaFilter(), _search(needUpdate: false)]).then((list) {
       update();
     });
   }
@@ -109,7 +111,7 @@ class ExploreController extends BaseController {
     }
   }
 
-  Future<void> _search({bool isRefresh = true}) async {
+  Future<void> _search({bool isRefresh = true, bool needUpdate = true}) async {
     if (isRefresh) {
       _pageModel.resetPage();
     }
@@ -157,10 +159,12 @@ class ExploreController extends BaseController {
       if (isRefresh) {
         refreshController.finishRefresh();
       } else {
-        refreshController.finishLoad();
+        refreshController.finishLoad(hasMore ? IndicatorResult.success : IndicatorResult.noMore);
       }
 
-      update();
+      if (needUpdate) {
+        update();
+      }
     } else {
       commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
       multiStatus = MultiStatusType.statusError;

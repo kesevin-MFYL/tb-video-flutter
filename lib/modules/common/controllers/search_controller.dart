@@ -151,7 +151,7 @@ class SearchController extends BaseController {
       if (isRefresh) {
         refreshController.finishRefresh();
       } else {
-        refreshController.finishLoad();
+        refreshController.finishLoad(hasMore ? IndicatorResult.success : IndicatorResult.noMore);
       }
 
       update();

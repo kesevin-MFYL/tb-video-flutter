@@ -63,7 +63,7 @@ class ExplorePage extends GetView<ExploreController> {
                     Expanded(
                       child: NotificationListener<ScrollNotification>(
                         onNotification: (ScrollNotification notification) {
-                          if (notification is ScrollUpdateNotification) {
+                          if (notification is ScrollUpdateNotification && notification.metrics.axis == Axis.vertical) {
                             if (controller.popShowing.value) {
                               controller.popShowing.value = false;
                             }
@@ -224,7 +224,7 @@ class ExplorePage extends GetView<ExploreController> {
 
   Widget _buildFilterTotal() {
     return Obx(() {
-      if (!controller.showFilterTotal.value || controller.popShowing.value) return const SizedBox();
+      if (!controller.showFilterTotal.value /*|| controller.popShowing.value*/) return const SizedBox();
       final names = controller.selectedFilterNames;
       if (names.isEmpty) return const SizedBox();
 
@@ -260,10 +260,16 @@ class ExplorePage extends GetView<ExploreController> {
 
   Widget _buildFilterPop() {
     return ClipRect(
-      child: AnimatedSlide(
+      child: TweenAnimationBuilder<Offset>(
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeOutCubic,
-        offset: Offset.zero,
+        tween: Tween<Offset>(begin: const Offset(0, -1), end: Offset.zero),
+        builder: (context, offset, child) {
+          return FractionalTranslation(
+            translation: offset,
+            child: child,
+          );
+        },
         child: Container(
           color: CommonColors.background,
           child: Column(
