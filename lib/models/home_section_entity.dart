@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:editvideo/config/network/model/base_entity.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/widget/tabbar/common_tab_bar.dart';
@@ -76,6 +77,7 @@ class MediaItemEntity extends BaseEntity implements TabBarItem {
   String? description;
   List<String>? countryCodeList;
   List<MediaItemEntity>? dataList;
+  int? viewTime;
 
   MediaItemEntity({
     this.id,
@@ -94,6 +96,7 @@ class MediaItemEntity extends BaseEntity implements TabBarItem {
     this.description,
     this.countryCodeList,
     this.dataList,
+    this.viewTime,
   });
 
   @override
@@ -126,6 +129,9 @@ class MediaItemEntity extends BaseEntity implements TabBarItem {
     dataList = json['data_list'] == null
         ? null
         : List.from(json['data_list']).map((e) => MediaItemEntity.fromJson(e)).toList();
+    if (json['view_time'] != null) {
+      viewTime = int.tryParse(json['view_time'].toString());
+    }
   }
 
   @override
@@ -147,8 +153,53 @@ class MediaItemEntity extends BaseEntity implements TabBarItem {
     data['description'] = description;
     data['country_code_list'] = countryCodeList;
     data['data_list'] = dataList?.map((e) => e.toJson()).toList();
+    data['view_time'] = viewTime;
     return data;
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is MediaItemEntity &&
+        other.id == id &&
+        other.imdbType == imdbType &&
+        other.title == title &&
+        other.cover == cover &&
+        other.pubDate == pubDate &&
+        other.rate == rate &&
+        other.quality == quality &&
+        listEquals(other.genreList, genreList) &&
+        other.type == type &&
+        other.storageTimestamp == storageTimestamp &&
+        other.trailer == trailer &&
+        other.certification == certification &&
+        other.imdbId == imdbId &&
+        other.description == description &&
+        listEquals(other.countryCodeList, countryCodeList) &&
+        listEquals(other.dataList, dataList) &&
+        other.viewTime == viewTime;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        id,
+        imdbType,
+        title,
+        cover,
+        pubDate,
+        rate,
+        quality,
+        genreList == null ? null : Object.hashAll(genreList!),
+        type,
+        storageTimestamp,
+        trailer,
+        certification,
+        imdbId,
+        description,
+        countryCodeList == null ? null : Object.hashAll(countryCodeList!),
+        dataList == null ? null : Object.hashAll(dataList!),
+        viewTime,
+      );
 
   @override
   String? get markIcon => null;

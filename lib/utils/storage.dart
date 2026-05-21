@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:editvideo/models/memory_info.dart';
+import 'package:editvideo/models/home_section_entity.dart';
 import 'package:get_storage/get_storage.dart';
 
 class Storage {
@@ -9,6 +10,7 @@ class Storage {
   static const _kAdRulesConfig = '_ad_rules_config_key';
   static const _kSessionId = '_session_id_key';
   static const _kSearchHistory = '_search_history_key';
+  static const _kViewedMedia = '_viewed_media_key';
 
   // 本地化存储，存APP内部
   static GetStorage? _getStorage;
@@ -127,5 +129,34 @@ class Storage {
 
   static String? getSessionId() {
     return _getStorage!.read<String?>(_kSessionId);
+  }
+
+  // === 看过的media列表 ===
+  static Future<void> addViewedMedia(MediaItemEntity media) async {
+    List<MediaItemEntity> list = getViewedMedia();
+    final index = list.indexWhere((e) => e.id == media.id);
+    if (index != -1) {
+      list[index] = media;
+      // 存在则更新，并放到第一个位置
+      final item = list.removeAt(index);
+      list.insert(0, item);
+    } else {
+      list.insert(0, media);
+    }
+    // 限制长度，比如最多存50条
+    if (list.length > 100) {
+      list = list.sublist(0, 100);
+    }
+    final jsonList = list.map((e) => e.toJson()).toList();
+    await _getStorage!.write(_kViewedMedia, jsonEncode(jsonList));
+  }
+
+  static List<MediaItemEntity> getViewedMedia() {
+    final str = _getStorage!.read<String?>(_kViewedMedia);
+    if (str != null && str.isNotEmpty) {
+      final List<dynamic> jsonList = jsonDecode(str);
+      return jsonList.map((e) => MediaItemEntity.fromJson(e)).toList();
+    }
+    return [];
   }
 }

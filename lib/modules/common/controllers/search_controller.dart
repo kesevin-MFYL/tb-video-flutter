@@ -196,9 +196,8 @@ class SearchController extends BaseController {
     searchHistoryList.clear();
   }
 
-  void toMediaPlayPage(MediaItemEntity mediaItemEntity) {
-
-  }
+  ///todo 跳转播放页面
+  void toMediaPlayPage(MediaItemEntity mediaItemEntity) {}
 
   @override
   void dispose() {

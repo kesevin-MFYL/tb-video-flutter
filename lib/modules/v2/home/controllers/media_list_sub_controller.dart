@@ -25,7 +25,9 @@ class MediaListSubController extends BaseController {
   }
 
   ///todo 跳转播放页面
-  void toMediaPlayPage(MediaItemEntity mediaItemEntity) {}
+  void toMediaPlayPage(MediaItemEntity mediaItemEntity) {
+    Get.toNamed(Routes.mediaListSubPage, arguments: mediaItemEntity);
+  }
 
   ///跳转搜索
   void toSearch() {
