@@ -6,8 +6,6 @@ import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/page_base.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
-import 'package:editvideo/widget/pop/pop_container.dart';
-import 'package:editvideo/widget/pop/pop_utils.dart';
 import 'package:editvideo/widget/refresh/refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -37,7 +35,6 @@ class ExplorePage extends GetView<ExploreController> {
                   children: [
                     // search bar
                     Padding(
-                      key: controller.filterGlobalKey,
                       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.w),
                       child: GestureDetector(
                         onTap: controller.toSearch,
@@ -66,60 +63,55 @@ class ExplorePage extends GetView<ExploreController> {
                     Expanded(
                       child: Stack(
                         children: [
-                          Positioned.fill(
-                            child: NestedScrollView(
-                              controller: controller.scrollController,
-                              headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
-                                return <Widget>[
-                                  _buildFilter(
-                                    filterList: controller.typeFilter,
-                                    mediaFilterType: MediaFilterType.mediaType,
+                          NestedScrollView(
+                            controller: controller.scrollController,
+                            headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+                              return <Widget>[
+                                _buildFilter(
+                                  filterList: controller.typeFilter,
+                                  mediaFilterType: MediaFilterType.mediaType,
+                                ),
+                                _buildFilter(
+                                  filterList: controller.genresFilter,
+                                  mediaFilterType: MediaFilterType.genres,
+                                ),
+                                _buildFilter(filterList: controller.yearFilter, mediaFilterType: MediaFilterType.year),
+                                _buildFilter(
+                                  filterList: controller.countryFilter,
+                                  mediaFilterType: MediaFilterType.country,
+                                ),
+                              ];
+                            },
+                            body: CommonRefresh.instance(
+                              controller: controller.refreshController,
+                              onRefresh: controller.onRefresh,
+                              hasMore: controller.hasMore,
+                              onLoad: controller.onLoadMore,
+                              child: MultiStatusView(
+                                hasAppBar: false,
+                                currentStatus: controller.multiStatus,
+                                action: () {
+                                  controller.onRefresh(showLoading: true);
+                                },
+                                child: GridView.builder(
+                                  shrinkWrap: true,
+                                  padding: EdgeInsets.only(left: 16.w, right: 16.w, bottom: 16.w),
+                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 3,
+                                    crossAxisSpacing: 8.w,
+                                    mainAxisSpacing: 16.w,
+                                    childAspectRatio: _getRatio(),
                                   ),
-                                  _buildFilter(
-                                    filterList: controller.genresFilter,
-                                    mediaFilterType: MediaFilterType.genres,
-                                  ),
-                                  _buildFilter(
-                                    filterList: controller.yearFilter,
-                                    mediaFilterType: MediaFilterType.year,
-                                  ),
-                                  _buildFilter(
-                                    filterList: controller.countryFilter,
-                                    mediaFilterType: MediaFilterType.country,
-                                  ),
-                                ];
-                              },
-                              body: CommonRefresh.instance(
-                                controller: controller.refreshController,
-                                onRefresh: controller.onRefresh,
-                                hasMore: controller.hasMore,
-                                onLoad: controller.onLoadMore,
-                                child: MultiStatusView(
-                                  hasAppBar: false,
-                                  currentStatus: controller.multiStatus,
-                                  action: () {
-                                    controller.onRefresh(showLoading: true);
+                                  itemCount: controller.mediaList.length,
+                                  itemBuilder: (context, index) {
+                                    var mediaItem = controller.mediaList[index];
+                                    return MediaCell(
+                                      mediaItem: mediaItem,
+                                      itemWidth: double.infinity,
+                                      imageHeight: 165.w,
+                                      action: (mediaItem) => controller.toMediaPlayPage(mediaItem),
+                                    );
                                   },
-                                  child: GridView.builder(
-                                    shrinkWrap: true,
-                                    padding: EdgeInsets.only(left: 16.w, right: 16.w, bottom: 16.w),
-                                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 3,
-                                      crossAxisSpacing: 8.w,
-                                      mainAxisSpacing: 16.w,
-                                      childAspectRatio: _getRatio(),
-                                    ),
-                                    itemCount: controller.mediaList.length,
-                                    itemBuilder: (context, index) {
-                                      var mediaItem = controller.mediaList[index];
-                                      return MediaCell(
-                                        mediaItem: mediaItem,
-                                        itemWidth: double.infinity,
-                                        imageHeight: 165.w,
-                                        action: (mediaItem) => controller.toMediaPlayPage(mediaItem),
-                                      );
-                                    },
-                                  ),
                                 ),
                               ),
                             ),
@@ -218,7 +210,7 @@ class ExplorePage extends GetView<ExploreController> {
 
       return GestureDetector(
         onTap: () {
-          _showFilterPop();
+          controller.popShowing.value = true;
         },
         child: Container(
           color: CommonColors.background,
@@ -242,30 +234,6 @@ class ExplorePage extends GetView<ExploreController> {
         ),
       );
     });
-  }
-
-  _showFilterPop() {
-    PopUtils.show(
-      Get.context!,
-      PopContainer(
-        onDismiss: () {},
-        topOffset: controller.filterWidgetY,
-        child: Container(
-          color: CommonColors.background,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildFilterItem(filterList: controller.typeFilter, mediaFilterType: MediaFilterType.mediaType),
-              _buildFilterItem(filterList: controller.genresFilter, mediaFilterType: MediaFilterType.genres),
-              _buildFilterItem(filterList: controller.yearFilter, mediaFilterType: MediaFilterType.year),
-              _buildFilterItem(filterList: controller.countryFilter, mediaFilterType: MediaFilterType.country),
-            ],
-          ),
-        ),
-      ),
-      offsetLT: Offset(0, controller.filterWidgetY + 1),
-      highlights: controller.highlights,
-    );
   }
 
   double _getRatio() {

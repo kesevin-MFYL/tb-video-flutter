@@ -54,19 +54,6 @@ class ExploreController extends BaseController {
     return names;
   }
 
-  final GlobalKey filterGlobalKey = GlobalKey();
-
-  double get filterWidgetY {
-    var renderBox = filterGlobalKey.currentContext?.findRenderObject() as RenderBox;
-    var offset = renderBox.localToGlobal(Offset.zero);
-
-    return offset.dy + renderBox.size.height;
-  }
-
-  final List<RRect> highlights = [
-    RRect.fromRectAndRadius(Rect.fromLTWH(0, 0, Get.width, 320), const Radius.circular(10)),
-  ];
-
   var popShowing = false.obs;
 
   Future<void> onRefresh({bool showLoading = false}) async {
@@ -84,6 +71,9 @@ class ExploreController extends BaseController {
   @override
   void handRegister() {
     scrollController.addListener(() {
+      if (popShowing.value == true) {
+        popShowing.value = false;
+      }
       var totalScrollRange = scrollController.position.maxScrollExtent;
       var offset = scrollController.offset;
       showFilterTotal.value = (offset / totalScrollRange).clamp(0.0, 1.0) == 1.0;
