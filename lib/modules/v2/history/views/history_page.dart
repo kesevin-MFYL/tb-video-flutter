@@ -130,6 +130,9 @@ class HistoryPage extends GetView<HistoryController> {
         toggleAction: (item) {
           controller.toggleItem(item);
         },
+        deleteAction: (item) {
+          controller.deleteItem(item);
+        },
         tapAction: (item) {},
       );
     });

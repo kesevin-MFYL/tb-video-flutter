@@ -95,6 +95,12 @@ class HistoryController extends BaseController {
     loadHistory();
   }
 
+  void deleteItem(MediaHistoryEntity item) async {
+    await Storage.deleteViewedMedia([item]);
+    chooseList.remove(item);
+    loadHistory();
+  }
+
   ///todo 跳转播放页面
   void toMediaDetail(MediaItemEntity mediaItemEntity) {
     Get.toNamed(Routes.mediaDetailPage, arguments: mediaItemEntity);

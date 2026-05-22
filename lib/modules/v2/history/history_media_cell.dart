@@ -18,6 +18,7 @@ class HistoryMediaCell extends StatefulWidget {
     required this.isSelected,
     required this.toggleAction,
     required this.tapAction,
+    required this.deleteAction,
   });
 
   final MediaHistoryEntity mediaHistoryEntity;
@@ -25,6 +26,7 @@ class HistoryMediaCell extends StatefulWidget {
   final bool isSelected;
   final void Function(MediaHistoryEntity mediaItem) toggleAction;
   final void Function(MediaHistoryEntity mediaItem) tapAction;
+  final void Function(MediaHistoryEntity mediaItem) deleteAction;
 
   @override
   State<HistoryMediaCell> createState() => _HistoryMediaCellState();
@@ -65,7 +67,7 @@ class _HistoryMediaCellState extends State<HistoryMediaCell> with SingleTickerPr
           CustomSlidableAction(
             borderRadius: BorderRadius.zero,
             padding: EdgeInsets.only(bottom: 16.w, right: 16.w),
-            onPressed: (context) {},
+            onPressed: (context) => widget.deleteAction(widget.mediaHistoryEntity),
             backgroundColor: Colors.transparent,
             foregroundColor: Colors.transparent,
             child: Container(
@@ -143,6 +145,7 @@ class _HistoryMediaCellState extends State<HistoryMediaCell> with SingleTickerPr
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
+                                /// 剩余时间观看时间
                                 CommonText.instance(
                                   '1h 17m remaining',
                                   10.sp,
@@ -153,6 +156,8 @@ class _HistoryMediaCellState extends State<HistoryMediaCell> with SingleTickerPr
                             ),
                           ),
                           Spacer(),
+
+                          // 观看比例
                           CommonText.instance(
                             '90%',
                             12.sp,
