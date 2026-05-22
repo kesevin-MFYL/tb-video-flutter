@@ -1,5 +1,6 @@
 import 'package:editvideo/base/base_controller.dart';
 import 'package:editvideo/models/home_section_entity.dart';
+import 'package:editvideo/models/media_history_entity.dart';
 import 'package:editvideo/utils/storage.dart';
 
 class MediaDetailController extends BaseController {
@@ -15,7 +16,16 @@ class MediaDetailController extends BaseController {
 
   @override
   void fetchData() {
-    mediaItemEntity.viewTime = DateTime.now().millisecondsSinceEpoch;
-    Storage.addViewedMedia(mediaItemEntity);
+    // Save history with new entity
+    final historyEntity = MediaHistoryEntity(
+      id: mediaItemEntity.id,
+      title: mediaItemEntity.title,
+      cover: mediaItemEntity.cover,
+      type: mediaItemEntity.type,
+      viewTime: DateTime.now().millisecondsSinceEpoch,
+      totalDuration: 0, // Placeholder or set real value if available
+      currentDuration: 0, // Placeholder or set real value if available
+    );
+    Storage.addViewedMedia(historyEntity);
   }
 }

@@ -1,5 +1,5 @@
 import 'package:editvideo/base/base_controller.dart';
-import 'package:editvideo/models/home_section_entity.dart';
+import 'package:editvideo/models/media_history_entity.dart';
 import 'package:editvideo/utils/common_values.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/storage.dart';
@@ -10,11 +10,11 @@ import 'package:get/get.dart';
 class HistoryController extends BaseController {
   var isEdit = false.obs;
 
-  var chooseList = <MediaItemEntity>[].obs;
+  var chooseList = <MediaHistoryEntity>[].obs;
 
-  var todayList = <MediaItemEntity>[].obs;
-  var yesterdayList = <MediaItemEntity>[].obs;
-  var earlyList = <MediaItemEntity>[].obs;
+  var todayList = <MediaHistoryEntity>[].obs;
+  var yesterdayList = <MediaHistoryEntity>[].obs;
+  var earlyList = <MediaHistoryEntity>[].obs;
 
   double get getBottomSheetHeight => safeAreaBottomDistance(
     'Text'.size(style: CommonTextStyle.instance(12.sp, fontWeight: CommonFontWeight.bold)).height + 40.w + 32.w,
@@ -58,7 +58,7 @@ class HistoryController extends BaseController {
     }
   }
 
-  void toggleItem(MediaItemEntity item) {
+  void toggleItem(MediaHistoryEntity item) {
     if (chooseList.contains(item)) {
       chooseList.remove(item);
     } else {

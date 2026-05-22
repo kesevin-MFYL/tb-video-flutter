@@ -1,6 +1,6 @@
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/generated/assets.dart';
-import 'package:editvideo/models/home_section_entity.dart';
+import 'package:editvideo/models/media_history_entity.dart';
 import 'package:editvideo/modules/v2/history/controllers/history_controller.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/text_extension.dart';
@@ -123,7 +123,7 @@ class HistoryPage extends GetView<HistoryController> {
     );
   }
 
-  Widget _buildItem(MediaItemEntity item) {
+  Widget _buildItem(MediaHistoryEntity item) {
     return Obx(() {
       final isEdit = controller.isEdit.value;
       final isSelected = controller.chooseList.contains(item);

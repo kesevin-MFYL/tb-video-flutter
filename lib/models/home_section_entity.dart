@@ -77,7 +77,6 @@ class MediaItemEntity extends BaseEntity implements TabBarItem {
   String? description;
   List<String>? countryCodeList;
   List<MediaItemEntity>? dataList;
-  int? viewTime;
 
   MediaItemEntity({
     this.id,
@@ -96,7 +95,6 @@ class MediaItemEntity extends BaseEntity implements TabBarItem {
     this.description,
     this.countryCodeList,
     this.dataList,
-    this.viewTime,
   });
 
   @override
@@ -129,9 +127,6 @@ class MediaItemEntity extends BaseEntity implements TabBarItem {
     dataList = json['data_list'] == null
         ? null
         : List.from(json['data_list']).map((e) => MediaItemEntity.fromJson(e)).toList();
-    if (json['view_time'] != null) {
-      viewTime = int.tryParse(json['view_time'].toString());
-    }
   }
 
   @override
@@ -153,7 +148,6 @@ class MediaItemEntity extends BaseEntity implements TabBarItem {
     data['description'] = description;
     data['country_code_list'] = countryCodeList;
     data['data_list'] = dataList?.map((e) => e.toJson()).toList();
-    data['view_time'] = viewTime;
     return data;
   }
 
@@ -176,8 +170,7 @@ class MediaItemEntity extends BaseEntity implements TabBarItem {
         other.imdbId == imdbId &&
         other.description == description &&
         listEquals(other.countryCodeList, countryCodeList) &&
-        listEquals(other.dataList, dataList) &&
-        other.viewTime == viewTime;
+        listEquals(other.dataList, dataList);
   }
 
   @override
@@ -198,7 +191,6 @@ class MediaItemEntity extends BaseEntity implements TabBarItem {
         description,
         countryCodeList == null ? null : Object.hashAll(countryCodeList!),
         dataList == null ? null : Object.hashAll(dataList!),
-        viewTime,
       );
 
   @override

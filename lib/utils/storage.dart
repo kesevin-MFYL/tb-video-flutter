@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:editvideo/models/memory_info.dart';
-import 'package:editvideo/models/home_section_entity.dart';
+import 'package:editvideo/models/media_history_entity.dart';
 import 'package:get_storage/get_storage.dart';
 
 class Storage {
@@ -132,8 +132,8 @@ class Storage {
   }
 
   // === 看过的media列表 ===
-  static Future<void> addViewedMedia(MediaItemEntity media) async {
-    List<MediaItemEntity> list = getViewedMedia();
+  static Future<void> addViewedMedia(MediaHistoryEntity media) async {
+    List<MediaHistoryEntity> list = getViewedMedia();
     final index = list.indexWhere((e) => e.id == media.id);
     if (index != -1) {
       list[index] = media;
@@ -151,18 +151,18 @@ class Storage {
     await _getStorage!.write(_kViewedMedia, jsonEncode(jsonList));
   }
 
-  static Future<void> deleteViewedMedia(List<MediaItemEntity> itemsToRemove) async {
-    List<MediaItemEntity> list = getViewedMedia();
+  static Future<void> deleteViewedMedia(List<MediaHistoryEntity> itemsToRemove) async {
+    List<MediaHistoryEntity> list = getViewedMedia();
     list.removeWhere((e) => itemsToRemove.contains(e));
     final jsonList = list.map((e) => e.toJson()).toList();
     await _getStorage!.write(_kViewedMedia, jsonEncode(jsonList));
   }
 
-  static List<MediaItemEntity> getViewedMedia() {
+  static List<MediaHistoryEntity> getViewedMedia() {
     final str = _getStorage!.read<String?>(_kViewedMedia);
     if (str != null && str.isNotEmpty) {
       final List<dynamic> jsonList = jsonDecode(str);
-      return jsonList.map((e) => MediaItemEntity.fromJson(e)).toList();
+      return jsonList.map((e) => MediaHistoryEntity.fromJson(e)).toList();
     }
     return [];
   }
