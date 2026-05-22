@@ -47,14 +47,14 @@ class VideoViewState extends State<VideoView> {
 
   bool _isPlaying = false;
 
-  late StreamSubscription<EventBusModel> _createSendbirdSubscription;
+  late StreamSubscription<EventBusModel> _playVideoSubscription;
 
   @override
   void initState() {
     super.initState();
     _initPlayer();
 
-    _createSendbirdSubscription = EventBusManager.instance.addObserver(EventBusName.playVideo, (value) async {
+    _playVideoSubscription = EventBusManager.instance.addObserver(EventBusName.playVideo, (value) async {
       if (_isInitialized && !_videoPlayerController.value.isPlaying) {
         _videoPlayerController.play();
         _startHideTimer();
@@ -208,7 +208,7 @@ class VideoViewState extends State<VideoView> {
     _videoPlayerController.removeListener(_videoListener);
     _videoPlayerController.dispose();
     _cancelHideTimer();
-    _createSendbirdSubscription.cancel();
+    _playVideoSubscription.cancel();
     super.dispose();
   }
 

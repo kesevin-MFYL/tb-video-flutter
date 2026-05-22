@@ -67,7 +67,7 @@ class HomeBController extends BaseController {
   void mediaTap(MediaItemEntity mediaItem, SectionType sectionType) {
     if (sectionType == SectionType.mediaList) {
       // 单片，进入视频播放页
-      EasyLoading.showToast('单片，进入视频播放页');
+      toMediaDetail(mediaItem);
     } else if (sectionType == SectionType.imdbList) {
       // 合集，进入合集二级页
       Get.toNamed(Routes.imdbListSubPage, arguments: mediaItem);
@@ -76,7 +76,7 @@ class HomeBController extends BaseController {
       Get.toNamed(Routes.interestDetailPage, arguments: mediaItem);
     } else if (sectionType == SectionType.streamingMedia) {
       // 渠道，进入视频播放页
-      EasyLoading.showToast('渠道，进入视频播放页');
+      toMediaDetail(mediaItem);
     }
   }
 
@@ -86,5 +86,7 @@ class HomeBController extends BaseController {
   }
 
   ///todo 跳转播放页面
-  void toMediaPlayPage(MediaItemEntity mediaItemEntity) {}
+  void toMediaDetail(MediaItemEntity mediaItemEntity) {
+    Get.toNamed(Routes.mediaDetailPage, arguments: mediaItemEntity);
+  }
 }

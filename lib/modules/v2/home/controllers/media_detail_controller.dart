@@ -1,4 +1,5 @@
 import 'package:editvideo/base/base_controller.dart';
+import 'package:editvideo/manager/event_manager.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/models/media_history_entity.dart';
 import 'package:editvideo/utils/storage.dart';
@@ -27,5 +28,7 @@ class MediaDetailController extends BaseController {
       currentDuration: 0, // Placeholder or set real value if available
     );
     Storage.addViewedMedia(historyEntity);
+
+    EventBusManager.instance.post(EventBusName.historyRefresh);
   }
 }

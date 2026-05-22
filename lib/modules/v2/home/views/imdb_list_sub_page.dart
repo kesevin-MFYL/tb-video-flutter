@@ -50,7 +50,7 @@ class ImdbListSubPage extends GetView<ImdbListSubController> {
                         final item = controller.imdbSubList[index];
                         return ImdbListSubCell(
                           mediaItem: item,
-                          action: (mediaItem) => controller.toMediaPlayPage(mediaItem),
+                          action: (mediaItem) => controller.toMediaDetail(mediaItem),
                         );
                       },
                     ),

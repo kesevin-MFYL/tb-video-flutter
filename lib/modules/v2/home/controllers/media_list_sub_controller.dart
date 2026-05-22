@@ -25,7 +25,7 @@ class MediaListSubController extends BaseController {
   }
 
   ///todo 跳转播放页面
-  void toMediaPlayPage(MediaItemEntity mediaItemEntity) {
+  void toMediaDetail(MediaItemEntity mediaItemEntity) {
     Get.toNamed(Routes.mediaDetailPage, arguments: mediaItemEntity);
   }
 

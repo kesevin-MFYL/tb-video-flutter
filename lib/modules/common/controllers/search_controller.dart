@@ -7,9 +7,11 @@ import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/models/page_model.dart';
+import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/widget/bottom_sheet/delete_search_history_bottom_sheet.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:editvideo/utils/storage.dart';
 
@@ -196,8 +198,10 @@ class SearchController extends BaseController {
     searchHistoryList.clear();
   }
 
-  ///todo 跳转播放页面
-  void toMediaPlayPage(MediaItemEntity mediaItemEntity) {}
+  //todo 跳转播放页面
+  void toMediaDetail(MediaItemEntity mediaItemEntity) {
+    Get.toNamed(Routes.mediaDetailPage, arguments: mediaItemEntity);
+  }
 
   @override
   void dispose() {

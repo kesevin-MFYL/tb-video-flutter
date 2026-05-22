@@ -1,5 +1,10 @@
+import 'dart:async';
+
 import 'package:editvideo/base/base_controller.dart';
+import 'package:editvideo/manager/event_manager.dart';
+import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/models/media_history_entity.dart';
+import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/utils/common_values.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/storage.dart';
@@ -20,11 +25,20 @@ class HistoryController extends BaseController {
     'Text'.size(style: CommonTextStyle.instance(12.sp, fontWeight: CommonFontWeight.bold)).height + 40.w + 32.w,
   );
 
+  late StreamSubscription<EventBusModel> _historyRefreshSubscription;
+
   void changeEdit() {
     if (isEdit.value) {
       chooseList.clear();
     }
     isEdit.value = !isEdit.value;
+  }
+
+  @override
+  void handRegister() {
+    _historyRefreshSubscription = EventBusManager.instance.addObserver(EventBusName.historyRefresh, (value) async {
+      loadHistory();
+    });
   }
 
   @override
@@ -86,5 +100,16 @@ class HistoryController extends BaseController {
     await Storage.deleteViewedMedia(chooseList.toList());
     chooseList.clear();
     loadHistory();
+  }
+
+  ///todo 跳转播放页面
+  void toMediaDetail(MediaItemEntity mediaItemEntity) {
+    Get.toNamed(Routes.mediaDetailPage, arguments: mediaItemEntity);
+  }
+
+  @override
+  void onClose() {
+    _historyRefreshSubscription.cancel();
+    super.onClose();
   }
 }

@@ -53,7 +53,7 @@ class MediaListSubPage extends GetView<MediaListSubController> {
                         mediaItem: mediaItem,
                         itemWidth: double.infinity,
                         imageHeight: 165.w,
-                        action: (mediaItem) => controller.toMediaPlayPage(mediaItem),
+                        action: (mediaItem) => controller.toMediaDetail(mediaItem),
                       );
                     },
                   ),

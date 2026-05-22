@@ -4,6 +4,7 @@ import 'package:event_bus/event_bus.dart';
 
 enum EventBusName {
   playVideo,
+  historyRefresh,
 }
 
 class EventBusModel {

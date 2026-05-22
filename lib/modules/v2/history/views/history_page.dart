@@ -133,7 +133,7 @@ class HistoryPage extends GetView<HistoryController> {
           if (isEdit) {
             controller.toggleItem(item);
           } else {
-            // normal tap behavior (e.g. play video)
+            // controller.toMediaDetail(item);
           }
         },
         child: Container(

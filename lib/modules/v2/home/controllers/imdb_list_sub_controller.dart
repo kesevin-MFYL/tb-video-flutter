@@ -43,8 +43,10 @@ class ImdbListSubController extends BaseController {
     update();
   }
 
-  ///todo 跳转播放页面
-  void toMediaPlayPage(MediaItemEntity mediaItemEntity) {}
+  //todo 跳转播放页面
+  void toMediaDetail(MediaItemEntity mediaItemEntity) {
+    Get.toNamed(Routes.mediaDetailPage, arguments: mediaItemEntity);
+  }
 
   ///跳转搜索
   void toSearch() {
