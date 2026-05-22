@@ -151,6 +151,13 @@ class Storage {
     await _getStorage!.write(_kViewedMedia, jsonEncode(jsonList));
   }
 
+  static Future<void> deleteViewedMedia(List<MediaItemEntity> itemsToRemove) async {
+    List<MediaItemEntity> list = getViewedMedia();
+    list.removeWhere((e) => itemsToRemove.contains(e));
+    final jsonList = list.map((e) => e.toJson()).toList();
+    await _getStorage!.write(_kViewedMedia, jsonEncode(jsonList));
+  }
+
   static List<MediaItemEntity> getViewedMedia() {
     final str = _getStorage!.read<String?>(_kViewedMedia);
     if (str != null && str.isNotEmpty) {

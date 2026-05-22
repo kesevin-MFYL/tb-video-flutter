@@ -20,6 +20,7 @@ class Assets {
   static const String commonHistoryOn = 'assets/images/common/history_on.png';
   static const String commonIconClear = 'assets/images/common/icon_clear.png';
   static const String commonIconPause = 'assets/images/common/icon_pause.png';
+  static const String commonIconToday = 'assets/images/common/icon_today.png';
   static const String commonMemoryOff = 'assets/images/common/memory_off.png';
   static const String commonPageEmpty = 'assets/images/common/page_empty.png';
   static const String commonPageError = 'assets/images/common/page_error.png';
