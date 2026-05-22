@@ -81,6 +81,7 @@ class _HistoryMediaCellState extends State<HistoryMediaCell> with SingleTickerPr
         ],
       ),
       child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
         onTap: () {
           if (widget.isEdit) {
             widget.toggleAction(widget.mediaHistoryEntity);
@@ -137,7 +138,7 @@ class _HistoryMediaCellState extends State<HistoryMediaCell> with SingleTickerPr
                         children: [
                           Container(
                             height: 20.w,
-                            padding: EdgeInsets.symmetric(horizontal: 8.w),
+                            padding: EdgeInsets.symmetric(horizontal: 4.w),
                             decoration: BoxDecoration(
                               color: CommonColors.color84705C.withOpacity(0.5),
                               borderRadius: BorderRadius.circular(10.r),
@@ -145,25 +146,38 @@ class _HistoryMediaCellState extends State<HistoryMediaCell> with SingleTickerPr
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                /// 剩余时间观看时间
-                                CommonText.instance(
-                                  '1h 17m remaining',
-                                  10.sp,
-                                  color: CommonColors.white.withOpacity(0.8),
-                                  fontWeight: CommonFontWeight.medium,
+                                Image.asset(
+                                  widget.mediaHistoryEntity.isTv ? Assets.commonIconTv : Assets.commonIconMovie,
+                                  width: 16.w,
+                                  height: 16.w,
                                 ),
+
+                                /// 剩余时间观看时间
+                                if (widget.mediaHistoryEntity.remainingTimeText.isNotEmpty) ...[
+                                  Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 4.w),
+                                    child: CommonText.instance(
+                                      widget.mediaHistoryEntity.remainingTimeText,
+                                      10.sp,
+                                      color: CommonColors.white.withOpacity(0.8),
+                                      fontWeight: CommonFontWeight.medium,
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
                           ),
+
                           Spacer(),
 
-                          // 观看比例
-                          CommonText.instance(
-                            '90%',
-                            12.sp,
-                            color: CommonColors.primaryColor.withOpacity(0.5),
-                            fontWeight: CommonFontWeight.medium,
-                          ),
+                          // 观看进度
+                          if (widget.mediaHistoryEntity.progressText.isNotEmpty)
+                            CommonText.instance(
+                              widget.mediaHistoryEntity.progressText,
+                              12.sp,
+                              color: CommonColors.primaryColor.withOpacity(0.5),
+                              fontWeight: CommonFontWeight.medium,
+                            ),
                         ],
                       ),
                     ],

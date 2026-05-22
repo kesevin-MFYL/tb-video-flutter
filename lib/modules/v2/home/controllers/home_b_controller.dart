@@ -6,7 +6,6 @@ import 'package:editvideo/config/network/model/base_response.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 
 class HomeBController extends BaseController {
@@ -65,7 +64,7 @@ class HomeBController extends BaseController {
   }
 
   void mediaTap(MediaItemEntity mediaItem, SectionType sectionType) {
-    if (sectionType == SectionType.mediaList) {
+    if (sectionType == SectionType.mediaList || sectionType == SectionType.topPicks) {
       // 单片，进入视频播放页
       toMediaDetail(mediaItem);
     } else if (sectionType == SectionType.imdbList) {

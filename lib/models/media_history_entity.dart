@@ -61,4 +61,31 @@ class MediaHistoryEntity extends BaseEntity {
 
   @override
   int get hashCode => id.hashCode;
+
+  bool get isMovie => type == 1;
+
+  bool get isTv => type == 2;
+
+  String get remainingTimeText {
+    if (totalDuration == null || currentDuration == null) return '';
+    if (totalDuration! <= 0) return '';
+    final remaining = totalDuration! - currentDuration!;
+    if (remaining <= 0) return '0m remaining';
+    
+    final int hours = remaining ~/ 60;
+    final int minutes = remaining % 60;
+    
+    if (hours > 0) {
+      return '${hours}h ${minutes}m remaining';
+    } else {
+      return '${minutes}m remaining';
+    }
+  }
+
+  String get progressText {
+    if (totalDuration == null || currentDuration == null) return '';
+    if (totalDuration! <= 0) return '';
+    final double progress = (currentDuration! / totalDuration!) * 100;
+    return '${progress.toInt()}%';
+  }
 }

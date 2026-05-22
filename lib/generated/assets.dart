@@ -5,6 +5,7 @@ class Assets {
 
   static const String commonHomeBg = 'assets/images/common/home_bg.png';
   static const String commonHomeOn = 'assets/images/common/home_on.png';
+  static const String commonIconTv = 'assets/images/common/icon_tv.png';
   static const String commonDraftOn = 'assets/images/common/draft_on.png';
   static const String commonHomeAdd = 'assets/images/common/home_add.png';
   static const String commonHomeOff = 'assets/images/common/home_off.png';
@@ -19,6 +20,7 @@ class Assets {
   static const String commonFieldMemo = 'assets/images/common/field_memo.png';
   static const String commonHistoryOn = 'assets/images/common/history_on.png';
   static const String commonIconClear = 'assets/images/common/icon_clear.png';
+  static const String commonIconMovie = 'assets/images/common/icon_movie.png';
   static const String commonIconPause = 'assets/images/common/icon_pause.png';
   static const String commonIconToday = 'assets/images/common/icon_today.png';
   static const String commonMemoryOff = 'assets/images/common/memory_off.png';

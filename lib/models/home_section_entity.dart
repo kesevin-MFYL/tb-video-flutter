@@ -202,6 +202,10 @@ class MediaItemEntity extends BaseEntity implements TabBarItem {
   @override
   String get tabText => title ?? '';
 
+  bool get isMovie => type == 1;
+
+  bool get isTv => type == 2;
+
   String? get country => countryCodeList != null && countryCodeList!.isNotEmpty ? countryCodeList!.first : null;
 
   String? get year => pubDate.isNotEmptyString() && pubDate!.length >= 4 ? pubDate?.substring(0, 4) : null;
