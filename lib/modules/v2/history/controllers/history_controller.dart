@@ -5,11 +5,7 @@ import 'package:editvideo/manager/event_manager.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/models/media_history_entity.dart';
 import 'package:editvideo/routes/app_routes.dart';
-import 'package:editvideo/utils/common_values.dart';
-import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/storage.dart';
-import 'package:editvideo/utils/text_extension.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 class HistoryController extends BaseController {
@@ -21,10 +17,6 @@ class HistoryController extends BaseController {
   var yesterdayList = <MediaHistoryEntity>[].obs;
   var earlyList = <MediaHistoryEntity>[].obs;
 
-  double get getBottomSheetHeight => safeAreaBottomDistance(
-    'Text'.size(style: CommonTextStyle.instance(12.sp, fontWeight: CommonFontWeight.bold)).height + 40.w + 32.w,
-  );
-
   late StreamSubscription<EventBusModel> _historyRefreshSubscription;
 
   void changeEdit() {
@@ -32,6 +24,7 @@ class HistoryController extends BaseController {
       chooseList.clear();
     }
     isEdit.value = !isEdit.value;
+    EventBusManager.instance.post(EventBusName.historyEdit, value: isEdit.value);
   }
 
   @override

@@ -36,6 +36,7 @@ dependencies:
   package_info_plus: ^9.0.1
   device_info_plus: ^11.3.0
   cached_network_image: ^3.4.1
+  flutter_slidable: ^4.0.3
 
   gma_mediation_applovin: 2.5.2
   gma_mediation_liftoffmonetize: ^1.4.3

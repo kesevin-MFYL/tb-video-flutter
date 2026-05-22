@@ -1,11 +1,10 @@
-import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/models/media_history_entity.dart';
 import 'package:editvideo/modules/v2/history/controllers/history_controller.dart';
+import 'package:editvideo/modules/v2/history/history_media_cell.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/page_base.dart';
-import 'package:editvideo/widget/image/common_image_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -29,11 +28,7 @@ class HistoryPage extends GetView<HistoryController> {
                 Expanded(
                   child: Obx(() {
                     return SingleChildScrollView(
-                      padding: EdgeInsets.only(
-                        left: 16.w,
-                        right: 16.w,
-                        bottom: controller.isEdit.value ? controller.getBottomSheetHeight : 0,
-                      ),
+                      padding: EdgeInsets.only(bottom: controller.isEdit.value ? 32.w : 0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -113,7 +108,7 @@ class HistoryPage extends GetView<HistoryController> {
 
   Widget _buildSectionTitle(String title, {String? assets}) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 20.w),
+      padding: EdgeInsets.only(left: 16.w, right: 16.w, bottom: 20.w),
       child: Row(
         children: [
           if (assets.isNotEmptyString()) ...[Image.asset(assets!, width: 24.w, height: 24.w), SizedBox(width: 8.w)],
@@ -128,95 +123,14 @@ class HistoryPage extends GetView<HistoryController> {
       final isEdit = controller.isEdit.value;
       final isSelected = controller.chooseList.contains(item);
 
-      return GestureDetector(
-        onTap: () {
-          if (isEdit) {
-            controller.toggleItem(item);
-          } else {
-            // controller.toMediaDetail(item);
-          }
+      return HistoryMediaCell(
+        mediaHistoryEntity: item,
+        isEdit: isEdit,
+        isSelected: isSelected,
+        toggleAction: (item) {
+          controller.toggleItem(item);
         },
-        child: Container(
-          margin: EdgeInsets.only(bottom: 16.w),
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (isEdit)
-                  Padding(
-                    padding: EdgeInsets.only(right: 8.w),
-                    child: Center(
-                      child: Image.asset(
-                        isSelected ? Assets.commonIconSelected : Assets.commonIconUnselected,
-                        width: 24.w,
-                        height: 24.w,
-                      ),
-                    ),
-                  ),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(16.r),
-                  child: CommonImageView.normal(
-                    imageUrl: item.cover,
-                    alignment: Alignment.topCenter,
-                    width: 120.w,
-                    height: 68.w,
-                    errorWidget: (context, url, error) {
-                      return Center(
-                        child: Image.asset(Assets.commonMediaPlaceholder, width: 40.w, height: 40.w, fit: BoxFit.cover),
-                      );
-                    },
-                  ),
-                ),
-                SizedBox(width: 16.w),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CommonText.instance(
-                        item.title ?? '',
-                        14.sp,
-                        fontWeight: CommonFontWeight.medium,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Row(
-                        children: [
-                          Container(
-                            height: 20.w,
-                            padding: EdgeInsets.symmetric(horizontal: 8.w),
-                            decoration: BoxDecoration(
-                              color: CommonColors.color84705C.withOpacity(0.5),
-                              borderRadius: BorderRadius.circular(10.r),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                CommonText.instance(
-                                  '1h 17m remaining',
-                                  10.sp,
-                                  color: CommonColors.white.withOpacity(0.8),
-                                  fontWeight: CommonFontWeight.medium,
-                                ),
-                              ],
-                            ),
-                          ),
-                          Spacer(),
-                          CommonText.instance(
-                            '90%',
-                            12.sp,
-                            color: CommonColors.primaryColor.withOpacity(0.5),
-                            fontWeight: CommonFontWeight.medium,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+        tapAction: (item) {},
       );
     });
   }

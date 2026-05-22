@@ -51,6 +51,24 @@ class InterestDetailPage extends GetView<InterestDetailController> {
                       },
                     ),
 
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: IgnorePointer(
+                        child: Container(
+                          height: 96.w,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Colors.transparent, CommonColors.color060600],
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
                     Positioned(top: 0, left: 0, right: 0, child: _titleView()),
 
                     Positioned(
