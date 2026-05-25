@@ -133,7 +133,9 @@ class HistoryPage extends GetView<HistoryController> {
         deleteAction: (item) {
           controller.deleteItem(item);
         },
-        tapAction: (item) {},
+        tapAction: (item) {
+           controller.toMediaDetail(item);
+        },
       );
     });
   }

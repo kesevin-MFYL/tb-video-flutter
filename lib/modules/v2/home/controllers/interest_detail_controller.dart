@@ -58,8 +58,7 @@ class InterestDetailController extends BaseController {
     Get.toNamed(Routes.mediaListSubPage, arguments: section);
   }
 
-  ///todo 跳转播放页面
   void toMediaDetail(MediaItemEntity mediaItemEntity) {
-    Get.toNamed(Routes.mediaDetailPage, arguments: mediaItemEntity);
+    Get.toNamed(Routes.mediaDetailPage, arguments: {'mediaId': mediaItemEntity.id, 'mediaType': mediaItemEntity.type});
   }
 }

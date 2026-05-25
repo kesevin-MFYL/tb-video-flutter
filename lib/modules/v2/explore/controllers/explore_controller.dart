@@ -212,8 +212,7 @@ class ExploreController extends BaseController {
     Get.toNamed(Routes.searchPage);
   }
 
-  //todo 跳转播放页面
   void toMediaDetail(MediaItemEntity mediaItemEntity) {
-    Get.toNamed(Routes.mediaDetailPage, arguments: mediaItemEntity);
+    Get.toNamed(Routes.mediaDetailPage, arguments: {'mediaId': mediaItemEntity.id, 'mediaType': mediaItemEntity.type});
   }
 }

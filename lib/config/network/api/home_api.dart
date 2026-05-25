@@ -9,6 +9,7 @@ import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/models/imdb_list_sub_entity.dart';
 import 'package:editvideo/models/interest_all_entity.dart';
 import 'package:editvideo/models/interest_detail_entity.dart';
+import 'package:editvideo/models/media_detail_entity.dart';
 import 'package:editvideo/models/media_filter_entity.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/storage.dart';
@@ -23,6 +24,9 @@ class HomeApi {
   static final interestDetailPath = '/dcr/PEOugQGkU/cVIfJt';
 
   static final mediaFilterPath = '/RcfN/UPe/RFdlfVJD';
+
+  static final mediaDetailPath = '/euYPPnFMAy/Pdr';
+  static final mediaRecommendPath = '/DFTJEUpY/zuWvNHqf/cKf';
 
   /// 获取首页数据
   static Future<ApiResult<ListResponse<HomeSectionEntity>?, ApiError>> getHomeSection() async {
@@ -125,6 +129,28 @@ class HomeApi {
       mediaFilterPath,
       construction: MediaFilterEntity.fromJson,
       decoder: BaseResponse<MediaFilterEntity>.fromJson,
+    );
+  }
+
+  /// 媒体详情
+  static Future<ApiResult<BaseResponse<MediaDetailEntity>?, ApiError>> getMediaDetail({required int? id}) async {
+    final Map<String, dynamic> body = {'_id': id};
+    return await HttpUtils.postRequest(
+      mediaDetailPath,
+      body: body,
+      construction: MediaDetailEntity.fromJson,
+      decoder: BaseResponse<MediaDetailEntity>.fromJson,
+    );
+  }
+
+  /// 媒体推荐
+  static Future<ApiResult<ListResponse<HomeSectionEntity>?, ApiError>> getMediaRecommend({required int? id}) async {
+    final Map<String, dynamic> body = {'_id': id};
+    return await HttpUtils.postRequest(
+      mediaRecommendPath,
+      body: body,
+      construction: HomeSectionEntity.fromJson,
+      decoder: ListResponse<HomeSectionEntity>.fromJson,
     );
   }
 }

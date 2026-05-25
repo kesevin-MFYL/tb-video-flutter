@@ -54,6 +54,7 @@ class Assets {
   static const String commonIconSearchBg = 'assets/images/common/icon_search_bg.png';
   static const String commonOperationMore = 'assets/images/common/operation_more.png';
   static const String commonVideoPlayBig = 'assets/images/common/video_play_big.png';
+  static const String commonIconMediaInfo = 'assets/images/common/icon_media_info.png';
   static const String commonIconSubSearch = 'assets/images/common/icon_sub_search.png';
   static const String commonIconUnselected = 'assets/images/common/icon_unselected.png';
   static const String commonIconVideoList = 'assets/images/common/icon_video_list.png';
@@ -72,6 +73,8 @@ class Assets {
   static const String commonIconUserAgreement = 'assets/images/common/icon_user_agreement.png';
   static const String commonIconFilterArrowDown = 'assets/images/common/icon_filter_arrow_down.png';
   static const String commonIconVideoArrowRight = 'assets/images/common/icon_video_arrow_right.png';
+  static const String commonIconDanmuControlOpen = 'assets/images/common/icon_danmu_control_open.png';
+  static const String commonIconDanmuControlClose = 'assets/images/common/icon_danmu_control_close.png';
   static const String commonIconHistoryDeleteLarge = 'assets/images/common/icon_history_delete_large.png';
   static const String commonIconBottomDeleteHistory = 'assets/images/common/icon_bottom_delete_history.png';
   static const String launchLaunchImage = 'assets/images/launch/launch_image.png';
