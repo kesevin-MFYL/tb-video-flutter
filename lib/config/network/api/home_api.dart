@@ -5,12 +5,14 @@ import 'package:editvideo/config/network/model/api_error.dart';
 import 'package:editvideo/config/network/model/api_result.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
 import 'package:editvideo/config/network/model/list_response.dart';
+import 'package:editvideo/models/episode_entity.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/models/imdb_list_sub_entity.dart';
 import 'package:editvideo/models/interest_all_entity.dart';
 import 'package:editvideo/models/interest_detail_entity.dart';
 import 'package:editvideo/models/media_detail_entity.dart';
 import 'package:editvideo/models/media_filter_entity.dart';
+import 'package:editvideo/models/season_entity.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/storage.dart';
 
@@ -27,6 +29,8 @@ class HomeApi {
 
   static final mediaDetailPath = '/euYPPnFMAy/Pdr';
   static final mediaRecommendPath = '/DFTJEUpY/zuWvNHqf/cKf';
+  static final tvAllSeasonPath = '/VXBTwAg/YgB';
+  static final tvSeasonAllEpisodePath = '/SSxOkjA/DkEpWK';
 
   /// 获取首页数据
   static Future<ApiResult<ListResponse<HomeSectionEntity>?, ApiError>> getHomeSection() async {
@@ -151,6 +155,28 @@ class HomeApi {
       body: body,
       construction: HomeSectionEntity.fromJson,
       decoder: ListResponse<HomeSectionEntity>.fromJson,
+    );
+  }
+
+  /// 获取所有季
+  static Future<ApiResult<ListResponse<SeasonEntity>?, ApiError>> getAllSeasons({required int? id}) async {
+    final Map<String, dynamic> body = {'tv_show_id': id};
+    return await HttpUtils.postRequest(
+      tvAllSeasonPath,
+      body: body,
+      construction: SeasonEntity.fromJson,
+      decoder: ListResponse<SeasonEntity>.fromJson,
+    );
+  }
+
+  /// 获取季所有集
+  static Future<ApiResult<ListResponse<EpisodeEntity>?, ApiError>> getSeasonAllEpisodes({required int? id}) async {
+    final Map<String, dynamic> body = {'tv_show_season_id': id};
+    return await HttpUtils.postRequest(
+      tvSeasonAllEpisodePath,
+      body: body,
+      construction: EpisodeEntity.fromJson,
+      decoder: ListResponse<EpisodeEntity>.fromJson,
     );
   }
 }

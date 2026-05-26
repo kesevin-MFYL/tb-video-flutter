@@ -55,6 +55,7 @@ class Assets {
   static const String commonOperationMore = 'assets/images/common/operation_more.png';
   static const String commonVideoPlayBig = 'assets/images/common/video_play_big.png';
   static const String commonIconMediaInfo = 'assets/images/common/icon_media_info.png';
+  static const String commonIconSelections = 'assets/images/common/icon_selections.png';
   static const String commonIconSubSearch = 'assets/images/common/icon_sub_search.png';
   static const String commonIconUnselected = 'assets/images/common/icon_unselected.png';
   static const String commonIconVideoList = 'assets/images/common/icon_video_list.png';

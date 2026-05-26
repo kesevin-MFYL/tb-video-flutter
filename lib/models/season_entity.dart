@@ -1,14 +1,15 @@
 import 'package:editvideo/config/network/model/base_entity.dart';
+import 'package:editvideo/widget/tabbar/common_tab_bar.dart';
 
-class SessionEntity extends BaseEntity {
+class SeasonEntity extends BaseEntity implements TabBarItem {
   int? id;
   String? title;
   String? cover;
 
-  SessionEntity({this.id, this.title, this.cover});
+  SeasonEntity({this.id, this.title, this.cover});
 
   @override
-  SessionEntity.fromJson(dynamic json) {
+  SeasonEntity.fromJson(dynamic json) {
     id = json['_id'];
     title = json['title'];
     cover = json['cover'];
@@ -22,4 +23,13 @@ class SessionEntity extends BaseEntity {
     data['cover'] = cover;
     return data;
   }
+
+  @override
+  String? get markIcon => null;
+
+  @override
+  String? get tabIcon => null;
+
+  @override
+  String get tabText => title ?? '';
 }

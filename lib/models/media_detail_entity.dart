@@ -51,8 +51,12 @@ class MediaDetailEntity extends BaseEntity {
   @override
   MediaDetailEntity.fromJson(dynamic json) {
     id = json['_id'];
-    video = json['video'];
-    masterM3u8 = json['master_m3u8'];
+    if (json['video'] is String) {
+      video = json['video'];
+    }
+    if (json['master_m3u8'] is String) {
+      masterM3u8 = json['master_m3u8'];
+    }
     title = json['title'];
     cover = json['cover'];
     quality = json['quality'];

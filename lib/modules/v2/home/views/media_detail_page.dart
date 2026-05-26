@@ -11,6 +11,7 @@ import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/button/common_button.dart';
 import 'package:editvideo/widget/page_base.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
+import 'package:editvideo/widget/tabbar/common_tab_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -30,8 +31,7 @@ class MediaDetailPage extends GetView<MediaDetailController> {
           child: MultiStatusView(
             currentStatus: controller.multiStatusType,
             action: () {
-              controller.multiStatusType = MultiStatusType.statusLoading;
-              controller.getDataFromServer();
+              controller.reload();
             },
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,6 +52,9 @@ class MediaDetailPage extends GetView<MediaDetailController> {
                         // 其他信息
                         _buildOtherInfo(),
 
+                        // 电视剧剧集
+                        _buildTvSeasons(),
+
                         // 相关推荐
                         ..._buildRecommend(),
                       ],
@@ -67,7 +70,7 @@ class MediaDetailPage extends GetView<MediaDetailController> {
   }
 
   Widget _buildBasicInfo() {
-    if (controller.mediaDetailEntity == null) return Container();
+    if (controller.mediaDetailEntity == null) return const SizedBox();
     return Padding(
       padding: EdgeInsetsGeometry.symmetric(horizontal: 16.w, vertical: 16.w),
       child: Column(
@@ -101,7 +104,7 @@ class MediaDetailPage extends GetView<MediaDetailController> {
   }
 
   Widget _buildOtherInfo() {
-    if (controller.mediaDetailEntity == null) return Container();
+    if (controller.mediaDetailEntity == null) return const SizedBox();
     return Padding(
       padding: EdgeInsetsGeometry.symmetric(horizontal: 16.w, vertical: 16.w),
       child: Column(
@@ -128,6 +131,7 @@ class MediaDetailPage extends GetView<MediaDetailController> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
+              SizedBox(width: 8.w),
               CommonButton(
                 minSize: 0,
                 borderRadius: BorderRadius.zero,
@@ -145,6 +149,56 @@ class MediaDetailPage extends GetView<MediaDetailController> {
               ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTvSeasons() {
+    if (controller.mediaType != 2) return const SizedBox();
+    return Padding(
+      padding: EdgeInsetsGeometry.symmetric(vertical: 16.w),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(Assets.commonIconSelections, width: 24.w, height: 24.w),
+                SizedBox(width: 12.w),
+                CommonText.instance('Selections', 16.sp, fontWeight: CommonFontWeight.bold),
+                Spacer(),
+                CommonButton(
+                  minSize: 0,
+                  borderRadius: BorderRadius.zero,
+                  spacing: 4.w,
+                  suffixDirectional: SuffixDirectional.right,
+                  suffixWidget: Image.asset(Assets.commonIconVideoArrowRight, width: 16.w, height: 16.w),
+                  onPressed: () => controller.viewInfoDetail,
+                  child: CommonText.instance(
+                    'View ${controller.seasonList.length}',
+                    12.sp,
+                    color: CommonColors.primaryColor,
+                    decoration: TextDecoration.underline,
+                    decorationColor: CommonColors.primaryColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (controller.seasonList.isNotEmpty)
+            Padding(
+              padding: EdgeInsets.only(top: 24.w, bottom: 16.w),
+              child: CommonIndicatorTabBar(
+                tabController: controller.tabController,
+                tabBarPadding: EdgeInsets.symmetric(horizontal: 16.w),
+                tabs: controller.seasonList,
+                isScrollable: true,
+              ),
+            ),
         ],
       ),
     );

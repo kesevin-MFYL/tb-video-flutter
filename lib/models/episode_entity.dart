@@ -2,7 +2,7 @@ import 'package:editvideo/config/network/model/base_entity.dart';
 import 'package:editvideo/models/caption_entity.dart';
 
 class EpisodeEntity extends BaseEntity {
-  int? iId;
+  int? id;
   int? epsNum;
   String? title;
   String? video;
@@ -14,7 +14,7 @@ class EpisodeEntity extends BaseEntity {
   double? storageTimestamp;
 
   EpisodeEntity({
-    this.iId,
+    this.id,
     this.epsNum,
     this.title,
     this.video,
@@ -28,7 +28,7 @@ class EpisodeEntity extends BaseEntity {
 
   @override
   EpisodeEntity.fromJson(dynamic json) {
-    iId = json['_id'];
+    id = json['_id'];
     epsNum = json['eps_num'];
     title = json['title'];
     video = json['video'];
@@ -45,7 +45,7 @@ class EpisodeEntity extends BaseEntity {
   @override
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
-    data['_id'] = iId;
+    data['_id'] = id;
     data['eps_num'] = epsNum;
     data['title'] = title;
     data['video'] = video;

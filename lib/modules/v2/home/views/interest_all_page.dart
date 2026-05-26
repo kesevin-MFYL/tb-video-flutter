@@ -41,6 +41,7 @@ class InterestAllPage extends GetView<InterestAllController> {
                     currentStatus: controller.multiStatusType,
                     action: () {
                       controller.multiStatusType = MultiStatusType.statusLoading;
+                      controller.update();
                       controller.getInterestAllList();
                     },
                     child: ListView.separated(

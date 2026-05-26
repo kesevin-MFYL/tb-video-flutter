@@ -88,6 +88,7 @@ class HomeBPage extends StatelessWidget {
                             currentStatus: controller.multiStatusType,
                             action: () {
                               controller.multiStatusType = MultiStatusType.statusLoading;
+                              controller.update();
                               controller.getDataFromServer();
                             },
                             child: CustomScrollView(
@@ -146,7 +147,7 @@ class HomeBPage extends StatelessWidget {
   }) {
     if ((sectionType == SectionType.topPicks && controller.topPicksList.isEmpty) ||
         (sectionType != SectionType.topPicks && section?.dataList == null || section?.dataList!.isEmpty == true)) {
-      return SliverToBoxAdapter(child: Container());
+      return SliverToBoxAdapter(child: const SizedBox());
     }
     return SliverPadding(
       padding: EdgeInsets.symmetric(vertical: 16.w),
@@ -206,7 +207,7 @@ class HomeBPage extends StatelessWidget {
       case SectionType.streamingMedia: //渠道
         return _buildStreamingMedia(section: section, controller: controller);
       default:
-        return Container();
+        return const SizedBox();
     }
   }
 
@@ -229,7 +230,7 @@ class HomeBPage extends StatelessWidget {
 
     final dataList = section?.dataList ?? [];
     return dataList.isEmpty
-        ? Container()
+        ? const SizedBox()
         : TabPageView(mediaList: dataList, tabBarViewHeight: tabBarViewHeight, action: controller.mediaTap);
   }
 }

@@ -39,6 +39,7 @@ class ImdbListSubPage extends GetView<ImdbListSubController> {
                     currentStatus: controller.multiStatusType,
                     action: () {
                       controller.multiStatusType = MultiStatusType.statusLoading;
+                      controller.update();
                       controller.getImdbListSubDetail();
                     },
                     child: ListView.separated(

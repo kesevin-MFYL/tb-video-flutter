@@ -7,12 +7,14 @@ import 'package:editvideo/manager/event_manager.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/models/media_detail_entity.dart';
 import 'package:editvideo/models/media_history_entity.dart';
+import 'package:editvideo/models/season_entity.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/utils/storage.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class MediaDetailController extends BaseController {
+class MediaDetailController extends BaseController with GetSingleTickerProviderStateMixin {
   var multiStatusType = MultiStatusType.statusLoading;
 
   /// 媒体id
@@ -24,6 +26,15 @@ class MediaDetailController extends BaseController {
   MediaDetailEntity? mediaDetailEntity;
 
   var recommendList = <HomeSectionEntity>[];
+
+  TabController? tabController;
+  var seasonList = <SeasonEntity>[];
+
+  void reload() {
+    multiStatusType = MultiStatusType.statusLoading;
+    update();
+    getDataFromServer();
+  }
 
   @override
   void handArguments(arguments) {
@@ -40,12 +51,13 @@ class MediaDetailController extends BaseController {
 
   void getDataFromServer() {
     if (mediaId != null) {
-      Future.wait([_getMediaDetail(), _getMediaRecommend()]).then((list) {
+      Future.wait([_getMediaDetail(), _getMediaRecommend(), _getTvSeasons()]).then((list) {
         update();
       });
     }
   }
 
+  /// 获取媒体详情
   Future<void> _getMediaDetail() async {
     final result = await HomeApi.getMediaDetail(id: mediaId);
     if (result.isSuccess) {
@@ -57,6 +69,7 @@ class MediaDetailController extends BaseController {
     }
   }
 
+  /// 获取媒体推荐
   Future<void> _getMediaRecommend() async {
     final result = await HomeApi.getMediaRecommend(id: mediaId);
     if (result.isSuccess) {
@@ -67,9 +80,21 @@ class MediaDetailController extends BaseController {
     }
   }
 
-  void viewInfoDetail() {
-
+  /// 获取剧集
+  Future<void> _getTvSeasons() async {
+    if (mediaType != 2) return;
+    final result = await HomeApi.getAllSeasons(id: mediaId);
+    if (result.isSuccess) {
+      final listData = result.responseData?.data;
+      seasonList = listData ?? [];
+      tabController ??= TabController(length: seasonList.length, vsync: this);
+    } else {
+      commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
+    }
   }
+
+
+  void viewInfoDetail() {}
 
   void mediaTap(MediaItemEntity mediaItem, SectionType sectionType) {
     if (sectionType == SectionType.mediaList || sectionType == SectionType.topPicks) {
@@ -105,5 +130,11 @@ class MediaDetailController extends BaseController {
     // Storage.addViewedMedia(historyEntity);
     //
     // EventBusManager.instance.post(EventBusName.historyRefresh);
+  }
+
+  @override
+  void onClose() {
+    tabController?.dispose();
+    super.onClose();
   }
 }
