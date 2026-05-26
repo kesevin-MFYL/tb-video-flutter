@@ -2,6 +2,7 @@ import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/modules/v2/home/controllers/media_detail_controller.dart';
+import 'package:editvideo/modules/v2/home/widget/episode_index_view.dart';
 import 'package:editvideo/modules/v2/home/widget/media_scroller_view.dart';
 import 'package:editvideo/modules/v2/home/widget/tab_page_view.dart';
 import 'package:editvideo/utils/common_ui.dart';
@@ -25,45 +26,51 @@ class MediaDetailPage extends GetView<MediaDetailController> {
     return GetBuilder<MediaDetailController>(
       init: MediaDetailController(),
       builder: (controller) {
-        return PageBase(
-          isTransparentAppBar: true,
-          actions: _actionView(),
-          child: MultiStatusView(
-            currentStatus: controller.multiStatusType,
-            action: () {
-              controller.reload();
-            },
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: safeAreaEdgeInsets.top),
+        return Stack(
+          children: [
+            PageBase(
+              isTransparentAppBar: true,
+              actions: _actionView(),
+              child: MultiStatusView(
+                currentStatus: controller.multiStatusType,
+                action: () {
+                  controller.reload();
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: safeAreaEdgeInsets.top),
 
-                Container(height: 212.w, color: Colors.orangeAccent),
+                    Container(height: 212.w, color: Colors.orangeAccent),
 
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.symmetric(vertical: 8.w),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // 主要信息
-                        _buildBasicInfo(),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.symmetric(vertical: 8.w),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // 主要信息
+                            _buildBasicInfo(),
 
-                        // 其他信息
-                        _buildOtherInfo(),
+                            // 电视剧剧集
+                            _buildTvSeasons(),
 
-                        // 电视剧剧集
-                        _buildTvSeasons(),
+                            // 其他信息
+                            _buildOtherInfo(),
 
-                        // 相关推荐
-                        ..._buildRecommend(),
-                      ],
+                            // 相关推荐
+                            ..._buildRecommend(),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
+
+            Positioned(left: 0, right: 0, bottom: 0, child: _buildBottomTvSeasons()),
+          ],
         );
       },
     );
@@ -85,7 +92,7 @@ class MediaDetailPage extends GetView<MediaDetailController> {
             children: [
               if (controller.mediaDetailEntity!.certification.isNotEmptyString())
                 _buildTag(tagName: controller.mediaDetailEntity!.certification!),
-              if (controller.mediaDetailEntity!.countryString.isNotEmptyString())
+              if (controller.mediaDetailEntity!.country.isNotEmptyString())
                 _buildTag(tagName: controller.mediaDetailEntity!.country!),
               if (controller.mediaDetailEntity!.year.isNotEmptyString())
                 _buildTag(tagName: controller.mediaDetailEntity!.year!),
@@ -154,6 +161,12 @@ class MediaDetailPage extends GetView<MediaDetailController> {
     );
   }
 
+  /// 其他信息底部弹窗
+  Widget _buildBottomOtherInfo() {
+    return SizedBox();
+  }
+
+  /// 剧集信息
   Widget _buildTvSeasons() {
     if (controller.mediaType != 2) return const SizedBox();
     return Padding(
@@ -177,7 +190,7 @@ class MediaDetailPage extends GetView<MediaDetailController> {
                   spacing: 4.w,
                   suffixDirectional: SuffixDirectional.right,
                   suffixWidget: Image.asset(Assets.commonIconVideoArrowRight, width: 16.w, height: 16.w),
-                  onPressed: () => controller.viewInfoDetail,
+                  onPressed: controller.bottomSeasonsChanged,
                   child: CommonText.instance(
                     'View ${controller.seasonList.length}',
                     12.sp,
@@ -189,21 +202,105 @@ class MediaDetailPage extends GetView<MediaDetailController> {
               ],
             ),
           ),
-          if (controller.seasonList.isNotEmpty)
+          if (controller.seasonList.isNotEmpty) ...[
             Padding(
               padding: EdgeInsets.only(top: 24.w, bottom: 16.w),
               child: CommonIndicatorTabBar(
                 tabController: controller.tabController,
-                tabBarPadding: EdgeInsets.symmetric(horizontal: 16.w),
                 tabs: controller.seasonList,
                 isScrollable: true,
               ),
             ),
+            SizedBox(
+              height: 48.w,
+              child: TabBarView(
+                controller: controller.tabController,
+                children: controller.seasonList.map((seasonItem) {
+                  return EpisodeIndexView(scrollDirection: Axis.horizontal, seasonEntity: seasonItem);
+                }).toList(),
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 
+  /// 剧集底部弹窗
+  Widget _buildBottomTvSeasons() {
+    return Obx(() {
+      final showBottomSeasons = controller.showBottomSeasons.value;
+      return IgnorePointer(
+        ignoring: !showBottomSeasons,
+        child: ClipRect(
+          child: TweenAnimationBuilder<Offset>(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOutCubic,
+            tween: showBottomSeasons
+                ? Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+                : Tween<Offset>(begin: Offset.zero, end: const Offset(0, 1)),
+            builder: (context, offset, child) {
+              return FractionalTranslation(translation: offset, child: child);
+            },
+            child: Container(
+              padding: EdgeInsets.only(top: 16.w, bottom: safeAreaBottomDistance(16.w)),
+              height: controller.bottomHeight,
+              decoration: BoxDecoration(
+                color: CommonColors.color1B1B18,
+                borderRadius: BorderRadius.only(topLeft: Radius.circular(32.h), topRight: Radius.circular(32.h)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CommonText.instance(
+                          'Selections',
+                          16.sp,
+                          color: CommonColors.white.withOpacity(0.8),
+                          fontWeight: CommonFontWeight.bold,
+                        ),
+                        Spacer(),
+                        CommonButton(
+                          minSize: 0,
+                          borderRadius: BorderRadius.zero,
+                          onPressed: controller.bottomSeasonsChanged,
+                          child: Image.asset(Assets.commonIconBottomClose, width: 24.w, height: 24.w),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (controller.seasonList.isNotEmpty) ...[
+                    Padding(
+                      padding: EdgeInsets.only(top: 24.w),
+                      child: CommonIndicatorTabBar(
+                        tabController: controller.tabController,
+                        tabs: controller.seasonList,
+                        isScrollable: true,
+                      ),
+                    ),
+                    Expanded(
+                      child: TabBarView(
+                        controller: controller.tabController,
+                        children: controller.seasonList.map((seasonItem) {
+                          return EpisodeIndexView(seasonEntity: seasonItem);
+                        }).toList(),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    });
+  }
+
+  /// 推荐
   List<Widget> _buildRecommend() {
     return controller.recommendList.map((section) {
       final sectionType = SectionType.kind(section.kind);

@@ -36,10 +36,9 @@ class _TabPageViewState extends State<TabPageView> with SingleTickerProviderStat
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.w),
+          padding: EdgeInsets.symmetric(vertical: 12.w),
           child: CommonIndicatorTabBar(
             tabController: _tabController,
-            tabBarPadding: EdgeInsets.zero,
             tabs: widget.mediaList,
             isScrollable: true,
           ),

@@ -1,17 +1,15 @@
-import 'package:easy_refresh/easy_refresh.dart';
 import 'package:editvideo/base/base_controller.dart';
 import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
-import 'package:editvideo/manager/event_manager.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/models/media_detail_entity.dart';
-import 'package:editvideo/models/media_history_entity.dart';
 import 'package:editvideo/models/season_entity.dart';
 import 'package:editvideo/routes/app_routes.dart';
-import 'package:editvideo/utils/storage.dart';
+import 'package:editvideo/utils/common_values.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 class MediaDetailController extends BaseController with GetSingleTickerProviderStateMixin {
@@ -28,7 +26,23 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
   var recommendList = <HomeSectionEntity>[];
 
   TabController? tabController;
+
+  /// 季列表
   var seasonList = <SeasonEntity>[];
+
+  /// 季id
+  var seasonId = -1;
+
+  /// 集id
+  var episodeId = -1;
+
+  /// 是否显示媒体详情弹窗
+  var showBottomOtherInfo = false.obs;
+
+  /// 是否显示剧集底部弹窗
+  var showBottomSeasons = false.obs;
+
+  double get bottomHeight => Get.height - safeAreaEdgeInsets.top - 212.w;
 
   void reload() {
     multiStatusType = MultiStatusType.statusLoading;
@@ -57,6 +71,19 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
     }
   }
 
+  void bottomOtherInfoChanged() {
+    showBottomOtherInfo.value = !showBottomOtherInfo.value;
+  }
+
+  void bottomSeasonsChanged() {
+    showBottomSeasons.value = !showBottomSeasons.value;
+  }
+
+  /// 切换季
+  void changeSeason(int index) {
+    seasonId = seasonList[index].id ?? -1;
+  }
+
   /// 获取媒体详情
   Future<void> _getMediaDetail() async {
     final result = await HomeApi.getMediaDetail(id: mediaId);
@@ -80,19 +107,25 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
     }
   }
 
-  /// 获取剧集
+  /// 获取所有季
   Future<void> _getTvSeasons() async {
     if (mediaType != 2) return;
     final result = await HomeApi.getAllSeasons(id: mediaId);
     if (result.isSuccess) {
       final listData = result.responseData?.data;
       seasonList = listData ?? [];
-      tabController ??= TabController(length: seasonList.length, vsync: this);
+
+      if (seasonId == -1) {
+        //todo 判断是否有缓存 播放缓存中的季， 没有缓存播放第一季
+        seasonId = seasonList.first.id ?? -1;
+      }
+
+      final initialIndex = seasonList.indexWhere((element) => element.id == seasonId);
+      tabController ??= TabController(initialIndex: initialIndex, length: seasonList.length, vsync: this);
     } else {
       commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
     }
   }
-
 
   void viewInfoDetail() {}
 

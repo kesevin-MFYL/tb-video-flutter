@@ -13,7 +13,6 @@ class MediaDetailEntity extends BaseEntity {
   String? horizontalCover;
   String? description;
   String? pubDate;
-  String? country;
   List<String>? countryCodeList;
   String? rate;
   String? lang;
@@ -35,7 +34,6 @@ class MediaDetailEntity extends BaseEntity {
     this.horizontalCover,
     this.description,
     this.pubDate,
-    this.country,
     this.countryCodeList,
     this.rate,
     this.lang,
@@ -63,7 +61,6 @@ class MediaDetailEntity extends BaseEntity {
     horizontalCover = json['horizontal_cover'];
     description = json['description'];
     pubDate = json['pub_date'];
-    country = json['country'];
     if (json['country_code_list'] != null) {
       countryCodeList = json['country_code_list'].cast<String>();
     }
@@ -94,7 +91,6 @@ class MediaDetailEntity extends BaseEntity {
     data['horizontal_cover'] = horizontalCover;
     data['description'] = description;
     data['pub_date'] = pubDate;
-    data['country'] = country;
     data['country_code_list'] = countryCodeList;
     data['rate'] = rate;
     data['lang'] = lang;
@@ -108,7 +104,7 @@ class MediaDetailEntity extends BaseEntity {
     return data;
   }
 
-  String? get countryString => countryCodeList != null && countryCodeList!.isNotEmpty ? countryCodeList!.first : null;
+  String? get country => countryCodeList != null && countryCodeList!.isNotEmpty ? countryCodeList!.first : null;
 
   String? get year => pubDate.isNotEmptyString() && pubDate!.length >= 4 ? pubDate?.substring(0, 4) : null;
 }

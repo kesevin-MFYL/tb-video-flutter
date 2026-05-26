@@ -57,6 +57,7 @@ class _CommonIndicatorTabBarState extends State<CommonIndicatorTabBar> with Sing
   void initState() {
     super.initState();
     _tabController = widget.tabController ?? TabController(length: widget.tabs.length, vsync: this);
+    currentIndex.value = _tabController.index;
     _tabController.addListener(_handleTabSelection);
   }
 
