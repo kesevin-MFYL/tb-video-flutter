@@ -136,8 +136,6 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
     }
   }
 
-  void viewInfoDetail() {}
-
   void mediaTap(MediaItemEntity mediaItem, SectionType sectionType) {
     if (sectionType == SectionType.mediaList || sectionType == SectionType.topPicks) {
       // 单片，进入视频播放页
