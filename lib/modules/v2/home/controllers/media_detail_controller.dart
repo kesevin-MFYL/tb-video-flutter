@@ -2,8 +2,10 @@ import 'package:editvideo/base/base_controller.dart';
 import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
+import 'package:editvideo/models/episode_entity.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/models/media_detail_entity.dart';
+import 'package:editvideo/models/media_history_entity.dart';
 import 'package:editvideo/models/season_entity.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/utils/common_values.dart';
@@ -21,6 +23,9 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
   /// 媒体类型
   late int mediaType;
 
+  /// 缓存记录
+  MediaHistoryEntity? mediaHistoryEntity;
+
   MediaDetailEntity? mediaDetailEntity;
 
   var recommendList = <HomeSectionEntity>[];
@@ -31,10 +36,10 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
   var seasonList = <SeasonEntity>[];
 
   /// 季id
-  var seasonId = -1;
+  var seasonId = 0;
 
   /// 集id
-  var episodeId = -1;
+  var episodeId = 0.obs;
 
   /// 是否显示媒体详情弹窗
   var showBottomOtherInfo = false.obs;
@@ -79,9 +84,9 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
     showBottomSeasons.value = !showBottomSeasons.value;
   }
 
-  /// 切换季
-  void changeSeason(int index) {
-    seasonId = seasonList[index].id ?? -1;
+  /// 选择剧集
+  void chooseEpisode(EpisodeEntity episode) {
+    episodeId.value = episode.id ?? 0;
   }
 
   /// 获取媒体详情
@@ -115,9 +120,13 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
       final listData = result.responseData?.data;
       seasonList = listData ?? [];
 
-      if (seasonId == -1) {
+      if (seasonId == 0) {
         //todo 判断是否有缓存 播放缓存中的季， 没有缓存播放第一季
-        seasonId = seasonList.first.id ?? -1;
+        if (mediaHistoryEntity == null) {
+          seasonId = seasonList.first.id ?? 0;
+        } else {
+          // seasonId = mediaHistoryEntity?.seasonId ?? seasonList.first.id ?? 0;
+        }
       }
 
       final initialIndex = seasonList.indexWhere((element) => element.id == seasonId);

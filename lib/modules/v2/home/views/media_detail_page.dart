@@ -19,12 +19,18 @@ import 'package:get/get.dart';
 
 /// 影片详情
 class MediaDetailPage extends GetView<MediaDetailController> {
-  const MediaDetailPage({super.key});
+  const MediaDetailPage({super.key, required this.mediaId});
+
+  final int mediaId;
+
+  @override
+  String? get tag => '$mediaId';
 
   @override
   Widget build(BuildContext context) {
     return GetBuilder<MediaDetailController>(
       init: MediaDetailController(),
+      tag: '$mediaId',
       builder: (controller) {
         return Stack(
           children: [
@@ -216,7 +222,12 @@ class MediaDetailPage extends GetView<MediaDetailController> {
               child: TabBarView(
                 controller: controller.tabController,
                 children: controller.seasonList.map((seasonItem) {
-                  return EpisodeIndexView(scrollDirection: Axis.horizontal, seasonEntity: seasonItem);
+                  return EpisodeIndexView(
+                    scrollDirection: Axis.horizontal,
+                    mediaId: controller.mediaId,
+                    seasonEntity: seasonItem,
+                    action: (item) => controller.chooseEpisode(item),
+                  );
                 }).toList(),
               ),
             ),
@@ -228,6 +239,7 @@ class MediaDetailPage extends GetView<MediaDetailController> {
 
   /// 剧集底部弹窗
   Widget _buildBottomTvSeasons() {
+    if (controller.mediaType != 2) return const SizedBox();
     return Obx(() {
       final showBottomSeasons = controller.showBottomSeasons.value;
       return IgnorePointer(
@@ -286,7 +298,11 @@ class MediaDetailPage extends GetView<MediaDetailController> {
                       child: TabBarView(
                         controller: controller.tabController,
                         children: controller.seasonList.map((seasonItem) {
-                          return EpisodeIndexView(seasonEntity: seasonItem);
+                          return EpisodeIndexView(
+                            seasonEntity: seasonItem,
+                            mediaId: controller.mediaId,
+                            action: (item) => controller.chooseEpisode(item),
+                          );
                         }).toList(),
                       ),
                     ),

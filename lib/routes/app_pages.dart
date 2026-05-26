@@ -86,7 +86,7 @@ class MediaPages {
 
     GetPage(
       name: Routes.mediaDetailPage,
-      page: () => MediaDetailPage(),
+      page: () => MediaDetailPage(mediaId: Get.arguments['mediaId'] ?? 0),
     ),
   ];
 }

@@ -10,10 +10,17 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 class EpisodeIndexView extends StatefulWidget {
-  const EpisodeIndexView({super.key, required this.seasonEntity, this.scrollDirection = Axis.vertical, this.action});
+  const EpisodeIndexView({
+    super.key,
+    required this.seasonEntity,
+    required this.mediaId,
+    this.scrollDirection = Axis.vertical,
+    this.action,
+  });
 
   final SeasonEntity seasonEntity;
   final Axis scrollDirection;
+  final int mediaId;
   final void Function(EpisodeEntity episodeEntity)? action;
 
   @override
@@ -27,15 +34,15 @@ class _EpisodeIndexViewState extends State<EpisodeIndexView> with AutomaticKeepA
   void initState() {
     super.initState();
     controller = Get.put(
-      EpisodeIndexController(seasonEntity: widget.seasonEntity),
-      tag: '${widget.seasonEntity.id ?? -1}',
+      EpisodeIndexController(seasonEntity: widget.seasonEntity, mediaId: widget.mediaId),
+      tag: '${widget.seasonEntity.id ?? 0}',
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return GetBuilder<EpisodeIndexController>(
-      tag: '${widget.seasonEntity.id ?? -1}',
+      tag: '${widget.seasonEntity.id ?? 0}',
       builder: (logic) {
         return MultiStatusView(
           currentStatus: controller.multiStatusType,
@@ -56,35 +63,41 @@ class _EpisodeIndexViewState extends State<EpisodeIndexView> with AutomaticKeepA
       itemCount: controller.episodeList.length,
       itemBuilder: (context, index) {
         final episodeItem = controller.episodeList[index];
-        return Container(
-          height: 48.w,
-          padding: EdgeInsets.symmetric(horizontal: 16.w),
-          decoration: BoxDecoration(
-            color: CommonColors.color333333,
-            borderRadius: BorderRadius.all(Radius.circular(16.r)),
-            border: Border.all(color: CommonColors.primaryColor, width: 1.5.w),
-          ),
-          child: Row(
-            children: [
-              CommonText.instance(
-                '${episodeItem.epsNum}',
-                14.sp,
-                color: CommonColors.primaryColor,
-                fontWeight: CommonFontWeight.bold,
+        return Obx(() {
+          final episodeId = controller.mediaDetailController.episodeId.value;
+          return GestureDetector(
+            onTap: () => widget.action?.call(episodeItem),
+            child: Container(
+              height: 48.w,
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              decoration: BoxDecoration(
+                color: CommonColors.color333333,
+                borderRadius: BorderRadius.all(Radius.circular(16.r)),
+                border: episodeId == episodeItem.id ? Border.all(color: CommonColors.primaryColor, width: 1.5.w) : null,
               ),
-              SizedBox(width: 18.w),
-              Expanded(
-                child: CommonText.instance(
-                  episodeItem.title ?? '',
-                  14.sp,
-                  color: CommonColors.primaryColor,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+              child: Row(
+                children: [
+                  CommonText.instance(
+                    '${episodeItem.epsNum}',
+                    14.sp,
+                    color: episodeId == episodeItem.id ? CommonColors.primaryColor : CommonColors.white,
+                    fontWeight: CommonFontWeight.bold,
+                  ),
+                  SizedBox(width: 18.w),
+                  Expanded(
+                    child: CommonText.instance(
+                      episodeItem.title ?? '',
+                      14.sp,
+                      color: episodeId == episodeItem.id ? CommonColors.primaryColor : CommonColors.white,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        );
+            ),
+          );
+        });
       },
     );
   }
@@ -98,22 +111,28 @@ class _EpisodeIndexViewState extends State<EpisodeIndexView> with AutomaticKeepA
       itemCount: controller.episodeList.length,
       itemBuilder: (context, index) {
         final episodeItem = controller.episodeList[index];
-        return Container(
-          width: 48.w,
-          height: 48.w,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: CommonColors.color333333,
-            borderRadius: BorderRadius.circular(16.4),
-            border: Border.all(color: CommonColors.primaryColor, width: 1.5.w),
-          ),
-          child: CommonText.instance(
-            '${episodeItem.epsNum}',
-            14.sp,
-            color: CommonColors.primaryColor,
-            fontWeight: CommonFontWeight.bold,
-          ),
-        );
+        return Obx(() {
+          final episodeId = controller.mediaDetailController.episodeId.value;
+          return GestureDetector(
+            onTap: () => widget.action?.call(episodeItem),
+            child: Container(
+              width: 48.w,
+              height: 48.w,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: CommonColors.color333333,
+                borderRadius: BorderRadius.circular(16.4),
+                border: episodeId == episodeItem.id ? Border.all(color: CommonColors.primaryColor, width: 1.5.w) : null,
+              ),
+              child: CommonText.instance(
+                '${episodeItem.epsNum}',
+                14.sp,
+                color: episodeId == episodeItem.id ? CommonColors.primaryColor : CommonColors.white,
+                fontWeight: CommonFontWeight.bold,
+              ),
+            ),
+          );
+        });
       },
     );
   }
