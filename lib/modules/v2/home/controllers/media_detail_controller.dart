@@ -35,11 +35,8 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
   /// 季列表
   var seasonList = <SeasonEntity>[];
 
-  /// 季id
-  var seasonId = 0;
-
-  /// 集id
-  var episodeId = 0.obs;
+  /// 选中的集
+  final selectEpisode = Rx<EpisodeEntity?>(null);
 
   /// 是否显示媒体详情弹窗
   var showBottomOtherInfo = false.obs;
@@ -86,7 +83,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
 
   /// 选择剧集
   void chooseEpisode(EpisodeEntity episode) {
-    episodeId.value = episode.id ?? 0;
+    selectEpisode.value = episode;
   }
 
   /// 获取媒体详情
@@ -120,17 +117,22 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
       final listData = result.responseData?.data;
       seasonList = listData ?? [];
 
-      if (seasonId == 0) {
-        //todo 判断是否有缓存 播放缓存中的季， 没有缓存播放第一季
-        if (mediaHistoryEntity == null) {
-          seasonId = seasonList.first.id ?? 0;
-        } else {
-          // seasonId = mediaHistoryEntity?.seasonId ?? seasonList.first.id ?? 0;
-        }
+      if (tabController == null) {
+        final seasonId = mediaHistoryEntity?.seasonId ?? seasonList.first.id ?? 0;
+        final initialIndex = seasonList.indexWhere((element) => element.id == seasonId);
+        tabController ??= TabController(initialIndex: initialIndex, length: seasonList.length, vsync: this);
       }
+      // if (seasonId == 0) {
+      //   //todo 判断是否有缓存 播放缓存中的季， 没有缓存播放第一季
+      //   if (mediaHistoryEntity == null) {
+      //     seasonId = seasonList.first.id ?? 0;
+      //   } else {
+      //     seasonId = mediaHistoryEntity?.seasonId ?? 0;
+      //   }
+      // }
 
-      final initialIndex = seasonList.indexWhere((element) => element.id == seasonId);
-      tabController ??= TabController(initialIndex: initialIndex, length: seasonList.length, vsync: this);
+      // final initialIndex = seasonList.indexWhere((element) => element.id == seasonId);
+      // tabController ??= TabController(initialIndex: initialIndex, length: seasonList.length, vsync: this);
     } else {
       commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
     }

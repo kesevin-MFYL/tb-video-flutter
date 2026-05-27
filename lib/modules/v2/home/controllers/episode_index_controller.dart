@@ -44,7 +44,7 @@ class EpisodeIndexController extends BaseController {
       /// 没有缓存 默认第一季第一集
       final initialIndex = mediaDetailController.seasonList.indexWhere((element) => element.id == seasonEntity.id);
       if (mediaDetailController.mediaHistoryEntity == null && initialIndex == 0 && episodeList.isNotEmpty) {
-        mediaDetailController.episodeId.value = episodeList.first.id ?? 0;
+        mediaDetailController.selectEpisode.value = episodeList.first;
       }
 
       multiStatusType = episodeList.isEmpty ? MultiStatusType.statusEmpty : MultiStatusType.statusContent;

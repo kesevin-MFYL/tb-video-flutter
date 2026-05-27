@@ -1,6 +1,7 @@
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/config/log/logger_config.dart';
 import 'package:editvideo/firebase_options.dart';
+import 'package:editvideo/manager/switch_manager.dart';
 import 'package:editvideo/utils/storage.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -41,6 +42,8 @@ class AppManager {
     await Storage.init();
     // 配置加载框
     _configLoading();
+
+    SwitchManager.instance.initialize();
   }
 
   void _configLoading() {

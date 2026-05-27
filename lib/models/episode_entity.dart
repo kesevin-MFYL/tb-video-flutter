@@ -57,4 +57,13 @@ class EpisodeEntity extends BaseEntity {
     data['storage_timestamp'] = storageTimestamp;
     return data;
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is EpisodeEntity && other.id == id;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
 }

@@ -6,6 +6,7 @@ import 'package:editvideo/config/network/api/common_api.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
 import 'package:editvideo/manager/remote_config_manager.dart';
 import 'package:editvideo/utils/extension.dart';
+import 'package:editvideo/utils/storage.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:get/get.dart';
 
@@ -19,15 +20,25 @@ class SwitchManager {
   // 是否可以跳转B页面
   var canToB = false.obs;
 
+  void initialize() {
+    canToB.value = Storage.getCanToB() ?? false;
+  }
+
   /// 执行页面跳转相关的前置逻辑。
   /// 此方法主要用于触发 Firebase Remote Config 的拉取和解析过程。
   Future<void> excutePage() async {
+    if (canToB.value) return;
+
     await Future.wait([
       _getCloak(),
       _getFirebaseRemoteConfig(),
     ]).then((List<bool> result) {
       // 共同判断 canToB 的值，只有黑名单允许且 RemoteConfig 允许，才可跳转B页面
       canToB.value = result[0] && result[1];
+
+      if (canToB.value) {
+        Storage.setCanToB(canToB.value);
+      }
       commonDebugPrint("SwitchManager final canToB: $canToB (cloakAllow: ${result[0]}, remoteAllow: ${result[1]})");
     });
   }

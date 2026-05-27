@@ -5,6 +5,7 @@ import 'package:get_storage/get_storage.dart';
 
 class Storage {
   static const _kFirstOpen = '_first_open_key';
+  static const _kCanToB = '_can_to_b_key';
   static const _kSavedMemories = '_saved_memories_key';
   static const _kDraftMemories = '_draft_memories_key';
   static const _kAdRulesConfig = '_ad_rules_config_key';
@@ -27,6 +28,14 @@ class Storage {
 
   static bool? getFirstOpen() {
     return _getStorage!.read<bool?>(_kFirstOpen);
+  }
+
+  static Future<void> setCanToB(bool? canToB) async {
+    return _getStorage!.write(_kCanToB, canToB);
+  }
+
+  static bool? getCanToB() {
+    return _getStorage!.read<bool?>(_kCanToB);
   }
 
   // === 搜索历史 ===

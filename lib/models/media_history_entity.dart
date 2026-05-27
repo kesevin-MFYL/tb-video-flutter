@@ -8,6 +8,9 @@ class MediaHistoryEntity extends BaseEntity {
   int? viewTime;
   int? totalDuration;
   int? currentDuration;
+  int? seasonId;
+  int? episodeId;
+  int? epsNum;
 
   MediaHistoryEntity({
     this.id,
@@ -17,6 +20,9 @@ class MediaHistoryEntity extends BaseEntity {
     this.viewTime,
     this.totalDuration,
     this.currentDuration,
+    this.seasonId,
+    this.episodeId,
+    this.epsNum,
   });
 
   @override
@@ -38,6 +44,15 @@ class MediaHistoryEntity extends BaseEntity {
     if (json['current_duration'] != null) {
       currentDuration = int.tryParse(json['current_duration'].toString());
     }
+    if (json['seasonId'] != null) {
+      seasonId = int.tryParse(json['seasonId'].toString());
+    }
+    if (json['episodeId'] != null) {
+      episodeId = int.tryParse(json['episodeId'].toString());
+    }
+    if (json['epsNum'] != null) {
+      epsNum = int.tryParse(json['epsNum'].toString());
+    }
   }
 
   @override
@@ -50,6 +65,9 @@ class MediaHistoryEntity extends BaseEntity {
     data['view_time'] = viewTime;
     data['total_duration'] = totalDuration;
     data['current_duration'] = currentDuration;
+    data['seasonId'] = seasonId;
+    data['episodeId'] = episodeId;
+    data['epsNum'] = epsNum;
     return data;
   }
 
