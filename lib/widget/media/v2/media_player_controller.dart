@@ -46,8 +46,8 @@ class MediaPlayerController {
   var openRecord = true;
 
   /// 控制面板相关
-  /// 显示控制面板
-  final showControls = true.obs;
+  /// 显示控制面板 默认关闭
+  final showControls = false.obs;
 
   /// 锁定控制面板
   final controlsLock = false.obs;
@@ -310,14 +310,11 @@ class MediaPlayerController {
   /// 切换播放状态
   void togglePlay() async {
     if (mediaPlayerStatus.playing) {
-      await mediaPlayer?.pause();
-      mediaPlayerStatus.status.value = MediaPlayerStatusType.paused;
+      pause();
       showControls.value = true;
       _cancelHideTimer();
     } else {
-      await mediaPlayer?.play();
-      mediaPlayerStatus.status.value = MediaPlayerStatusType.playing;
-      _startHideTimer();
+      play(repeat: mediaPlayerStatus.completed ? true : false);
     }
   }
 
@@ -328,7 +325,6 @@ class MediaPlayerController {
       await seekTo(Duration.zero);
     }
     await mediaPlayer?.play();
-    mediaPlayerStatus.status.value = MediaPlayerStatusType.playing;
     // 播放时延迟3s隐藏控制栏
     _startHideTimer();
   }
@@ -336,7 +332,6 @@ class MediaPlayerController {
   /// 暂停播放
   Future<void> pause({bool isInterrupt = false}) async {
     await mediaPlayer?.pause();
-    mediaPlayerStatus.status.value = MediaPlayerStatusType.paused;
   }
 
   /// 跳转至指定位置

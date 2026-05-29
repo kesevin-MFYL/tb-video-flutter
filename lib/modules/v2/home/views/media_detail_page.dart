@@ -101,6 +101,7 @@ class MediaDetailPage extends GetView<MediaDetailController> {
                 // key: ValueKey(_.videoFit.value),
                 controller: controller.mediaPlayerController.videoController!,
                 controls: NoVideoControls,
+                fill: CommonColors.color333333,
                 resumeUponEnteringForegroundMode: true,
                 subtitleViewConfiguration: const SubtitleViewConfiguration(
                   style: TextStyle(
@@ -116,6 +117,7 @@ class MediaDetailPage extends GetView<MediaDetailController> {
                 ),
               );
             } else {
+              ///todo
               //加载失败,重试按钮
               centrolWidget = CommonText.instance('错误', 15.sp);
             }

@@ -4,6 +4,7 @@ import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/utils/common_ui.dart';
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/utils/text_extension.dart';
+import 'package:editvideo/widget/media/utils/string_utils.dart';
 import 'package:editvideo/widget/media/v2/media_player_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -39,6 +40,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
   Timer? _volumeTimer;
 
   late double tempSpeed;
+  Duration? tempSliderPosition;
 
   @override
   void initState() {
@@ -125,19 +127,15 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
             mediaPlayerController.toggleControls();
           },
           onDoubleTap: () {
-            // 锁定时🔒禁用
-            if (mediaPlayerController.controlsLock.value) {
-              return;
-            }
+            // 缓存中或锁定时🔒禁用
+            if (mediaPlayerController.isBuffering.value || mediaPlayerController.controlsLock.value) return;
 
             // 双击切换播放状态
             mediaPlayerController.togglePlay();
           },
           onLongPress: () {
-            // 锁定时🔒禁用
-            if (mediaPlayerController.controlsLock.value) {
-              return;
-            }
+            // 缓存中或锁定时🔒禁用
+            if (mediaPlayerController.isBuffering.value || mediaPlayerController.controlsLock.value) return;
 
             mediaPlayerController.longPressStatus.value = true;
             tempSpeed = mediaPlayerController.defaultSpeed;
@@ -145,33 +143,33 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
             mediaPlayerController.setPlaybackSpeed(tempSpeed * 2);
           },
           onLongPressEnd: (details) {
-            // 锁定时🔒禁用
-            if (mediaPlayerController.controlsLock.value) {
-              return;
-            }
+            // 缓存中或锁定时🔒禁用
+            if (mediaPlayerController.isBuffering.value || mediaPlayerController.controlsLock.value) return;
 
             mediaPlayerController.longPressStatus.value = false;
             //长按结束时恢复本来的速度
             mediaPlayerController.setPlaybackSpeed(tempSpeed);
           },
+          onHorizontalDragStart: (details) {
+            // 缓存中或锁定时🔒禁用
+            if (mediaPlayerController.isBuffering.value || mediaPlayerController.controlsLock.value) return;
+
+            tempSliderPosition = mediaPlayerController.currentPosition.value;
+          },
           onHorizontalDragUpdate: (details) {
-            // 锁定时🔒禁用
-            if (mediaPlayerController.controlsLock.value) {
-              return;
-            }
+            // 缓存中或锁定时🔒禁用
+            if (mediaPlayerController.isBuffering.value || mediaPlayerController.controlsLock.value) return;
 
             final int curSliderPosition = mediaPlayerController.sliderPosition.value.inMilliseconds;
             final double scale = 90000 / MediaQuery.sizeOf(context).width;
             final Duration pos = Duration(milliseconds: curSliderPosition + (details.delta.dx * scale).round());
             final Duration result = pos.clamp(Duration.zero, mediaPlayerController.totalDuration.value);
-            mediaPlayerController.isSliderMoving.value = true;
             mediaPlayerController.sliderPosition.value = result;
+            mediaPlayerController.isSliderMoving.value = true;
           },
           onHorizontalDragEnd: (details) {
-            // 锁定时🔒禁用
-            if (mediaPlayerController.controlsLock.value) {
-              return;
-            }
+            // 缓存中或锁定时🔒禁用
+            if (mediaPlayerController.isBuffering.value || mediaPlayerController.controlsLock.value) return;
 
             mediaPlayerController.isSliderMoving.value = false;
             mediaPlayerController.seekTo(mediaPlayerController.sliderPosition.value, isHorizontalMove: true);
@@ -362,6 +360,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
           );
         }),
 
+        /// 数据加载错误或缓存中
         Obx(() {
           if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController.isBuffering.value) {
             return Center(child: loadingIndicator(size: 30, strokeWidth: 2));
@@ -373,6 +372,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
         // 长按倍速提示
         _buildDoubleSpeedTips(),
 
+        // 时间进度条提示
         _buildTimeProgressTips(),
 
         /// 音量🔊 控制条展示
@@ -380,7 +380,6 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
 
         /// 亮度🌞 控制条展示
         _buildControlTips(_brightnessPopShow, _brightnessValue, Assets.commonIconVideoBrightness),
-
       ],
     );
   }
@@ -394,18 +393,20 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
           curve: Curves.easeInOut,
           opacity: mediaPlayerController.longPressStatus.value ? 1.0 : 0.0,
           duration: const Duration(milliseconds: 150),
-          child: Container(
-            height: 40,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              color: CommonColors.black.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CommonText.instance('2.0X >>', 14.sp, fontWeight: CommonFontWeight.medium),
-              ],
+          child: IgnorePointer(
+            ignoring: !mediaPlayerController.longPressStatus.value,
+            child: Container(
+              height: 40,
+              margin: EdgeInsets.only(top: mediaPlayerController.isFullScreen.value ? 24.0 : 6.0),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: CommonColors.black.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [CommonText.instance('2.0X >>', 14.sp, fontWeight: CommonFontWeight.medium)],
+              ),
             ),
           ),
         ),
@@ -413,49 +414,67 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
     );
   }
 
+  /// 时间进度条提示
   Widget _buildTimeProgressTips() {
-    return Obx(
-          () => Align(
-        alignment: Alignment.topCenter,
-        child: FractionalTranslation(
-          translation: const Offset(0.0, 1.0), // 上下偏移量（负数向上偏移）
-          child: AnimatedOpacity(
-            curve: Curves.easeInOut,
-            opacity: mediaPlayerController.isSliderMoving.value ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 150),
-            child: IntrinsicWidth(
-              child: Container(
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: const Color(0x88000000),
-                  borderRadius: BorderRadius.circular(64.0),
-                ),
-                height: 34.0,
-                padding: const EdgeInsets.only(left: 10, right: 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Obx(() {
-                      return  mediaPlayerController.sliderPosition.value.inMinutes >= 60
-                          ? SizedBox()
-                          : SizedBox();
-                    }),
-                    const SizedBox(width: 2),
-                    const Text('/'),
-                    const SizedBox(width: 2),
-                    Obx(
-                          () => mediaPlayerController.totalDuration.value.inMinutes >= 60
-                              ?SizedBox()
-                              : SizedBox(),
+    return Obx(() {
+      final sliderDuration = mediaPlayerController.sliderPosition.value;
+      final totalDur = mediaPlayerController.totalDuration.value;
+      final isForward = sliderDuration >= (tempSliderPosition ?? sliderDuration);
+
+      return Align(
+        alignment: Alignment.center,
+        child: AnimatedOpacity(
+          curve: Curves.easeInOut,
+          opacity: mediaPlayerController.isSliderMoving.value ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 150),
+          child: IgnorePointer(
+            ignoring: !mediaPlayerController.isSliderMoving.value,
+            child: Container(
+              height: 40,
+              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+              decoration: BoxDecoration(
+                color: CommonColors.black.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    Assets.commonIconVideoSlideArrowLeft,
+                    width: 16,
+                    height: 16,
+                    color: isForward ? null : CommonColors.primaryColor,
+                  ),
+                  const SizedBox(width: 8.0),
+                  CommonText.instance(
+                    StringUtils.formatVideoDuration(sliderDuration),
+                    14.sp,
+                    fontWeight: CommonFontWeight.medium,
+                    color: isForward ? CommonColors.white : CommonColors.primaryColor,
+                  ),
+                  CommonText.instance(
+                    '/${StringUtils.formatVideoDuration(totalDur)}',
+                    14.sp,
+                    fontWeight: CommonFontWeight.medium,
+                    color: isForward ? CommonColors.primaryColor : CommonColors.white,
+                  ),
+                  const SizedBox(width: 8.0),
+                  RotatedBox(
+                    quarterTurns: 2,
+                    child: Image.asset(
+                      Assets.commonIconVideoSlideArrowLeft,
+                      width: 16,
+                      height: 16,
+                      color: isForward ? CommonColors.primaryColor : null,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   /// 控制条展示 (音量/亮度)
@@ -467,55 +486,59 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
           curve: Curves.easeInOut,
           opacity: popShow.value ? 1.0 : 0.0,
           duration: const Duration(milliseconds: 150),
-          child: Container(
-            height: 40,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: CommonColors.black.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Image.asset(asset, width: 24, height: 24),
-                SizedBox(width: 8),
-                SizedBox(
-                  width: 150.0,
-                  height: 10.0,
-                  child: Stack(
-                    alignment: Alignment.centerLeft,
-                    children: [
-                      // Inactive track
-                      Container(
-                        width: 150.0,
-                        height: 4.0,
-                        decoration: BoxDecoration(
-                          color: CommonColors.white.withOpacity(0.4),
-                          borderRadius: BorderRadius.circular(2.0),
+          child: IgnorePointer(
+            ignoring: !popShow.value,
+            child: Container(
+              height: 40,
+              margin: EdgeInsets.only(top: mediaPlayerController.isFullScreen.value ? 24.0 : 6.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: CommonColors.black.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Image.asset(asset, width: 24, height: 24),
+                  SizedBox(width: 8),
+                  SizedBox(
+                    width: 150.0,
+                    height: 10.0,
+                    child: Stack(
+                      alignment: Alignment.centerLeft,
+                      children: [
+                        // Inactive track
+                        Container(
+                          width: 150.0,
+                          height: 4.0,
+                          decoration: BoxDecoration(
+                            color: CommonColors.white.withOpacity(0.4),
+                            borderRadius: BorderRadius.circular(2.0),
+                          ),
                         ),
-                      ),
-                      // Active track
-                      Container(
-                        width: 150.0 * value.value,
-                        height: 4.0,
-                        decoration: BoxDecoration(
-                          color: CommonColors.colorDB88E6,
-                          borderRadius: BorderRadius.circular(2.0),
+                        // Active track
+                        Container(
+                          width: 150.0 * value.value,
+                          height: 4.0,
+                          decoration: BoxDecoration(
+                            color: CommonColors.colorDB88E6,
+                            borderRadius: BorderRadius.circular(2.0),
+                          ),
                         ),
-                      ),
-                      // Thumb
-                      Positioned(
-                        left: (150.0 - 10.0) * value.value,
-                        child: Container(
-                          width: 10.0,
-                          height: 10.0,
-                          decoration: const BoxDecoration(color: CommonColors.primaryColor, shape: BoxShape.circle),
+                        // Thumb
+                        Positioned(
+                          left: (150.0 - 10.0) * value.value,
+                          child: Container(
+                            width: 10.0,
+                            height: 10.0,
+                            decoration: const BoxDecoration(color: CommonColors.primaryColor, shape: BoxShape.circle),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

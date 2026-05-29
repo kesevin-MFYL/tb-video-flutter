@@ -198,7 +198,6 @@ class SearchController extends BaseController {
     searchHistoryList.clear();
   }
 
-  //todo 跳转播放页面
   void toMediaDetail(MediaItemEntity mediaItemEntity) {
     Get.toNamed(Routes.mediaDetailPage, arguments: {'mediaId': mediaItemEntity.id, 'mediaType': mediaItemEntity.type});
   }
