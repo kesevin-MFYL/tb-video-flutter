@@ -11,12 +11,14 @@ import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/button/common_button.dart';
 import 'package:editvideo/widget/image/common_image_view.dart';
+import 'package:editvideo/widget/media/v2/media_player_control_panel.dart';
 import 'package:editvideo/widget/page_base.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:editvideo/widget/tabbar/common_tab_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:media_kit_video/media_kit_video.dart';
 
 /// 影片详情
 class MediaDetailPage extends GetView<MediaDetailController> {
@@ -36,42 +38,41 @@ class MediaDetailPage extends GetView<MediaDetailController> {
         return Stack(
           children: [
             PageBase(
-              isTransparentAppBar: true,
-              actions: _actionView(),
+              hasAppBar: false,
               child: MultiStatusView(
                 currentStatus: controller.multiStatusType,
                 action: () {
                   controller.reload();
                 },
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: safeAreaEdgeInsets.top),
+                child: SafeArea(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildMediaPlayer(),
 
-                    Container(height: 212.w, color: Colors.orangeAccent),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: EdgeInsets.symmetric(vertical: 8.w),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // 主要信息
+                              _buildBasicInfo(),
 
-                    Expanded(
-                      child: SingleChildScrollView(
-                        padding: EdgeInsets.symmetric(vertical: 8.w),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // 主要信息
-                            _buildBasicInfo(),
+                              // 电视剧剧集
+                              _buildTvSeasons(),
 
-                            // 电视剧剧集
-                            _buildTvSeasons(),
+                              // 其他信息
+                              _buildOtherInfo(),
 
-                            // 其他信息
-                            _buildOtherInfo(),
-
-                            // 相关推荐
-                            ..._buildRecommend(),
-                          ],
+                              // 相关推荐
+                              ..._buildRecommend(),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -82,6 +83,55 @@ class MediaDetailPage extends GetView<MediaDetailController> {
           ],
         );
       },
+    );
+  }
+
+  /// 播放器面板
+  Widget _buildMediaPlayer() {
+    return Container(
+      color: CommonColors.color333333,
+      height: controller.videoHeight,
+      child: FutureBuilder(
+        future: controller.initMediaPlayer(),
+        builder: (BuildContext context, AsyncSnapshot snapshot) {
+          late Widget centrolWidget;
+          if (snapshot.connectionState == ConnectionState.done) {
+            if (snapshot.hasData && snapshot.data == true) {
+              centrolWidget = Video(
+                // key: ValueKey(_.videoFit.value),
+                controller: controller.mediaPlayerController.videoController!,
+                controls: NoVideoControls,
+                resumeUponEnteringForegroundMode: true,
+                subtitleViewConfiguration: const SubtitleViewConfiguration(
+                  style: TextStyle(
+                    height: 1.5,
+                    fontSize: 40.0,
+                    letterSpacing: 0.0,
+                    wordSpacing: 0.0,
+                    color: Color(0xffffffff),
+                    fontWeight: FontWeight.normal,
+                    backgroundColor: Color(0xaa000000),
+                  ),
+                  padding: EdgeInsets.all(24.0),
+                ),
+              );
+            } else {
+              //加载失败,重试按钮
+              centrolWidget = CommonText.instance('错误', 15.sp);
+            }
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                Center(child: centrolWidget),
+                // Center(child: danmaku),
+                Center(child: MediaPlayerControlPanel(controller.mediaPlayerController)),
+              ],
+            );
+          } else {
+            return Center(child: loadingIndicator(size: 30.w, strokeWidth: 2));
+          }
+        },
+      ),
     );
   }
 
@@ -504,16 +554,6 @@ class MediaDetailPage extends GetView<MediaDetailController> {
         color: CommonColors.white.withOpacity(0.8),
         fontWeight: CommonFontWeight.medium,
       ),
-    );
-  }
-
-  _actionView() {
-    return CommonButton(
-      minSize: 0,
-      borderRadius: BorderRadius.zero,
-      padding: EdgeInsets.zero,
-      onPressed: () {},
-      child: Image.asset(Assets.commonIconDanmuControlOpen, width: 24.w, height: 24.w),
     );
   }
 }

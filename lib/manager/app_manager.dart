@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:media_kit/media_kit.dart';
 
 class AppManager {
   static final instance = AppManager._();
@@ -35,6 +36,8 @@ class AppManager {
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
       return true;
     };
+
+    MediaKit.ensureInitialized();
 
     // 配置日志
     LoggerConfig.instantiate();

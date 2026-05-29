@@ -9,6 +9,8 @@ import 'package:editvideo/models/media_history_entity.dart';
 import 'package:editvideo/models/season_entity.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/utils/common_values.dart';
+import 'package:editvideo/widget/media/v2/media_player_controller.dart';
+import 'package:editvideo/widget/media/v2/model/media_data_source.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -44,7 +46,11 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
   /// 是否显示剧集底部弹窗
   var showBottomSeasons = false.obs;
 
-  double get bottomHeight => Get.height - safeAreaEdgeInsets.top - 212.w;
+  double get bottomHeight => Get.height - safeAreaEdgeInsets.top - videoHeight;
+
+  double get videoHeight => Get.width * 9 / 16;
+
+  MediaPlayerController mediaPlayerController = MediaPlayerController();
 
   void reload() {
     multiStatusType = MultiStatusType.statusLoading;
@@ -172,6 +178,26 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
     // Storage.addViewedMedia(historyEntity);
     //
     // EventBusManager.instance.post(EventBusName.historyRefresh);
+  }
+
+
+  Future<bool> initMediaPlayer() async {
+    try {
+      await mediaPlayerController.setDataSource(
+        MediaDataSource(
+          videoSource: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8'/*mediaDetailEntity?.video ?? ''*/,
+          type: MediaDataSourceType.network,
+        ),
+        // autoPlay: ,
+        // openRecord: ,
+        // initVideoPosition: ,
+      );
+
+      return true;
+    } catch (e) {
+      commonDebugPrint(e);
+    }
+    return false;
   }
 
   @override
