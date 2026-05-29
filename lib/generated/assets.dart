@@ -66,14 +66,17 @@ class Assets {
   static const String commonIconBottomClose = 'assets/images/common/icon_bottom_close.png';
   static const String commonIconHistoryEdit = 'assets/images/common/icon_history_edit.png';
   static const String commonIconSubTitleBg = 'assets/images/common/icon_sub_title_bg.png';
+  static const String commonIconVideoRewind = 'assets/images/common/icon_video_rewind.png';
   static const String commonIconVideoVolume = 'assets/images/common/icon_video_volume.png';
   static const String commonMediaPlaceholder = 'assets/images/common/media_placeholder.png';
   static const String commonIconHistoryTitle = 'assets/images/common/icon_history_title.png';
   static const String commonIconSettingTitle = 'assets/images/common/icon_setting_title.png';
   static const String commonIconTabIndicator = 'assets/images/common/icon_tab_indicator.png';
+  static const String commonIconVideoForward = 'assets/images/common/icon_video_forward.png';
   static const String commonVideoDeleteWhite = 'assets/images/common/video_delete_white.png';
   static const String commonIconDeleteHistory = 'assets/images/common/icon_delete_history.png';
   static const String commonIconUserAgreement = 'assets/images/common/icon_user_agreement.png';
+  static const String commonIconVideoBrightness = 'assets/images/common/icon_video_brightness.png';
   static const String commonIconFilterArrowDown = 'assets/images/common/icon_filter_arrow_down.png';
   static const String commonIconVideoArrowRight = 'assets/images/common/icon_video_arrow_right.png';
   static const String commonIconDanmuControlOpen = 'assets/images/common/icon_danmu_control_open.png';

@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/utils/common_ui.dart';
+import 'package:editvideo/config/color/colors.dart';
+import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/media/v2/media_player_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -362,7 +364,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
 
         Obx(() {
           if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController.isBuffering.value) {
-            return Center(child: loadingIndicator(size: 30.w, strokeWidth: 2));
+            return Center(child: loadingIndicator(size: 30, strokeWidth: 2));
           } else {
             return const SizedBox();
           }
@@ -371,347 +373,14 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
         // 长按倍速提示
         _buildDoubleSpeedTips(),
 
+        _buildTimeProgressTips(),
+
         /// 音量🔊 控制条展示
-        _buildVolumnTips(),
+        _buildControlTips(_volumePopShow, _volumeValue, Assets.commonIconVideoVolume),
 
         /// 亮度🌞 控制条展示
-        _buildBrightnessTips(),
+        _buildControlTips(_brightnessPopShow, _brightnessValue, Assets.commonIconVideoBrightness),
 
-        //面板层
-        // Visibility(
-        //   visible: mediaPlayerController._controlPanelShow,
-        //   child: SafeArea(
-        //     top: false,
-        //     bottom: false,
-        //     child: Column(
-        //       children: [
-        //         //上面板(返回,菜单...)
-        //         Container(
-        //           decoration: panelDecoration,
-        //           child: Row(
-        //             children: [
-        //               //返回按钮
-        //               const BackButton(color: Colors.white),
-        //               //主页面按钮
-        //               IconButton(
-        //                 onPressed: () {
-        //                   //回到主页面
-        //                   Navigator.popUntil(context, (route) => route.isFirst);
-        //                 },
-        //                 icon: const Icon(Icons.home_outlined, color: Colors.white),
-        //               ),
-        //               const Spacer(),
-        //               // PopupMenuButton(
-        //               //   icon: const Icon(Icons.more_vert_rounded, color: iconColor),
-        //               //   itemBuilder: (context) {
-        //               //     return <PopupMenuEntry<String>>[
-        //               //       PopupMenuItem(
-        //               //         padding: EdgeInsets.zero,
-        //               //         value: "弹幕",
-        //               //         child: Row(
-        //               //           children: [
-        //               //             const Padding(
-        //               //               padding: EdgeInsets.all(12),
-        //               //               child: Icon(Icons.format_list_bulleted, size: 24),
-        //               //             ),
-        //               //             const Text("弹幕"),
-        //               //             const Spacer(),
-        //               //             StatefulBuilder(
-        //               //               key: danmakuCheckBoxKey,
-        //               //               builder: (context, setState) {
-        //               //                 return Checkbox(
-        //               //                   value:
-        //               //                       widget
-        //               //                           .controller
-        //               //                           .biliVideoPlayerController
-        //               //                           .biliDanmakuController
-        //               //                           ?.isDanmakuOpened ??
-        //               //                       false,
-        //               //                   onChanged: (value) {
-        //               //                     if (value != null) {
-        //               //                       toggleDanmaku();
-        //               //                     }
-        //               //                   },
-        //               //                 );
-        //               //               },
-        //               //             ),
-        //               //           ],
-        //               //         ),
-        //               //       ),
-        //               //       const PopupMenuItem(
-        //               //         padding: EdgeInsets.zero,
-        //               //         value: "播放速度",
-        //               //         child: Row(
-        //               //           children: [
-        //               //             Padding(padding: EdgeInsets.all(12), child: Icon(Icons.speed_rounded, size: 24)),
-        //               //             Text("播放速度"),
-        //               //           ],
-        //               //         ),
-        //               //       ),
-        //               //       PopupMenuItem(
-        //               //         value: "画质",
-        //               //         child: Text(
-        //               //           "画质: ${mediaPlayerController._biliVideoPlayerController.videoPlayItem!.quality.description ?? "未知"}",
-        //               //         ),
-        //               //       ),
-        //               //       PopupMenuItem(
-        //               //         value: "音质",
-        //               //         child: Text(
-        //               //           "音质: ${mediaPlayerController._biliVideoPlayerController.audioPlayItem!.quality.description ?? "未知"}",
-        //               //         ),
-        //               //       ),
-        //               //       const PopupMenuItem(value: "弹幕字体大小", child: Text("弹幕字体大小")),
-        //               //       const PopupMenuItem(value: "弹幕不透明度", child: Text("弹幕不透明度")),
-        //               //       const PopupMenuItem(value: "弹幕速度", child: Text("弹幕速度")),
-        //               //     ];
-        //               //   },
-        //               //   onSelected: (value) {
-        //               //     switch (value) {
-        //               //       case "弹幕":
-        //               //         toggleDanmaku();
-        //               //         break;
-        //               //       case "播放速度":
-        //               //         showDialog(
-        //               //           context: context,
-        //               //           builder: (context) => SliderDialog(
-        //               //             title: "播放速度",
-        //               //             initValue: mediaPlayerController._biliVideoPlayerController.speed,
-        //               //             min: 0.25,
-        //               //             max: 4.00,
-        //               //             divisions: 15,
-        //               //             onOk: (value) {
-        //               //               mediaPlayerController._biliVideoPlayerController.setPlayBackSpeed(value);
-        //               //             },
-        //               //             buildLabel: (selectingValue) => "${selectingValue}X",
-        //               //           ),
-        //               //         );
-        //               //
-        //               //         break;
-        //               //       case "画质":
-        //               //         showDialog(
-        //               //           context: context,
-        //               //           builder: (context) {
-        //               //             return AlertDialog(
-        //               //               scrollable: true,
-        //               //               title: const Text("选择画质"),
-        //               //               actions: [
-        //               //                 TextButton(
-        //               //                   onPressed: () {
-        //               //                     Navigator.of(context).pop();
-        //               //                   },
-        //               //                   child: Text("取消", style: TextStyle(color: Theme.of(context).hintColor)),
-        //               //                 ),
-        //               //               ],
-        //               //               content: Column(children: buildVideoQualityTiles()),
-        //               //             );
-        //               //           },
-        //               //         );
-        //               //         break;
-        //               //       case "音质":
-        //               //         showDialog(
-        //               //           context: context,
-        //               //           builder: (context) {
-        //               //             return AlertDialog(
-        //               //               scrollable: true,
-        //               //               title: const Text("选择音质"),
-        //               //               actions: [
-        //               //                 TextButton(
-        //               //                   onPressed: () {
-        //               //                     Navigator.of(context).pop();
-        //               //                   },
-        //               //                   child: Text("取消", style: TextStyle(color: Theme.of(context).hintColor)),
-        //               //                 ),
-        //               //               ],
-        //               //               content: Column(children: buildAudioQualityTiles()),
-        //               //             );
-        //               //           },
-        //               //         );
-        //               //         break;
-        //               //       case '弹幕字体大小':
-        //               //         showDialog(
-        //               //           context: context,
-        //               //           builder: (context) => SliderDialog(
-        //               //             title: '弹幕字体大小',
-        //               //             initValue:
-        //               //                 mediaPlayerController._biliVideoPlayerController.biliDanmakuController!.fontScale,
-        //               //             showCancelButton: false,
-        //               //             min: 0.25,
-        //               //             max: 4,
-        //               //             divisions: 100,
-        //               //             buildLabel: (selectingValue) => "${selectingValue.toStringAsFixed(2)}X",
-        //               //             onChanged: (selectingValue) {
-        //               //               mediaPlayerController._biliVideoPlayerController.biliDanmakuController!.fontScale =
-        //               //                   selectingValue;
-        //               //               if (SettingsUtil.getValue(
-        //               //                 SettingsStorageKeys.rememberDanmakuSettings,
-        //               //                 defaultValue: true,
-        //               //               )) {
-        //               //                 SettingsUtil.setValue(SettingsStorageKeys.defaultDanmakuScale, selectingValue);
-        //               //               }
-        //               //             },
-        //               //           ),
-        //               //         );
-        //               //         break;
-        //               //       case '弹幕不透明度':
-        //               //         showDialog(
-        //               //           context: context,
-        //               //           builder: (context) => SliderDialog(
-        //               //             title: '弹幕不透明度',
-        //               //             initValue:
-        //               //                 mediaPlayerController._biliVideoPlayerController.biliDanmakuController!.fontOpacity,
-        //               //             showCancelButton: false,
-        //               //             min: 0.01,
-        //               //             max: 1.0,
-        //               //             divisions: 100,
-        //               //             buildLabel: (selectingValue) => "${(selectingValue * 100).toStringAsFixed(0)}%",
-        //               //             onChanged: (selectingValue) {
-        //               //               mediaPlayerController._biliVideoPlayerController.biliDanmakuController!.fontOpacity =
-        //               //                   selectingValue;
-        //               //               if (SettingsUtil.getValue(
-        //               //                 SettingsStorageKeys.rememberDanmakuSettings,
-        //               //                 defaultValue: true,
-        //               //               )) {
-        //               //                 SettingsUtil.setValue(SettingsStorageKeys.defaultDanmakuOpacity, selectingValue);
-        //               //               }
-        //               //             },
-        //               //           ),
-        //               //         );
-        //               //         break;
-        //               //       case '弹幕速度':
-        //               //         showDialog(
-        //               //           context: context,
-        //               //           builder: (context) => SliderDialog(
-        //               //             title: '弹幕速度',
-        //               //             initValue: mediaPlayerController._biliVideoPlayerController.biliDanmakuController!.speed,
-        //               //             showCancelButton: false,
-        //               //             min: 0.25,
-        //               //             max: 4,
-        //               //             divisions: 15,
-        //               //             buildLabel: (selectingValue) => "${selectingValue}X",
-        //               //             onChanged: (selectingValue) {
-        //               //               mediaPlayerController._biliVideoPlayerController.biliDanmakuController!.speed =
-        //               //                   selectingValue;
-        //               //               if (SettingsUtil.getValue(
-        //               //                 SettingsStorageKeys.rememberDanmakuSettings,
-        //               //                 defaultValue: true,
-        //               //               )) {
-        //               //                 SettingsUtil.setValue(SettingsStorageKeys.defaultDanmakuSpeed, selectingValue);
-        //               //               }
-        //               //             },
-        //               //           ),
-        //               //         );
-        //               //         break;
-        //               //       default:
-        //               //         log(value);
-        //               //     }
-        //               //   },
-        //               // ),
-        //             ],
-        //           ),
-        //         ),
-        //         //中间留空
-        //         const Spacer(),
-        //         //下面板(播放按钮,进度条...)
-        //         Container(
-        //           decoration: panelDecoration,
-        //           child: Row(
-        //             children: [
-        //               StatefulBuilder(
-        //                 key: playButtonKey,
-        //                 builder: (context, setState) {
-        //                   late final IconData iconData;
-        //                   if (mediaPlayerController._isPlayerEnd) {
-        //                     iconData = Icons.refresh_rounded;
-        //                   } else if (mediaPlayerController._isPlayerPlaying) {
-        //                     iconData = Icons.pause_rounded;
-        //                   } else {
-        //                     iconData = Icons.play_arrow_rounded;
-        //                   }
-        //                   return //播放按钮
-        //                   IconButton(
-        //                     color: iconColor,
-        //                     onPressed: () async {
-        //                       if (mediaPlayerController.mediaPlayerController.isPlaying) {
-        //                         await mediaPlayerController.mediaPlayerController.pause();
-        //                       } else {
-        //                         if (mediaPlayerController.mediaPlayerController.hasError) {
-        //                           //如果是出错状态, 重新加载
-        //                           await mediaPlayerController.mediaPlayerController.reloadWidget();
-        //                         } else {
-        //                           //不是出错状态, 就继续播放
-        //                           await mediaPlayerController.mediaPlayerController.play();
-        //                         }
-        //                       }
-        //                       mediaPlayerController._isPlayerPlaying = !mediaPlayerController._isPlayerPlaying;
-        //                       setState(() {});
-        //                     },
-        //                     icon: Icon(iconData),
-        //                   );
-        //                 },
-        //               ),
-        //               //进度条
-        //               Expanded(
-        //                 child: StatefulBuilder(
-        //                   key: sliderKey,
-        //                   builder: (context, setState) {
-        //                     return Slider(
-        //                       min: 0,
-        //                       max: mediaPlayerController.mediaPlayerController.totalDuration.inMilliseconds.toDouble(),
-        //                       value: clampDouble(
-        //                         mediaPlayerController._currentPosition.inMilliseconds.toDouble(),
-        //                         0,
-        //                         mediaPlayerController.mediaPlayerController.totalDuration.inMilliseconds.toDouble(),
-        //                       ),
-        //                       secondaryTrackValue: clampDouble(
-        //                         mediaPlayerController._fartherestBuffed.inMilliseconds.toDouble(),
-        //                         0,
-        //                         mediaPlayerController.mediaPlayerController.totalDuration.inMilliseconds.toDouble(),
-        //                       ),
-        //                       onChanged: (value) {
-        //                         if (mediaPlayerController._isSliderDraging) {
-        //                           mediaPlayerController._currentPosition = Duration(milliseconds: value.toInt());
-        //                         }
-        //                       },
-        //                       onChangeStart: (value) {
-        //                         mediaPlayerController._isSliderDraging = true;
-        //                       },
-        //                       onChangeEnd: (value) {
-        //                         if (mediaPlayerController._isSliderDraging) {
-        //                           mediaPlayerController.mediaPlayerController.seekTo(
-        //                             Duration(milliseconds: value.toInt()),
-        //                           );
-        //                           mediaPlayerController._isSliderDraging = false;
-        //                         }
-        //                       },
-        //                     );
-        //                   },
-        //                 ),
-        //               ),
-        //               //时长
-        //               StatefulBuilder(
-        //                 key: durationTextKey,
-        //                 builder: (context, setState) {
-        //                   return Text(
-        //                     "${StringFormatUtils.timeLengthFormat(mediaPlayerController._currentPosition.inSeconds)}/${StringFormatUtils.timeLengthFormat(mediaPlayerController.mediaPlayerController.totalDuration.inSeconds)}",
-        //                     style: const TextStyle(color: textColor),
-        //                   );
-        //                 },
-        //               ),
-        //               // 全屏按钮
-        //               IconButton(
-        //                 onPressed: () {
-        //                   // log("full:${mediaPlayerController.isFullScreen}");
-        //                   toggleFullScreen();
-        //                 },
-        //                 icon: const Icon(Icons.fullscreen_rounded, color: iconColor),
-        //               ),
-        //             ],
-        //           ),
-        //         ),
-        //       ],
-        //     ),
-        //   ),
-        // ),
       ],
     );
   }
@@ -721,19 +390,66 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
     return Obx(
       () => Align(
         alignment: Alignment.topCenter,
+        child: AnimatedOpacity(
+          curve: Curves.easeInOut,
+          opacity: mediaPlayerController.longPressStatus.value ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 150),
+          child: Container(
+            height: 40,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: CommonColors.black.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CommonText.instance('2.0X >>', 14.sp, fontWeight: CommonFontWeight.medium),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimeProgressTips() {
+    return Obx(
+          () => Align(
+        alignment: Alignment.topCenter,
         child: FractionalTranslation(
-          translation: const Offset(0.0, 0.3), // 上下偏移量（负数向上偏移）
+          translation: const Offset(0.0, 1.0), // 上下偏移量（负数向上偏移）
           child: AnimatedOpacity(
             curve: Curves.easeInOut,
-            opacity: mediaPlayerController.longPressStatus.value ? 1.0 : 0.0,
+            opacity: mediaPlayerController.isSliderMoving.value ? 1.0 : 0.0,
             duration: const Duration(milliseconds: 150),
-            child: Container(
-              alignment: Alignment.center,
-              decoration: BoxDecoration(color: const Color(0x88000000), borderRadius: BorderRadius.circular(16.0)),
-              height: 32.0,
-              width: 70.0,
-              child: const Center(
-                child: Text('倍速中', style: TextStyle(color: Colors.white, fontSize: 13)),
+            child: IntrinsicWidth(
+              child: Container(
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: const Color(0x88000000),
+                  borderRadius: BorderRadius.circular(64.0),
+                ),
+                height: 34.0,
+                padding: const EdgeInsets.only(left: 10, right: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Obx(() {
+                      return  mediaPlayerController.sliderPosition.value.inMinutes >= 60
+                          ? SizedBox()
+                          : SizedBox();
+                    }),
+                    const SizedBox(width: 2),
+                    const Text('/'),
+                    const SizedBox(width: 2),
+                    Obx(
+                          () => mediaPlayerController.totalDuration.value.inMinutes >= 60
+                              ?SizedBox()
+                              : SizedBox(),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -742,68 +458,64 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
     );
   }
 
-  /// 音量提示
-  Widget _buildVolumnTips() {
+  /// 控制条展示 (音量/亮度)
+  Widget _buildControlTips(RxBool popShow, RxDouble value, String asset) {
     return Obx(() {
       return Align(
         alignment: Alignment.center,
         child: AnimatedOpacity(
           curve: Curves.easeInOut,
-          opacity: _volumePopShow.value ? 1.0 : 0.0,
+          opacity: popShow.value ? 1.0 : 0.0,
           duration: const Duration(milliseconds: 150),
-          child: IntrinsicWidth(
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(10, 2, 10, 2),
-              decoration: BoxDecoration(color: const Color(0x88000000), borderRadius: BorderRadius.circular(64.0)),
-              height: 34.0,
-              child: Row(
-                children: <Widget>[
-                  Icon(Icons.volume_mute, size: 18.0),
-                  const SizedBox(width: 4.0),
-                  Container(
-                    constraints: const BoxConstraints(minWidth: 30.0),
-                    child: Text(
-                      '${(_volumeValue.value * 100.0).round()}%',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 13.0, color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
+          child: Container(
+            height: 40,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: CommonColors.black.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(16),
             ),
-          ),
-        ),
-      );
-    });
-  }
-
-  /// 亮度提示
-  Widget _buildBrightnessTips() {
-    return Obx(() {
-      return Align(
-        child: AnimatedOpacity(
-          curve: Curves.easeInOut,
-          opacity: _brightnessPopShow.value ? 1.0 : 0.0,
-          duration: const Duration(milliseconds: 150),
-          child: IntrinsicWidth(
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(10, 2, 10, 2),
-              decoration: BoxDecoration(color: const Color(0x88000000), borderRadius: BorderRadius.circular(64.0)),
-              height: 34.0,
-              child: Row(
-                children: <Widget>[
-                  Icon(Icons.brightness_1_sharp, size: 18.0),
-                  const SizedBox(width: 4.0),
-                  Container(
-                    constraints: const BoxConstraints(minWidth: 30.0),
-                    child: Text(
-                      '${(_brightnessValue.value * 100.0).round()}%',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 13.0, color: Colors.white),
-                    ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Image.asset(asset, width: 24, height: 24),
+                SizedBox(width: 8),
+                SizedBox(
+                  width: 150.0,
+                  height: 10.0,
+                  child: Stack(
+                    alignment: Alignment.centerLeft,
+                    children: [
+                      // Inactive track
+                      Container(
+                        width: 150.0,
+                        height: 4.0,
+                        decoration: BoxDecoration(
+                          color: CommonColors.white.withOpacity(0.4),
+                          borderRadius: BorderRadius.circular(2.0),
+                        ),
+                      ),
+                      // Active track
+                      Container(
+                        width: 150.0 * value.value,
+                        height: 4.0,
+                        decoration: BoxDecoration(
+                          color: CommonColors.colorDB88E6,
+                          borderRadius: BorderRadius.circular(2.0),
+                        ),
+                      ),
+                      // Thumb
+                      Positioned(
+                        left: (150.0 - 10.0) * value.value,
+                        child: Container(
+                          width: 10.0,
+                          height: 10.0,
+                          decoration: const BoxDecoration(color: CommonColors.primaryColor, shape: BoxShape.circle),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
