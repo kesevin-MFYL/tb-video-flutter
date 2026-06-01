@@ -11,7 +11,9 @@ import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/button/common_button.dart';
 import 'package:editvideo/widget/image/common_image_view.dart';
+import 'package:editvideo/widget/media/utils/fullscreen.dart';
 import 'package:editvideo/widget/media/v2/media_player_control_panel.dart';
+import 'package:editvideo/widget/media/v2/model/media_player_status.dart';
 import 'package:editvideo/widget/page_base.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:editvideo/widget/tabbar/common_tab_bar.dart';
@@ -21,19 +23,54 @@ import 'package:get/get.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
 /// 影片详情
-class MediaDetailPage extends GetView<MediaDetailController> {
+class MediaDetailPage extends StatefulWidget {
   const MediaDetailPage({super.key, required this.mediaId});
 
   final int mediaId;
 
+  static final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
+
   @override
-  String? get tag => '$mediaId';
+  State<MediaDetailPage> createState() => _MediaDetailPageState();
+}
+
+class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, WidgetsBindingObserver {
+  late MediaDetailController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    controller = Get.put(MediaDetailController(), tag: '${widget.mediaId}');
+
+    lifecycleListener();
+    initPlayerStatusListener();
+  }
+
+  void initPlayerStatusListener() {
+    controller.mediaPlayerController.addStatusLister(playerListener);
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (controller.mediaPlayerController.isFullScreen.value) {
+      return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) {
+            // _toggleFullScreen();
+          }
+        },
+        child: Scaffold(
+          backgroundColor: CommonColors.color333333,
+          body: SizedBox.expand(child: _buildMediaPlayer()),
+        ),
+      );
+    }
+
     return GetBuilder<MediaDetailController>(
-      init: MediaDetailController(),
-      tag: '$mediaId',
+      tag: '${widget.mediaId}',
       builder: (controller) {
         return Stack(
           children: [
@@ -48,7 +85,11 @@ class MediaDetailPage extends GetView<MediaDetailController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildMediaPlayer(),
+                      Container(
+                        color: CommonColors.color333333,
+                        height: controller.videoHeight,
+                        child: _buildMediaPlayer(),
+                      ),
 
                       Expanded(
                         child: SingleChildScrollView(
@@ -88,52 +129,54 @@ class MediaDetailPage extends GetView<MediaDetailController> {
 
   /// 播放器面板
   Widget _buildMediaPlayer() {
-    return Container(
-      color: CommonColors.color333333,
-      height: controller.videoHeight,
-      child: FutureBuilder(
-        future: controller.initMediaPlayer(),
-        builder: (BuildContext context, AsyncSnapshot snapshot) {
-          late Widget centrolWidget;
-          if (snapshot.connectionState == ConnectionState.done) {
-            if (snapshot.hasData && snapshot.data == true) {
-              centrolWidget = Video(
-                // key: ValueKey(_.videoFit.value),
-                controller: controller.mediaPlayerController.videoController!,
-                controls: NoVideoControls,
-                fill: CommonColors.color333333,
-                resumeUponEnteringForegroundMode: true,
-                subtitleViewConfiguration: const SubtitleViewConfiguration(
-                  style: TextStyle(
-                    height: 1.5,
-                    fontSize: 40.0,
-                    letterSpacing: 0.0,
-                    wordSpacing: 0.0,
-                    color: Color(0xffffffff),
-                    fontWeight: FontWeight.normal,
-                    backgroundColor: Color(0xaa000000),
-                  ),
-                  padding: EdgeInsets.all(24.0),
+    return FutureBuilder(
+      future: controller.initMediaPlayer(),
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        late Widget centrolWidget;
+        if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.hasData && snapshot.data == true) {
+            centrolWidget = Video(
+              // key: ValueKey(_.videoFit.value),
+              controller: controller.mediaPlayerController.videoController!,
+              controls: NoVideoControls,
+              fill: CommonColors.color333333,
+              resumeUponEnteringForegroundMode: true,
+              subtitleViewConfiguration: const SubtitleViewConfiguration(
+                style: TextStyle(
+                  height: 1.5,
+                  fontSize: 40.0,
+                  letterSpacing: 0.0,
+                  wordSpacing: 0.0,
+                  color: Color(0xffffffff),
+                  fontWeight: FontWeight.normal,
+                  backgroundColor: Color(0xaa000000),
                 ),
-              );
-            } else {
-              ///todo
-              //加载失败,重试按钮
-              centrolWidget = CommonText.instance('错误', 15.sp);
-            }
-            return Stack(
-              fit: StackFit.expand,
-              children: [
-                Center(child: centrolWidget),
-                // Center(child: danmaku),
-                Center(child: MediaPlayerControlPanel(controller.mediaPlayerController)),
-              ],
+                padding: EdgeInsets.all(24.0),
+              ),
             );
           } else {
-            return Center(child: loadingIndicator(size: 30.w, strokeWidth: 2));
+            ///todo
+            //加载失败,重试按钮
+            centrolWidget = CommonText.instance('错误', 15.sp);
           }
-        },
-      ),
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              Center(child: centrolWidget),
+              // Center(child: danmaku),
+              Center(
+                child: MediaPlayerControlPanel(
+                  controller.mediaPlayerController,
+                  onToggleFullScreen: (isFullscreen) {
+                  },
+                ),
+              ),
+            ],
+          );
+        } else {
+          return Center(child: loadingIndicator(size: 30.w, strokeWidth: 2));
+        }
+      },
     );
   }
 
@@ -557,5 +600,64 @@ class MediaDetailPage extends GetView<MediaDetailController> {
         fontWeight: CommonFontWeight.medium,
       ),
     );
+  }
+
+  // 播放器状态监听
+  void playerListener(MediaPlayerStatusType status) async {
+    if (status == MediaPlayerStatusType.completed) {
+      // 结束播放退出全屏
+      if (!controller.mediaPlayerController.controlsLock.value) {
+        controller.mediaPlayerController.triggerFullScreen(status: false);
+      }
+
+      /// 顺序播放 列表循环
+      // if (vdCtr.videoType == SearchType.video) {
+      //   videoIntroController.nextPlay();
+      // }
+    }
+  }
+
+  @override
+  // 离开当前页面时
+  void didPushNext() async {
+    /// 开启
+    controller.mediaPlayerController.removeStatusLister(playerListener);
+    controller.mediaPlayerController.pause();
+    // controller.mediaPlayerController.clearSubtitleContent();
+    super.didPushNext();
+  }
+
+  @override
+  // 返回当前页面时
+  void didPopNext() async {
+    // if (plPlayerController != null && plPlayerController!.videoPlayerController != null) {
+    //   vdCtr.setSubtitleContent();
+    //   isShowing.value = true;
+    // }
+    await Future.delayed(const Duration(milliseconds: 300));
+    controller.mediaPlayerController.addStatusLister(playerListener);
+    controller.mediaPlayerController.play();
+    super.didPopNext();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    MediaDetailPage.routeObserver.subscribe(this, ModalRoute.of(context)! as PageRoute);
+  }
+
+  // 生命周期监听
+  void lifecycleListener() {
+    // _lifecycleListener = AppLifecycleListener(
+    //   // onResume: () => _handleTransition('resume'),
+    //   // 后台
+    //   // onInactive: () => _handleTransition('inactive'),
+    //   // 在Android和iOS端不生效
+    //   // onHide: () => _handleTransition('hide'),
+    //   onShow: () => _handleTransition('show'),
+    //   onPause: () => _handleTransition('pause'),
+    //   onRestart: () => _handleTransition('restart'),
+    //   onDetach: () => _handleTransition('detach'),
+    // );
   }
 }

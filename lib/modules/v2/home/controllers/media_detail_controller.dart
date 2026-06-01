@@ -201,6 +201,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
 
   @override
   void onClose() {
+    mediaPlayerController.dispose();
     tabController?.dispose();
     super.onClose();
   }

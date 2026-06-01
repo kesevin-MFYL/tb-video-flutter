@@ -16,9 +16,10 @@ import 'package:screen_brightness/screen_brightness.dart';
 
 /// 播放器控制面板
 class MediaPlayerControlPanel extends StatefulWidget {
-  const MediaPlayerControlPanel(this.controller, {super.key});
+  const MediaPlayerControlPanel(this.controller, {super.key, required this.onToggleFullScreen});
 
   final MediaPlayerController controller;
+  final ValueChanged<bool> onToggleFullScreen;
 
   @override
   State<MediaPlayerControlPanel> createState() => _MediaPlayerControlPanelState();
@@ -228,7 +229,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
               child: Stack(
                 children: [
                   // 锁
-                  if (isFullScreen)
+                  if (isFullScreen && isLocked)
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Padding(
@@ -450,7 +451,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
                             GestureDetector(
                               onTap: () {
                                 mediaPlayerController.triggerFullScreen(status: !isFullScreen);
-                                // widget.fullScreenCb?.call(!_.isFullScreen.value);
+                                widget.onToggleFullScreen.call(mediaPlayerController.isFullScreen.value);
                               },
                               child: Image.asset(
                                 isFullScreen ? Assets.commonIconPortrait : Assets.commonIconLandscape,

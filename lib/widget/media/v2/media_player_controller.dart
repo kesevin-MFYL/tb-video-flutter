@@ -598,4 +598,27 @@ class MediaPlayerController {
   void removeStatusLister(Function(MediaPlayerStatusType status) listener) {
     _statusChangedListeners.remove(listener);
   }
+
+  Future<void> dispose() async {
+    playerCount.value = 0;
+    try {
+      _hideTimer?.cancel();
+      _rewindTimer?.cancel();
+      _forwardTimer?.cancel();
+
+      /// 缓存本次弹幕选项
+      // cacheDanmakuOption();
+      if (mediaPlayer != null) {
+        var pp = mediaPlayer!.platform as NativePlayer;
+        await pp.setProperty('audio-files', '');
+        removeListeners();
+        await mediaPlayer?.dispose();
+        mediaPlayer = null;
+      }
+      // 关闭所有视频页面恢复亮度
+      // resetBrightness();
+    } catch (err) {
+      print(err);
+    }
+  }
 }
