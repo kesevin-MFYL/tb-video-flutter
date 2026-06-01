@@ -5,9 +5,11 @@ import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/utils/common_ui.dart';
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/utils/text_extension.dart';
+import 'package:editvideo/widget/media/utils/fullscreen.dart';
 import 'package:editvideo/widget/media/utils/string_utils.dart';
 import 'package:editvideo/widget/media/v2/media_player_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:get/get.dart';
@@ -229,7 +231,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
               child: Stack(
                 children: [
                   // 锁
-                  if (isFullScreen && isLocked)
+                  if (isFullScreen)
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Padding(
@@ -245,8 +247,9 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
                           ),
                         ),
                       ),
-                    )
-                  else ...[
+                    ),
+
+                  if (!isLocked) ...[
                     // 顶部操作栏
                     Positioned(
                       top: 0,
@@ -262,7 +265,11 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
                             GestureDetector(
                               onTap: () {
                                 if (isFullScreen) {
+                                  mediaPlayerController.triggerFullScreen(status: false);
                                 } else {
+                                  if (MediaQuery.of(context).orientation == Orientation.landscape) {
+                                    verticalScreen();
+                                  }
                                   Get.back();
                                 }
                               },
@@ -551,11 +558,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Image.asset(
-                    mediaPlayerController.fastAssets,
-                    width: 16,
-                    height: 16,
-                  ),
+                  Image.asset(mediaPlayerController.fastAssets, width: 16, height: 16),
 
                   SizedBox(width: 8),
 

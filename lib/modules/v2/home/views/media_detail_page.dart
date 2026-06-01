@@ -3,6 +3,7 @@ import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/modules/v2/home/controllers/media_detail_controller.dart';
 import 'package:editvideo/modules/v2/home/widget/episode_index_view.dart';
+import 'package:editvideo/modules/v2/home/widget/media_player_view.dart';
 import 'package:editvideo/modules/v2/home/widget/media_scroller_view.dart';
 import 'package:editvideo/modules/v2/home/widget/tab_page_view.dart';
 import 'package:editvideo/utils/common_ui.dart';
@@ -12,7 +13,6 @@ import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/button/common_button.dart';
 import 'package:editvideo/widget/image/common_image_view.dart';
 import 'package:editvideo/widget/media/utils/fullscreen.dart';
-import 'package:editvideo/widget/media/v2/media_player_control_panel.dart';
 import 'package:editvideo/widget/media/v2/model/media_player_status.dart';
 import 'package:editvideo/widget/page_base.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
@@ -20,7 +20,6 @@ import 'package:editvideo/widget/tabbar/common_tab_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:media_kit_video/media_kit_video.dart';
 
 /// 影片详情
 class MediaDetailPage extends StatefulWidget {
@@ -36,6 +35,7 @@ class MediaDetailPage extends StatefulWidget {
 
 class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, WidgetsBindingObserver {
   late MediaDetailController controller;
+  late Future<bool> _mediaPlayerFuture;
 
   @override
   void initState() {
@@ -43,6 +43,7 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
     WidgetsBinding.instance.addObserver(this);
 
     controller = Get.put(MediaDetailController(), tag: '${widget.mediaId}');
+    _mediaPlayerFuture = controller.initMediaPlayer();
 
     lifecycleListener();
     initPlayerStatusListener();
@@ -54,128 +55,89 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
 
   @override
   Widget build(BuildContext context) {
-    if (controller.mediaPlayerController.isFullScreen.value) {
-      return PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (didPop, _) {
-          if (!didPop) {
-            // _toggleFullScreen();
-          }
-        },
-        child: Scaffold(
-          backgroundColor: CommonColors.color333333,
-          body: SizedBox.expand(child: _buildMediaPlayer()),
-        ),
-      );
-    }
-
     return GetBuilder<MediaDetailController>(
       tag: '${widget.mediaId}',
       builder: (controller) {
-        return Stack(
-          children: [
-            PageBase(
-              hasAppBar: false,
-              child: MultiStatusView(
-                currentStatus: controller.multiStatusType,
-                action: () {
-                  controller.reload();
-                },
-                child: SafeArea(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        color: CommonColors.color333333,
-                        height: controller.videoHeight,
-                        child: _buildMediaPlayer(),
+        return Obx(() {
+          final isFullscreen = controller.mediaPlayerController.isFullScreen.value;
+          return isFullscreen
+              ? PopScope(
+                  canPop: false,
+                  onPopInvokedWithResult: (didPop, _) {
+                    if (!didPop) {
+                      controller.mediaPlayerController.triggerFullScreen(status: false);
+                      if (MediaQuery.of(context).orientation == Orientation.landscape) {
+                        verticalScreen();
+                      }
+                    }
+                  },
+                  child: Scaffold(
+                    backgroundColor: CommonColors.color333333,
+                    body: SizedBox.expand(
+                      child: MediaPlayerView(
+                        key: ValueKey(controller.mediaId),
+                        controller: controller,
+                        mediaPlayerFuture: _mediaPlayerFuture,
                       ),
-
-                      Expanded(
-                        child: SingleChildScrollView(
-                          padding: EdgeInsets.symmetric(vertical: 8.w),
+                    ),
+                  ),
+                )
+              : Stack(
+                  children: [
+                    PageBase(
+                      hasAppBar: false,
+                      child: MultiStatusView(
+                        currentStatus: controller.multiStatusType,
+                        action: () {
+                          controller.reload();
+                        },
+                        child: SafeArea(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // 主要信息
-                              _buildBasicInfo(),
+                              Container(
+                                color: CommonColors.color333333,
+                                height: controller.videoHeight,
+                                child: MediaPlayerView(
+                                  key: ValueKey(controller.mediaId),
+                                  controller: controller,
+                                  mediaPlayerFuture: _mediaPlayerFuture,
+                                ),
+                              ),
 
-                              // 电视剧剧集
-                              _buildTvSeasons(),
+                              Expanded(
+                                child: SingleChildScrollView(
+                                  padding: EdgeInsets.symmetric(vertical: 8.w),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      // 主要信息
+                                      _buildBasicInfo(),
 
-                              // 其他信息
-                              _buildOtherInfo(),
+                                      // 电视剧剧集
+                                      _buildTvSeasons(),
 
-                              // 相关推荐
-                              ..._buildRecommend(),
+                                      // 其他信息
+                                      _buildOtherInfo(),
+
+                                      // 相关推荐
+                                      ..._buildRecommend(),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+                    ),
 
-            Positioned(left: 0, right: 0, bottom: 0, child: _buildBottomOtherInfo()),
+                    Positioned(left: 0, right: 0, bottom: 0, child: _buildBottomOtherInfo()),
 
-            Positioned(left: 0, right: 0, bottom: 0, child: _buildBottomTvSeasons()),
-          ],
-        );
-      },
-    );
-  }
-
-  /// 播放器面板
-  Widget _buildMediaPlayer() {
-    return FutureBuilder(
-      future: controller.initMediaPlayer(),
-      builder: (BuildContext context, AsyncSnapshot snapshot) {
-        late Widget centrolWidget;
-        if (snapshot.connectionState == ConnectionState.done) {
-          if (snapshot.hasData && snapshot.data == true) {
-            centrolWidget = Video(
-              // key: ValueKey(_.videoFit.value),
-              controller: controller.mediaPlayerController.videoController!,
-              controls: NoVideoControls,
-              fill: CommonColors.color333333,
-              resumeUponEnteringForegroundMode: true,
-              subtitleViewConfiguration: const SubtitleViewConfiguration(
-                style: TextStyle(
-                  height: 1.5,
-                  fontSize: 40.0,
-                  letterSpacing: 0.0,
-                  wordSpacing: 0.0,
-                  color: Color(0xffffffff),
-                  fontWeight: FontWeight.normal,
-                  backgroundColor: Color(0xaa000000),
-                ),
-                padding: EdgeInsets.all(24.0),
-              ),
-            );
-          } else {
-            ///todo
-            //加载失败,重试按钮
-            centrolWidget = CommonText.instance('错误', 15.sp);
-          }
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              Center(child: centrolWidget),
-              // Center(child: danmaku),
-              Center(
-                child: MediaPlayerControlPanel(
-                  controller.mediaPlayerController,
-                  onToggleFullScreen: (isFullscreen) {
-                  },
-                ),
-              ),
-            ],
-          );
-        } else {
-          return Center(child: loadingIndicator(size: 30.w, strokeWidth: 2));
-        }
+                    Positioned(left: 0, right: 0, bottom: 0, child: _buildBottomTvSeasons()),
+                  ],
+                );
+        });
       },
     );
   }
