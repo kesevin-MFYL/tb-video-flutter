@@ -81,9 +81,14 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
                     body: SizedBox.expand(
                       child: MediaPlayerView(
                         key: ValueKey(controller.mediaId),
-                        controller: controller,
+                        mediaId: controller.mediaId,
+                        mediaPlayerController: controller.mediaPlayerController,
                         mediaPlayerFuture: _mediaPlayerFuture,
-                        onReload: controller.initMediaPlayer,
+                        onReload: () {
+                          setState(() {
+                            _mediaPlayerFuture = controller.initMediaPlayer();
+                          });
+                        },
                       ),
                     ),
                   ),
@@ -106,9 +111,14 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
                                 height: controller.videoHeight,
                                 child: MediaPlayerView(
                                   key: ValueKey(controller.mediaId),
-                                  controller: controller,
+                                  mediaId: controller.mediaId,
+                                  mediaPlayerController: controller.mediaPlayerController,
                                   mediaPlayerFuture: _mediaPlayerFuture,
-                                  onReload: controller.initMediaPlayer,
+                                  onReload: () {
+                                    setState(() {
+                                      _mediaPlayerFuture = controller.initMediaPlayer();
+                                    });
+                                  },
                                 ),
                               ),
 
