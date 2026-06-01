@@ -152,8 +152,18 @@ class _HistoryMediaCellState extends State<HistoryMediaCell> with SingleTickerPr
                                   height: 16.w,
                                 ),
 
-                                /// 剩余时间观看时间
-                                if (widget.mediaHistoryEntity.remainingTimeText.isNotEmpty) ...[
+                                if (widget.mediaHistoryEntity.isTv)
+                                  Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 4.w),
+                                    child: CommonText.instance(
+                                      '${widget.mediaHistoryEntity.season?.title ?? ''}: Episode${widget.mediaHistoryEntity.episode?.epsNum ?? 0}',
+                                      10.sp,
+                                      color: CommonColors.white.withOpacity(0.8),
+                                      fontWeight: CommonFontWeight.medium,
+                                    ),
+                                  )
+                                else if (widget.mediaHistoryEntity.remainingTimeText.isNotEmpty)
+                                  // 剩余时间观看时间
                                   Padding(
                                     padding: EdgeInsets.symmetric(horizontal: 4.w),
                                     child: CommonText.instance(
@@ -163,7 +173,6 @@ class _HistoryMediaCellState extends State<HistoryMediaCell> with SingleTickerPr
                                       fontWeight: CommonFontWeight.medium,
                                     ),
                                   ),
-                                ],
                               ],
                             ),
                           ),

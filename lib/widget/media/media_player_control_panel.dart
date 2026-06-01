@@ -7,6 +7,7 @@ import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/button/common_button.dart';
 import 'package:editvideo/widget/media/media_player_controller.dart';
+import 'package:editvideo/widget/media/model/media_data_source.dart';
 import 'package:editvideo/widget/media/utils/fullscreen.dart';
 import 'package:editvideo/widget/media/utils/string_utils.dart';
 import 'package:flutter/material.dart';
@@ -286,6 +287,8 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
           final sliderPosition = mediaPlayerController.sliderPosition.value;
           final bufferedDuration = mediaPlayerController.bufferedDuration.value;
           final isLocked = mediaPlayerController.controlsLock.value;
+          final mediaTitle = mediaPlayerController.mediaTitle.value;
+          final videoType = mediaPlayerController.videoType.value;
 
           return AnimatedOpacity(
             opacity: showControls ? 1.0 : 0.0,
@@ -341,13 +344,11 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
                             ),
 
                             if (isFullScreen)
-                              ///todo 添加标题
                               Expanded(
                                 child: Padding(
                                   padding: EdgeInsets.only(left: 8, right: 24),
                                   child: CommonText.instance(
-                                    /*widget.title ?? */
-                                    '哈哈哈哈哈哈哈',
+                                    mediaTitle,
                                     16,
                                     fontWeight: CommonFontWeight.bold,
                                     maxLines: 1,
@@ -358,19 +359,20 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
                             else
                               Spacer(),
 
-                            if (isFullScreen /*&& 是否是tv*/ )
-                              ///todo 选集
+                            if (isFullScreen && videoType == VideoType.tv)
                               Padding(
                                 padding: EdgeInsets.only(right: 24),
                                 child: GestureDetector(
-                                  onTap: () {},
+                                  onTap: () {
+                                    //todo 选集
+                                  },
                                   child: Image.asset(Assets.commonIconVideoChooseEpisode, width: 24, height: 24),
                                 ),
                               ),
 
                             GestureDetector(
                               onTap: () {
-                                /// 字幕
+                                ///todo 字幕
                               },
                               child: Image.asset(Assets.commonIconDanmuControlOpen, width: 24, height: 24),
                             ),
@@ -442,12 +444,13 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
                               ),
                             ),
 
-                            if (isFullScreen /*&& 是否是tv*/ )
-                              ///todo 下一集
+                            if (isFullScreen && videoType == VideoType.tv)
                               Padding(
                                 padding: EdgeInsets.only(left: 8),
                                 child: GestureDetector(
-                                  onTap: () {},
+                                  onTap: () {
+                                    //todo 下一集
+                                  },
                                   child: Image.asset(Assets.commonIconVideoPlayNext, width: 32, height: 32),
                                 ),
                               ),

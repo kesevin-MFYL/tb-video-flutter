@@ -41,10 +41,13 @@ class EpisodeIndexController extends BaseController {
       final listData = result.responseData?.data;
       episodeList = listData ?? [];
 
-      /// 没有缓存 默认第一季第一集
       final initialIndex = mediaDetailController.seasonList.indexWhere((element) => element.id == seasonEntity.id);
-      if (mediaDetailController.mediaHistoryEntity == null && initialIndex == 0 && episodeList.isNotEmpty) {
-        mediaDetailController.selectEpisode.value = episodeList.first;
+      if (mediaDetailController.mediaHistoryEntity == null) {
+        // 没有缓存 默认第一季第一集
+        if (initialIndex == 0 && episodeList.isNotEmpty) {
+          mediaDetailController.selectEpisode.value = episodeList.first;
+          mediaDetailController.changeTitle();
+        }
       }
 
       multiStatusType = episodeList.isEmpty ? MultiStatusType.statusEmpty : MultiStatusType.statusContent;

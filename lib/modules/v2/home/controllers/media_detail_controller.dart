@@ -2,6 +2,7 @@ import 'package:editvideo/base/base_controller.dart';
 import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
+import 'package:editvideo/manager/event_manager.dart';
 import 'package:editvideo/models/episode_entity.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/models/media_detail_entity.dart';
@@ -9,6 +10,7 @@ import 'package:editvideo/models/media_history_entity.dart';
 import 'package:editvideo/models/season_entity.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/utils/common_values.dart';
+import 'package:editvideo/utils/storage.dart';
 import 'package:editvideo/widget/media/media_player_controller.dart';
 import 'package:editvideo/widget/media/model/media_data_source.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
@@ -24,6 +26,8 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
   /// 媒体类型
   late int mediaType;
 
+  late VideoType videoType;
+
   /// 缓存记录
   MediaHistoryEntity? mediaHistoryEntity;
 
@@ -35,6 +39,9 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
 
   /// 季列表
   var seasonList = <SeasonEntity>[];
+
+  /// 选中的季
+  final selectSeason = Rx<SeasonEntity?>(null);
 
   /// 选中的集
   final selectEpisode = Rx<EpisodeEntity?>(null);
@@ -62,7 +69,15 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
     if (arguments != null && arguments is Map<String, dynamic>) {
       mediaId = arguments['mediaId'];
       mediaType = arguments['mediaType'];
+
+      videoType = VideoType.instance(mediaType);
     }
+  }
+
+  @override
+  void handRegister() {
+    /// 注册播放器记录事件
+    mediaPlayerController.setRecrodAction(saveMedia);
   }
 
   @override
@@ -73,6 +88,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
   void getDataFromServer() {
     if (mediaId != null) {
       Future.wait([_getMediaDetail(), _getMediaRecommend(), _getTvSeasons()]).then((list) {
+        changeTitle();
         update();
       });
     }
@@ -89,6 +105,9 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
   /// 选择剧集
   void chooseEpisode(EpisodeEntity episode) {
     selectEpisode.value = episode;
+    if (tabController!.index < seasonList.length) {
+      selectSeason.value = seasonList[tabController!.index];
+    }
   }
 
   /// 获取媒体详情
@@ -116,28 +135,30 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
 
   /// 获取所有季
   Future<void> _getTvSeasons() async {
-    if (mediaType != 2) return;
+    if (videoType != VideoType.tv) return;
+
+    // 电视剧获取季
     final result = await HomeApi.getAllSeasons(id: mediaId);
     if (result.isSuccess) {
       final listData = result.responseData?.data;
       seasonList = listData ?? [];
 
       if (tabController == null) {
-        final seasonId = mediaHistoryEntity?.seasonId ?? seasonList.first.id ?? 0;
-        final initialIndex = seasonList.indexWhere((element) => element.id == seasonId);
+        var initialIndex = 0;
+
+        if (mediaHistoryEntity != null) {
+          // 有缓存记录
+          selectSeason.value = mediaHistoryEntity?.season;
+          selectEpisode.value = mediaHistoryEntity?.episode;
+          final seasonId = selectSeason.value?.id ?? 0;
+          initialIndex = seasonList.indexWhere((element) => element.id == seasonId);
+        } else {
+          // 没有历史记录默认第一季
+          selectSeason.value = seasonList.first;
+        }
+
         tabController ??= TabController(initialIndex: initialIndex, length: seasonList.length, vsync: this);
       }
-      // if (seasonId == 0) {
-      //   //todo 判断是否有缓存 播放缓存中的季， 没有缓存播放第一季
-      //   if (mediaHistoryEntity == null) {
-      //     seasonId = seasonList.first.id ?? 0;
-      //   } else {
-      //     seasonId = mediaHistoryEntity?.seasonId ?? 0;
-      //   }
-      // }
-
-      // final initialIndex = seasonList.indexWhere((element) => element.id == seasonId);
-      // tabController ??= TabController(initialIndex: initialIndex, length: seasonList.length, vsync: this);
     } else {
       commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
     }
@@ -164,34 +185,45 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
   }
 
   void saveMedia() {
-    // Save history with new entity
-    // final historyEntity = MediaHistoryEntity(
-    //   id: mediaItemEntity.id,
-    //   title: mediaItemEntity.title,
-    //   cover: mediaItemEntity.cover,
-    //   type: mediaItemEntity.type,
-    //   viewTime: DateTime.now().millisecondsSinceEpoch,
-    //   totalDuration: 0, // Placeholder or set real value if available
-    //   currentDuration: 0, // Placeholder or set real value if available
-    // );
-    // Storage.addViewedMedia(historyEntity);
-    //
-    // EventBusManager.instance.post(EventBusName.historyRefresh);
+    //Save history with new entity
+    final historyEntity = MediaHistoryEntity(
+      id: mediaDetailEntity?.id,
+      title: mediaDetailEntity?.title,
+      cover: mediaDetailEntity?.cover,
+      type: mediaType,
+      viewTime: DateTime.now().millisecondsSinceEpoch,
+      totalDuration: mediaPlayerController.totalDuration.value.inSeconds,
+      currentDuration: mediaPlayerController.currentPosition.value.inSeconds,
+      season: videoType == VideoType.tv ? selectSeason.value : null,
+      episode: videoType == VideoType.tv ? selectEpisode.value : null,
+    );
+    Storage.addViewedMedia(historyEntity);
+
+    EventBusManager.instance.post(EventBusName.historyRefresh);
   }
 
-  bool isFirst = true;
+  /// 改变标题
+  void changeTitle() {
+    mediaPlayerController.changeMediaTitle(
+      videoType == VideoType.video
+          ? mediaDetailEntity?.title ?? ''
+          : '${selectEpisode.value?.epsNum ?? 0} ${mediaDetailEntity?.title ?? ''} ${selectSeason.value?.title ?? ''}',
+    );
+  }
 
   Future<bool> initMediaPlayer() async {
     try {
-      isFirst = false;
       return await mediaPlayerController.setDataSource(
         MediaDataSource(
-          videoSource: isFirst ? '' : mediaDetailEntity?.video ?? '',
+          videoSource: mediaDetailEntity?.video ?? '',
+          videoType: videoType,
           type: MediaDataSourceType.network,
         ),
+        initVideoPosition: mediaHistoryEntity != null && mediaHistoryEntity!.currentDuration != null
+            ? Duration(seconds: mediaHistoryEntity!.currentDuration!)
+            : Duration.zero,
         // autoPlay: ,
         // openRecord: ,
-        // initVideoPosition: ,
       );
     } catch (e) {
       commonDebugPrint(e);

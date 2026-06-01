@@ -1,4 +1,6 @@
 import 'package:editvideo/config/network/model/base_entity.dart';
+import 'package:editvideo/models/season_entity.dart';
+import 'package:editvideo/models/episode_entity.dart';
 
 class MediaHistoryEntity extends BaseEntity {
   int? id;
@@ -8,9 +10,8 @@ class MediaHistoryEntity extends BaseEntity {
   int? viewTime;
   int? totalDuration;
   int? currentDuration;
-  int? seasonId;
-  int? episodeId;
-  int? epsNum;
+  SeasonEntity? season;
+  EpisodeEntity? episode;
 
   MediaHistoryEntity({
     this.id,
@@ -20,9 +21,8 @@ class MediaHistoryEntity extends BaseEntity {
     this.viewTime,
     this.totalDuration,
     this.currentDuration,
-    this.seasonId,
-    this.episodeId,
-    this.epsNum,
+    this.season,
+    this.episode,
   });
 
   @override
@@ -44,14 +44,11 @@ class MediaHistoryEntity extends BaseEntity {
     if (json['current_duration'] != null) {
       currentDuration = int.tryParse(json['current_duration'].toString());
     }
-    if (json['seasonId'] != null) {
-      seasonId = int.tryParse(json['seasonId'].toString());
+    if (json['season'] != null) {
+      season = SeasonEntity.fromJson(json['season']);
     }
-    if (json['episodeId'] != null) {
-      episodeId = int.tryParse(json['episodeId'].toString());
-    }
-    if (json['epsNum'] != null) {
-      epsNum = int.tryParse(json['epsNum'].toString());
+    if (json['episode'] != null) {
+      episode = EpisodeEntity.fromJson(json['episode']);
     }
   }
 
@@ -65,9 +62,12 @@ class MediaHistoryEntity extends BaseEntity {
     data['view_time'] = viewTime;
     data['total_duration'] = totalDuration;
     data['current_duration'] = currentDuration;
-    data['seasonId'] = seasonId;
-    data['episodeId'] = episodeId;
-    data['epsNum'] = epsNum;
+    if (season != null) {
+      data['season'] = season!.toJson();
+    }
+    if (episode != null) {
+      data['episode'] = episode!.toJson();
+    }
     return data;
   }
 

@@ -33,6 +33,11 @@ class MediaPlayerController {
   /// 播放状态
   final MediaPlayerStatus mediaPlayerStatus = MediaPlayerStatus();
 
+  void Function()? recordAction;
+
+  /// 视频类型
+  final videoType = Rx<VideoType>(VideoType.video);
+
   /// 是否自动播放 默认开启
   var autoPlay = true;
 
@@ -54,6 +59,9 @@ class MediaPlayerController {
   /// 控制面板相关
   /// 显示控制面板 默认关闭
   final showControls = false.obs;
+
+  /// 视频标题
+  final mediaTitle = ''.obs;
 
   /// 锁定控制面板
   final controlsLock = false.obs;
@@ -98,6 +106,7 @@ class MediaPlayerController {
 
   /// 快退计时器
   Timer? _rewindTimer;
+
   /// 快进计时器
   Timer? _forwardTimer;
 
@@ -145,11 +154,8 @@ class MediaPlayerController {
   final List<Function()> _positionListeners = [];
 
   // 获取实例 传参
-  MediaPlayerController({String videoType = 'archive'}) {
-    if (videoType != 'none') {
-      playerCount.value += 1;
-      //todo _videoType.value = videoType;
-    }
+  MediaPlayerController() {
+    playerCount.value += 1;
   }
 
   // 初始化资源
@@ -175,6 +181,8 @@ class MediaPlayerController {
     try {
       // 初始化数据加载状态
       mediaDataStatus.status.value = MediaDataStatusType.loading;
+
+      videoType.value = dataSource.videoType;
 
       this.autoPlay = autoPlay;
       this.defaultSpeed = defaultSpeed;
@@ -403,10 +411,7 @@ class MediaPlayerController {
 
     _rewindTimer = Timer(const Duration(milliseconds: 200), () {
       Duration result = mediaPlayer!.state.position - Duration(seconds: fastSeconds);
-      result = result.clamp(
-        Duration.zero,
-        mediaPlayer!.state.duration,
-      );
+      result = result.clamp(Duration.zero, mediaPlayer!.state.duration);
       mediaPlayer!.seek(result);
       mediaPlayer!.play();
 
@@ -427,10 +432,7 @@ class MediaPlayerController {
 
     _forwardTimer = Timer(const Duration(milliseconds: 200), () {
       Duration result = mediaPlayer!.state.position + Duration(seconds: fastSeconds);
-      result = result.clamp(
-        Duration.zero,
-        mediaPlayer!.state.duration,
-      );
+      result = result.clamp(Duration.zero, mediaPlayer!.state.duration);
       mediaPlayer!.seek(result);
       mediaPlayer!.play();
 
@@ -475,6 +477,15 @@ class MediaPlayerController {
     _hideTimer = null;
   }
 
+  void setRecrodAction(void Function()? action) {
+    recordAction = action;
+  }
+
+  /// 改变标题
+  void changeMediaTitle(String title) {
+    mediaTitle.value = title;
+  }
+
   // 记录播放信息
   Future recordPlayerInfo({int progress = 0, bool playStatusChanged = false}) async {
     if (!openRecord) {
@@ -482,11 +493,12 @@ class MediaPlayerController {
     }
     // 播放状态变化时，更新
     if (playStatusChanged) {
-      //todo
+      recordAction?.call();
     } else
     // 正常播放时，间隔5秒更新一次
     if (progress - _lastPositionSeconds >= 5) {
       _lastPositionSeconds = progress;
+      recordAction?.call();
     }
   }
 
@@ -532,8 +544,8 @@ class MediaPlayerController {
         if (event) {
           mediaPlayerStatus.status.value = MediaPlayerStatusType.completed;
 
-          /// 播放完成显示控制栏
-          showControls.value = true;
+          // 播放完成显示控制栏
+          // showControls.value = true;
 
           // 触发回调事件
           _callStateChangeListeners(playerStatus: mediaPlayerStatus.status.value);
@@ -616,7 +628,7 @@ class MediaPlayerController {
       _rewindTimer?.cancel();
       _forwardTimer?.cancel();
 
-      /// 缓存本次弹幕选项
+      // 缓存本次弹幕选项
       // cacheDanmakuOption();
       if (mediaPlayer != null) {
         var pp = mediaPlayer!.platform as NativePlayer;

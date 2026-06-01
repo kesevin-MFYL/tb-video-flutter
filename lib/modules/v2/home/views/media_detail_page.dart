@@ -12,6 +12,7 @@ import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/button/common_button.dart';
 import 'package:editvideo/widget/image/common_image_view.dart';
+import 'package:editvideo/widget/media/model/media_data_source.dart';
 import 'package:editvideo/widget/media/model/media_player_status.dart';
 import 'package:editvideo/widget/media/utils/fullscreen.dart';
 import 'package:editvideo/widget/page_base.dart';
@@ -170,14 +171,16 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
           Row(
             children: [
               Expanded(
-                child: CommonText.instance(
-                  controller.mediaDetailEntity?.title ?? '',
-                  16.sp,
-                  color: isBottomSheet ? CommonColors.white.withOpacity(0.8) : CommonColors.white,
-                  fontWeight: CommonFontWeight.bold,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                child: Obx(() {
+                  return CommonText.instance(
+                    controller.mediaPlayerController.mediaTitle.value,
+                    16.sp,
+                    color: isBottomSheet ? CommonColors.white.withOpacity(0.8) : CommonColors.white,
+                    fontWeight: CommonFontWeight.bold,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  );
+                }),
               ),
               if (isBottomSheet)
                 CommonButton(
@@ -359,7 +362,7 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
 
   /// 剧集信息
   Widget _buildTvSeasons() {
-    if (controller.mediaType != 2) return const SizedBox();
+    if (controller.videoType != VideoType.tv) return const SizedBox();
     return Padding(
       padding: EdgeInsetsGeometry.symmetric(vertical: 16.w),
       child: Column(
@@ -424,7 +427,7 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
 
   /// 剧集底部弹窗
   Widget _buildBottomTvSeasons() {
-    if (controller.mediaType != 2) return const SizedBox();
+    if (controller.videoType != VideoType.tv) return const SizedBox();
     return Obx(() {
       final showBottomSeasons = controller.showBottomSeasons.value;
       return IgnorePointer(
