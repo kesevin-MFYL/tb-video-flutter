@@ -1,5 +1,3 @@
-import 'package:get/get_utils/src/extensions/export.dart';
-
 class StringUtils {
 
   static String formatVideoDuration(Duration duration) {

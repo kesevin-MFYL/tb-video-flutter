@@ -1,4 +1,8 @@
+import 'dart:math';
+
 import 'package:editvideo/config/log/logger.dart';
+import 'package:editvideo/generated/assets.dart';
+import 'package:editvideo/widget/media/utils/fullscreen.dart';
 import 'package:editvideo/widget/media/v2/model/media_data_source.dart';
 import 'package:editvideo/widget/media/v2/model/media_data_status.dart';
 import 'package:editvideo/widget/media/v2/model/media_player_status.dart';
@@ -8,8 +12,9 @@ import 'dart:io';
 
 import 'package:get/get.dart';
 import 'package:media_kit_video/media_kit_video.dart';
+import 'package:media_kit_video/media_kit_video_controls/src/controls/extensions/duration.dart';
 import 'package:ns_danmaku/ns_danmaku.dart';
-import 'package:universal_platform/universal_platform.dart';
+import 'package:status_bar_control_plus/status_bar_control_plus.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 class MediaPlayerController {
@@ -33,11 +38,11 @@ class MediaPlayerController {
   /// 默认播放速度
   var defaultSpeed = 1.0;
 
+  /// 快进秒数
+  var fastSeconds = 15;
+
   /// 播放模式 默认不循环
   var looping = PlaylistMode.none;
-
-  /// 播放器方向
-  var direction = 'horizontal'.obs;
 
   /// 是否自动熄屏
   var autoWakelock = true;
@@ -62,10 +67,19 @@ class MediaPlayerController {
   final isBuffering = false.obs;
 
   /// 缓存进度
-  final _bufferedDuration = Rx<Duration>(Duration.zero);
+  final bufferedDuration = Rx<Duration>(Duration.zero);
 
   /// 是否长按中
   final longPressStatus = false.obs;
+
+  /// 快退
+  final fastRewindStatus = false.obs;
+
+  /// 快进
+  final fastForwardStatus = false.obs;
+
+  var fastAssets = '';
+  var fastTips = '';
 
   /// 是否正在滑动进度条
   final isSliderMoving = false.obs;
@@ -81,6 +95,14 @@ class MediaPlayerController {
   /// 隐藏操作栏计时器
   Timer? _hideTimer;
 
+  /// 快退计时器
+  Timer? _rewindTimer;
+  /// 快进计时器
+  Timer? _forwardTimer;
+
+  /// 上一次的播放时间
+  int _lastPositionSeconds = 0;
+
   ///todo 字幕开关 默认关闭
   var openSubTitles = false.obs;
 
@@ -89,7 +111,7 @@ class MediaPlayerController {
   var subTitleContent = ''.obs;
 
   ///todo 弹幕开关
-  Rx<bool> isOpenDanmu = false.obs;
+  final isOpenDanmu = false.obs;
 
   ///todo 关联弹幕控制器
   DanmakuController? danmakuController;
@@ -121,9 +143,6 @@ class MediaPlayerController {
   /// 播放进度监听集合
   final List<Function()> _positionListeners = [];
 
-  /// 上一次的播放时间
-  int _lastPositionSeconds = 0;
-
   // 获取实例 传参
   MediaPlayerController({String videoType = 'archive'}) {
     if (videoType != 'none') {
@@ -141,8 +160,6 @@ class MediaPlayerController {
     double defaultSpeed = 1.0,
     // 默认不循环
     PlaylistMode looping = PlaylistMode.none,
-    // 方向
-    String? direction,
     // 记录开关
     bool openRecord = true,
     // 是否开启字幕
@@ -161,7 +178,6 @@ class MediaPlayerController {
       this.autoPlay = autoPlay;
       this.defaultSpeed = defaultSpeed;
       this.looping = looping;
-      this.direction.value = direction ?? 'horizontal';
       this.openRecord = openRecord;
       this.openSubTitles.value = openSubTitles;
 
@@ -213,7 +229,7 @@ class MediaPlayerController {
     // 缓存状态
     isBuffering.value = false;
     // 缓存进度
-    _bufferedDuration.value = Duration.zero;
+    bufferedDuration.value = Duration.zero;
     // 当前进度
     currentPosition.value = Duration.zero;
     // 上一次的播放时间
@@ -248,12 +264,12 @@ class MediaPlayerController {
 
     // 音轨
     if (dataSource.audioSource != '' && dataSource.audioSource != null) {
-      await pp.setProperty(
-        'audio-files',
-        UniversalPlatform.isWindows
-            ? dataSource.audioSource!.replaceAll(';', '\\;')
-            : dataSource.audioSource!.replaceAll(':', '\\:'),
-      );
+      // await pp.setProperty(
+      //   'audio-files',
+      //   UniversalPlatform.isWindows
+      //       ? dataSource.audioSource!.replaceAll(';', '\\;')
+      //       : dataSource.audioSource!.replaceAll(':', '\\:'),
+      // );
     } else {
       await pp.setProperty('audio-files', '');
     }
@@ -371,10 +387,66 @@ class MediaPlayerController {
     // }
   }
 
-  /// 调整播放时间
-  onChangedSlider(double v) {
-    sliderPosition.value = Duration(seconds: v.floor());
-    // updateSliderPositionSecond();
+  /// 快退
+  Future<void> fastRewind() async {
+    fastTips = 'Rewind';
+    fastAssets = Assets.commonIconRewindTips;
+    fastRewindStatus.value = true;
+
+    _rewindTimer = Timer(const Duration(milliseconds: 200), () {
+      Duration result = mediaPlayer!.state.position - Duration(seconds: fastSeconds);
+      result = result.clamp(
+        Duration.zero,
+        mediaPlayer!.state.duration,
+      );
+      mediaPlayer!.seek(result);
+      mediaPlayer!.play();
+
+      fastRewindStatus.value = false;
+
+      _rewindTimer?.cancel();
+      _rewindTimer = null;
+    });
+  }
+
+  /// 快进
+  Future<void> fastForward() async {
+    fastTips = 'Forward';
+    fastAssets = Assets.commonIconForwardTips;
+    fastForwardStatus.value = true;
+
+    _forwardTimer = Timer(const Duration(milliseconds: 200), () {
+      Duration result = mediaPlayer!.state.position + Duration(seconds: fastSeconds);
+      result = result.clamp(
+        Duration.zero,
+        mediaPlayer!.state.duration,
+      );
+      mediaPlayer!.seek(result);
+      mediaPlayer!.play();
+
+      fastForwardStatus.value = false;
+
+      _forwardTimer?.cancel();
+      _forwardTimer = null;
+    });
+  }
+
+  // 全屏
+  Future<void> triggerFullScreen({bool status = true}) async {
+    await StatusBarControlPlus.setHidden(true, animation: StatusBarAnimation.FADE);
+    if (!isFullScreen.value && status) {
+      isFullScreen.value = true;
+
+      /// 进入全屏
+      await enterFullScreen();
+      await landScape();
+    } else if (isFullScreen.value && !status) {
+      StatusBarControlPlus.setHidden(false, animation: StatusBarAnimation.FADE);
+      exitFullScreen();
+      await verticalScreen();
+
+      isFullScreen.value = false;
+    }
   }
 
   /// 开始隐藏控制栏计时
@@ -465,7 +537,7 @@ class MediaPlayerController {
 
       /// 缓冲进度监听
       mediaPlayer!.stream.buffer.listen((event) {
-        _bufferedDuration.value = event;
+        bufferedDuration.value = event;
       }),
 
       /// 缓冲状态

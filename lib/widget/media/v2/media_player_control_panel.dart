@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/utils/common_ui.dart';
 import 'package:editvideo/config/color/colors.dart';
@@ -120,7 +121,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
     return Stack(
       alignment: Alignment.center,
       children: [
-        //手势识别层
+        // 手势识别层
         GestureDetector(
           onTap: () {
             // 切换操作栏状态
@@ -207,8 +208,18 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
           onVerticalDragEnd: (DragEndDetails details) {},
         ),
 
+        // 操作面板
         Obx(() {
           final showControls = mediaPlayerController.showControls.value;
+          final isFullScreen = mediaPlayerController.isFullScreen.value;
+          final isSliderMoving = mediaPlayerController.isSliderMoving.value;
+          final isPlaying = mediaPlayerController.mediaPlayerStatus.playing;
+          final currentPostion = mediaPlayerController.currentPosition.value;
+          final totalDuration = mediaPlayerController.totalDuration.value;
+          final sliderPosition = mediaPlayerController.sliderPosition.value;
+          final bufferedDuration = mediaPlayerController.bufferedDuration.value;
+          final isLocked = mediaPlayerController.controlsLock.value;
+
           return AnimatedOpacity(
             opacity: showControls ? 1.0 : 0.0,
             duration: const Duration(milliseconds: 300),
@@ -216,144 +227,242 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
               ignoring: !showControls,
               child: Stack(
                 children: [
-                  // // 顶部操作栏（全屏时显示返回按钮）
-                  // if (widget.isFullScreen)
-                  //   Positioned(
-                  //     top: 20,
-                  //     left: 56,
-                  //     right: 56,
-                  //     child: Row(
-                  //       children: [
-                  //         GestureDetector(
-                  //           onTap: widget.onToggleFullScreen,
-                  //           child: Image.asset(Assets.commonNavBack, width: 32, height: 32),
-                  //         ),
-                  //         const SizedBox(width: 14),
-                  //         Expanded(
-                  //           child: CommonText.instance(
-                  //             widget.title ?? '',
-                  //             16,
-                  //             fontWeight: CommonFontWeight.bold,
-                  //             maxLines: 1,
-                  //             overflow: TextOverflow.ellipsis,
-                  //           ),
-                  //         ),
-                  //       ],
-                  //     ),
-                  //   ),
+                  // 锁
+                  if (isFullScreen)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Padding(
+                        padding: EdgeInsets.only(left: 60),
+                        child: GestureDetector(
+                          onTap: () {
+                            mediaPlayerController.controlsLock.value = !isLocked;
+                          },
+                          child: Image.asset(
+                            isLocked ? Assets.commonIconVideoLocked : Assets.commonIconVideoUnlock,
+                            width: 24,
+                            height: 24,
+                          ),
+                        ),
+                      ),
+                    )
+                  else ...[
+                    // 顶部操作栏
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isFullScreen ? 56 : 16,
+                          vertical: isFullScreen ? 16 : 10,
+                        ),
+                        child: Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                if (isFullScreen) {
+                                } else {
+                                  Get.back();
+                                }
+                              },
+                              child: Image.asset(Assets.commonNavBack, width: 32, height: 32),
+                            ),
 
-                  // 播放/暂停按钮
-                  Center(
-                    child: showControls
-                        ? GestureDetector(
-                            onTap: () {},
-                            child: Image.asset(Assets.commonVideoPlayBig, width: 48, height: 48, fit: BoxFit.cover),
-                          )
-                        : const SizedBox.shrink(),
-                  ),
+                            if (isFullScreen)
+                              ///todo 添加标题
+                              Expanded(
+                                child: Padding(
+                                  padding: EdgeInsets.only(left: 8, right: 24),
+                                  child: CommonText.instance(
+                                    /*widget.title ?? */
+                                    '哈哈哈哈哈哈哈',
+                                    16,
+                                    fontWeight: CommonFontWeight.bold,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              )
+                            else
+                              Spacer(),
 
-                  // 底部操作栏
-                  // Positioned(
-                  //   bottom: widget.isFullScreen ? 32 : 8,
-                  //   left: widget.isFullScreen ? 56 : 16,
-                  //   right: widget.isFullScreen ? 56 : 16,
-                  //   child: Row(
-                  //     children: [
-                  //       // 播放/暂停按钮
-                  //       GestureDetector(
-                  //         onTap: _togglePlay,
-                  //         child: Image.asset(
-                  //           _videoPlayerController.value.isPlaying ? Assets.commonIconPause : Assets.commonIconPlay,
-                  //           width: widget.isFullScreen ? 32 : 24,
-                  //           height: widget.isFullScreen ? 32 : 24,
-                  //           fit: BoxFit.cover,
-                  //         ),
-                  //       ),
-                  //
-                  //       SizedBox(width: widget.isFullScreen ? 16 : 10),
-                  //
-                  //       // 时长、进度条
-                  //       Expanded(
-                  //         child: Column(
-                  //           mainAxisSize: MainAxisSize.min,
-                  //           crossAxisAlignment: CrossAxisAlignment.start,
-                  //           children: [
-                  //             // 进度条
-                  //             Row(
-                  //               children: [
-                  //                 Expanded(
-                  //                   child: Builder(
-                  //                     builder: (context) {
-                  //                       final duration = _totalDuration.inSeconds.toDouble();
-                  //                       final position = _currentPosition.inSeconds.toDouble();
-                  //                       final value = position.clamp(0.0, duration > 0 ? duration : 0.0);
-                  //
-                  //                       return SliderTheme(
-                  //                         data: SliderTheme.of(context).copyWith(
-                  //                           //轨道的粗细
-                  //                           trackHeight: 4,
-                  //                           //滑块形状 半径
-                  //                           thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                  //                           thumbColor: CommonColors.primaryColor,
-                  //                           //滑块已滑动部分的轨道颜色
-                  //                           activeTrackColor: CommonColors.colorDB88E6,
-                  //                           //滑块未滑动部分的轨道颜色
-                  //                           inactiveTrackColor: CommonColors.white.withOpacity(0.3),
-                  //                           padding: EdgeInsets.zero,
-                  //                         ),
-                  //                         child: Slider(
-                  //                           value: value,
-                  //                           min: 0.0,
-                  //                           max: duration > 0 ? duration : 1.0,
-                  //                           onChanged: _seekTo,
-                  //                         ),
-                  //                       );
-                  //                     },
-                  //                   ),
-                  //                 ),
-                  //               ],
-                  //             ),
-                  //
-                  //             SizedBox(height: widget.isFullScreen ? 4 : 2),
-                  //
-                  //             // 时长
-                  //             Row(
-                  //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  //               children: [
-                  //                 // 当前时长
-                  //                 CommonText.instance(
-                  //                   _formatDuration(_currentPosition),
-                  //                   widget.isFullScreen ? 12 : 10,
-                  //                   color: CommonColors.white,
-                  //                   fontWeight: CommonFontWeight.medium,
-                  //                 ),
-                  //                 // 总时长
-                  //                 CommonText.instance(
-                  //                   _formatDuration(_totalDuration),
-                  //                   widget.isFullScreen ? 12 : 10,
-                  //                   color: CommonColors.white,
-                  //                   fontWeight: CommonFontWeight.medium,
-                  //                 ),
-                  //               ],
-                  //             ),
-                  //           ],
-                  //         ),
-                  //       ),
-                  //
-                  //       SizedBox(width: widget.isFullScreen ? 16 : 10),
-                  //
-                  //       // 横屏、竖屏
-                  //       GestureDetector(
-                  //         onTap: widget.onToggleFullScreen,
-                  //         child: Image.asset(
-                  //           widget.isFullScreen ? Assets.commonIconPortrait : Assets.commonIconLandscape,
-                  //           width: widget.isFullScreen ? 28 : 24,
-                  //           height: widget.isFullScreen ? 28 : 24,
-                  //         ),
-                  //       ),
-                  //     ],
-                  //   ),
-                  // ),
+                            if (isFullScreen /*&& 是否是tv*/ )
+                              ///todo 选集
+                              Padding(
+                                padding: EdgeInsets.only(right: 24),
+                                child: GestureDetector(
+                                  onTap: () {},
+                                  child: Image.asset(Assets.commonIconVideoChooseEpisode, width: 24, height: 24),
+                                ),
+                              ),
+
+                            GestureDetector(
+                              onTap: () {
+                                /// 字幕
+                              },
+                              child: Image.asset(Assets.commonIconDanmuControlOpen, width: 24, height: 24),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // 播放/暂停按钮 滑动中不显示
+                    Center(
+                      child: !isSliderMoving
+                          ? Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                GestureDetector(
+                                  onTap: mediaPlayerController.fastRewind,
+                                  child: Image.asset(
+                                    Assets.commonIconVideoRewind,
+                                    width: isFullScreen ? 40 : 32,
+                                    height: isFullScreen ? 40 : 32,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                SizedBox(width: isFullScreen ? 88 : 66),
+                                GestureDetector(
+                                  onTap: mediaPlayerController.togglePlay,
+                                  child: Image.asset(
+                                    isPlaying ? Assets.commonVideoPause : Assets.commonVideoPlayBig,
+                                    width: isFullScreen ? 64 : 48,
+                                    height: isFullScreen ? 64 : 48,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                SizedBox(width: isFullScreen ? 88 : 66),
+                                GestureDetector(
+                                  onTap: mediaPlayerController.fastForward,
+                                  child: Image.asset(
+                                    Assets.commonIconVideoForward,
+                                    width: isFullScreen ? 40 : 32,
+                                    height: isFullScreen ? 40 : 32,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ],
+                            )
+                          : const SizedBox(),
+                    ),
+
+                    // 底部操作栏
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isFullScreen ? 56 : 16,
+                          vertical: isFullScreen ? 16 : 8,
+                        ),
+                        child: Row(
+                          children: [
+                            // 播放/暂停按钮
+                            GestureDetector(
+                              onTap: mediaPlayerController.togglePlay,
+                              child: Image.asset(
+                                isPlaying ? Assets.commonIconPause : Assets.commonIconPlay,
+                                width: isFullScreen ? 32 : 24,
+                                height: isFullScreen ? 32 : 24,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+
+                            if (isFullScreen /*&& 是否是tv*/ )
+                              ///todo 下一集
+                              Padding(
+                                padding: EdgeInsets.only(left: 8),
+                                child: GestureDetector(
+                                  onTap: () {},
+                                  child: Image.asset(Assets.commonIconVideoPlayNext, width: 32, height: 32),
+                                ),
+                              ),
+
+                            // 时长、进度条
+                            Expanded(
+                              child: Padding(
+                                padding: EdgeInsetsGeometry.symmetric(horizontal: isFullScreen ? 16 : 10),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    // 进度条
+                                    ProgressBar(
+                                      progress: Duration(seconds: sliderPosition.inSeconds),
+                                      buffered: Duration(seconds: bufferedDuration.inSeconds),
+                                      total: Duration(seconds: totalDuration.inSeconds),
+                                      progressBarColor: CommonColors.colorDB88E6,
+                                      baseBarColor: CommonColors.white.withOpacity(0.3),
+                                      bufferedBarColor: CommonColors.colorDB88E6.withOpacity(0.4),
+                                      timeLabelLocation: TimeLabelLocation.none,
+                                      thumbColor: CommonColors.primaryColor,
+                                      barHeight: 4,
+                                      thumbRadius: 5,
+                                      onDragStart: (duration) {
+                                        tempSliderPosition = mediaPlayerController.currentPosition.value;
+                                        mediaPlayerController.isSliderMoving.value = true;
+                                      },
+                                      onDragUpdate: (duration) {
+                                        mediaPlayerController.sliderPosition.value = duration.timeStamp;
+                                      },
+                                      onSeek: (duration) {
+                                        mediaPlayerController.isSliderMoving.value = false;
+                                        mediaPlayerController.sliderPosition.value = Duration(
+                                          seconds: duration.inSeconds.toDouble().floor(),
+                                        );
+                                        mediaPlayerController.seekTo(
+                                          Duration(seconds: duration.inSeconds),
+                                          isHorizontalMove: true,
+                                        );
+                                      },
+                                    ),
+
+                                    SizedBox(height: isFullScreen ? 6 : 2),
+
+                                    // 时长
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        // 当前时长
+                                        CommonText.instance(
+                                          StringUtils.formatVideoDuration(currentPostion),
+                                          isFullScreen ? 12 : 10,
+                                          color: CommonColors.white,
+                                          fontWeight: CommonFontWeight.medium,
+                                        ),
+                                        // 总时长
+                                        CommonText.instance(
+                                          StringUtils.formatVideoDuration(totalDuration),
+                                          isFullScreen ? 12 : 10,
+                                          color: CommonColors.white,
+                                          fontWeight: CommonFontWeight.medium,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+
+                            // 横屏、竖屏
+                            GestureDetector(
+                              onTap: () {
+                                mediaPlayerController.triggerFullScreen(status: !isFullScreen);
+                                // widget.fullScreenCb?.call(!_.isFullScreen.value);
+                              },
+                              child: Image.asset(
+                                isFullScreen ? Assets.commonIconPortrait : Assets.commonIconLandscape,
+                                width: isFullScreen ? 28 : 24,
+                                height: isFullScreen ? 28 : 24,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -372,6 +481,9 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
         // 长按倍速提示
         _buildDoubleSpeedTips(),
 
+        // 快进快退提示
+        _buildFastControlTips(),
+
         // 时间进度条提示
         _buildTimeProgressTips(),
 
@@ -386,8 +498,8 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
 
   /// 倍速提示
   Widget _buildDoubleSpeedTips() {
-    return Obx(
-      () => Align(
+    return Obx(() {
+      return Align(
         alignment: Alignment.topCenter,
         child: AnimatedOpacity(
           curve: Curves.easeInOut,
@@ -410,8 +522,54 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
             ),
           ),
         ),
-      ),
-    );
+      );
+    });
+  }
+
+  /// 倍速提示
+  Widget _buildFastControlTips() {
+    return Obx(() {
+      final fastRewindStatus = mediaPlayerController.fastRewindStatus.value;
+      final fastForwardStatus = mediaPlayerController.fastForwardStatus.value;
+      return Align(
+        alignment: Alignment.topCenter,
+        child: AnimatedOpacity(
+          curve: Curves.easeInOut,
+          opacity: fastRewindStatus || fastForwardStatus ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 150),
+          child: IgnorePointer(
+            ignoring: !(fastRewindStatus || fastForwardStatus),
+            child: Container(
+              height: 40,
+              margin: EdgeInsets.only(top: mediaPlayerController.isFullScreen.value ? 24.0 : 6.0),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: CommonColors.black.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    mediaPlayerController.fastAssets,
+                    width: 16,
+                    height: 16,
+                  ),
+
+                  SizedBox(width: 8),
+
+                  CommonText.instance(
+                    '${mediaPlayerController.fastTips} ${mediaPlayerController.fastSeconds}s',
+                    14.sp,
+                    fontWeight: CommonFontWeight.medium,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    });
   }
 
   /// 时间进度条提示
