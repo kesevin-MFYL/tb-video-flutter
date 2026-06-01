@@ -9,8 +9,8 @@ import 'package:editvideo/models/media_history_entity.dart';
 import 'package:editvideo/models/season_entity.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/utils/common_values.dart';
-import 'package:editvideo/widget/media/v2/media_player_controller.dart';
-import 'package:editvideo/widget/media/v2/model/media_data_source.dart';
+import 'package:editvideo/widget/media/media_player_controller.dart';
+import 'package:editvideo/widget/media/model/media_data_source.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -179,20 +179,20 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
     // EventBusManager.instance.post(EventBusName.historyRefresh);
   }
 
+  bool isFirst = true;
 
   Future<bool> initMediaPlayer() async {
     try {
-      await mediaPlayerController.setDataSource(
+      isFirst = false;
+      return await mediaPlayerController.setDataSource(
         MediaDataSource(
-          videoSource: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8'/*mediaDetailEntity?.video ?? ''*/,
+          videoSource: isFirst ? '' : mediaDetailEntity?.video ?? '',
           type: MediaDataSourceType.network,
         ),
         // autoPlay: ,
         // openRecord: ,
         // initVideoPosition: ,
       );
-
-      return true;
     } catch (e) {
       commonDebugPrint(e);
     }

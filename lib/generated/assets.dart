@@ -81,6 +81,7 @@ class Assets {
   static const String commonIconDeleteHistory = 'assets/images/common/icon_delete_history.png';
   static const String commonIconUserAgreement = 'assets/images/common/icon_user_agreement.png';
   static const String commonIconVideoPlayNext = 'assets/images/common/icon_video_play_next.png';
+  static const String commonIconFullscreenEmpty = 'assets/images/common/icon_fullscreen_empty.png';
   static const String commonIconVideoBrightness = 'assets/images/common/icon_video_brightness.png';
   static const String commonIconFilterArrowDown = 'assets/images/common/icon_filter_arrow_down.png';
   static const String commonIconVideoArrowRight = 'assets/images/common/icon_video_arrow_right.png';

@@ -12,8 +12,8 @@ import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/button/common_button.dart';
 import 'package:editvideo/widget/image/common_image_view.dart';
+import 'package:editvideo/widget/media/model/media_player_status.dart';
 import 'package:editvideo/widget/media/utils/fullscreen.dart';
-import 'package:editvideo/widget/media/v2/model/media_player_status.dart';
 import 'package:editvideo/widget/page_base.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:editvideo/widget/tabbar/common_tab_bar.dart';
@@ -69,6 +69,11 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
                       if (MediaQuery.of(context).orientation == Orientation.landscape) {
                         verticalScreen();
                       }
+
+                      // 重置锁屏状态
+                      if (controller.mediaPlayerController.controlsLock.value) {
+                        controller.mediaPlayerController.controlsLock.value = false;
+                      }
                     }
                   },
                   child: Scaffold(
@@ -78,6 +83,7 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
                         key: ValueKey(controller.mediaId),
                         controller: controller,
                         mediaPlayerFuture: _mediaPlayerFuture,
+                        onReload: controller.initMediaPlayer,
                       ),
                     ),
                   ),
@@ -102,6 +108,7 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
                                   key: ValueKey(controller.mediaId),
                                   controller: controller,
                                   mediaPlayerFuture: _mediaPlayerFuture,
+                                  onReload: controller.initMediaPlayer,
                                 ),
                               ),
 

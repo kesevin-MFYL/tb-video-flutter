@@ -1,17 +1,17 @@
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/modules/v2/home/controllers/media_detail_controller.dart';
 import 'package:editvideo/utils/common_ui.dart';
-import 'package:editvideo/utils/text_extension.dart';
-import 'package:editvideo/widget/media/v2/media_player_control_panel.dart';
+import 'package:editvideo/widget/media/media_player_control_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
 class MediaPlayerView extends StatefulWidget {
-  const MediaPlayerView({super.key, required this.controller, required this.mediaPlayerFuture});
+  const MediaPlayerView({super.key, required this.controller, required this.mediaPlayerFuture, this.onReload});
 
   final MediaDetailController controller;
   final Future<bool> mediaPlayerFuture;
+  final VoidCallback? onReload;
 
   @override
   State<MediaPlayerView> createState() => _MediaPlayerViewState();
@@ -46,9 +46,7 @@ class _MediaPlayerViewState extends State<MediaPlayerView> {
               ),
             );
           } else {
-            ///todo
-            //加载失败,重试按钮
-            centrolWidget = CommonText.instance('错误', 15.sp);
+            centrolWidget = const SizedBox();
           }
           return Stack(
             fit: StackFit.expand,
@@ -59,6 +57,9 @@ class _MediaPlayerViewState extends State<MediaPlayerView> {
                 child: MediaPlayerControlPanel(
                   widget.controller.mediaPlayerController,
                   onToggleFullScreen: (isFullscreen) {},
+                  onReload: () {
+
+                  },
                 ),
               ),
             ],

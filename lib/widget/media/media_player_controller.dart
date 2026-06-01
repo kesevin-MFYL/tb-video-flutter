@@ -2,10 +2,11 @@ import 'dart:math';
 
 import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/generated/assets.dart';
+import 'package:editvideo/utils/extension.dart';
+import 'package:editvideo/widget/media/model/media_data_source.dart';
+import 'package:editvideo/widget/media/model/media_data_status.dart';
+import 'package:editvideo/widget/media/model/media_player_status.dart';
 import 'package:editvideo/widget/media/utils/fullscreen.dart';
-import 'package:editvideo/widget/media/v2/model/media_data_source.dart';
-import 'package:editvideo/widget/media/v2/model/media_data_status.dart';
-import 'package:editvideo/widget/media/v2/model/media_player_status.dart';
 import 'package:media_kit/media_kit.dart';
 import 'dart:async';
 import 'dart:io';
@@ -189,6 +190,11 @@ class MediaPlayerController {
       }
 
       if (playerCount.value == 0) {
+        return false;
+      }
+
+      if (dataSource.videoSource.isEmptyString()) {
+        mediaDataStatus.status.value = MediaDataStatusType.error;
         return false;
       }
 
@@ -389,6 +395,8 @@ class MediaPlayerController {
 
   /// 快退
   Future<void> fastRewind() async {
+    if (mediaDataStatus.loading || mediaDataStatus.error) return;
+
     fastTips = 'Rewind';
     fastAssets = Assets.commonIconRewindTips;
     fastRewindStatus.value = true;
@@ -411,6 +419,8 @@ class MediaPlayerController {
 
   /// 快进
   Future<void> fastForward() async {
+    if (mediaDataStatus.loading || mediaDataStatus.error) return;
+
     fastTips = 'Forward';
     fastAssets = Assets.commonIconForwardTips;
     fastForwardStatus.value = true;

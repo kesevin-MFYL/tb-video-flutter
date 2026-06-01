@@ -5,11 +5,11 @@ import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/utils/common_ui.dart';
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/utils/text_extension.dart';
+import 'package:editvideo/widget/button/common_button.dart';
+import 'package:editvideo/widget/media/media_player_controller.dart';
 import 'package:editvideo/widget/media/utils/fullscreen.dart';
 import 'package:editvideo/widget/media/utils/string_utils.dart';
-import 'package:editvideo/widget/media/v2/media_player_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:get/get.dart';
@@ -18,10 +18,11 @@ import 'package:screen_brightness/screen_brightness.dart';
 
 /// 播放器控制面板
 class MediaPlayerControlPanel extends StatefulWidget {
-  const MediaPlayerControlPanel(this.controller, {super.key, required this.onToggleFullScreen});
+  const MediaPlayerControlPanel(this.controller, {super.key, required this.onToggleFullScreen, this.onReload});
 
   final MediaPlayerController controller;
   final ValueChanged<bool> onToggleFullScreen;
+  final VoidCallback? onReload;
 
   @override
   State<MediaPlayerControlPanel> createState() => _MediaPlayerControlPanelState();
@@ -131,6 +132,9 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
             mediaPlayerController.toggleControls();
           },
           onDoubleTap: () {
+            // 数据加载中或错误 禁用
+            if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController. mediaDataStatus.error) return;
+
             // 缓存中或锁定时🔒禁用
             if (mediaPlayerController.isBuffering.value || mediaPlayerController.controlsLock.value) return;
 
@@ -138,6 +142,9 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
             mediaPlayerController.togglePlay();
           },
           onLongPress: () {
+            // 数据加载中或错误 禁用
+            if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController. mediaDataStatus.error) return;
+
             // 缓存中或锁定时🔒禁用
             if (mediaPlayerController.isBuffering.value || mediaPlayerController.controlsLock.value) return;
 
@@ -147,6 +154,9 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
             mediaPlayerController.setPlaybackSpeed(tempSpeed * 2);
           },
           onLongPressEnd: (details) {
+            // 数据加载中或错误 禁用
+            if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController. mediaDataStatus.error) return;
+
             // 缓存中或锁定时🔒禁用
             if (mediaPlayerController.isBuffering.value || mediaPlayerController.controlsLock.value) return;
 
@@ -155,12 +165,18 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
             mediaPlayerController.setPlaybackSpeed(tempSpeed);
           },
           onHorizontalDragStart: (details) {
+            // 数据加载中或错误 禁用
+            if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController. mediaDataStatus.error) return;
+
             // 缓存中或锁定时🔒禁用
             if (mediaPlayerController.isBuffering.value || mediaPlayerController.controlsLock.value) return;
 
             tempSliderPosition = mediaPlayerController.currentPosition.value;
           },
           onHorizontalDragUpdate: (details) {
+            // 数据加载中或错误 禁用
+            if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController. mediaDataStatus.error) return;
+
             // 缓存中或锁定时🔒禁用
             if (mediaPlayerController.isBuffering.value || mediaPlayerController.controlsLock.value) return;
 
@@ -172,6 +188,9 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
             mediaPlayerController.isSliderMoving.value = true;
           },
           onHorizontalDragEnd: (details) {
+            // 数据加载中或错误 禁用
+            if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController. mediaDataStatus.error) return;
+
             // 缓存中或锁定时🔒禁用
             if (mediaPlayerController.isBuffering.value || mediaPlayerController.controlsLock.value) return;
 
@@ -179,6 +198,9 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
             mediaPlayerController.seekTo(mediaPlayerController.sliderPosition.value, isHorizontalMove: true);
           },
           onVerticalDragUpdate: (DragUpdateDetails details) async {
+            // 数据加载中或错误 禁用
+            if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController. mediaDataStatus.error) return;
+
             final double totalWidth = MediaQuery.sizeOf(context).width;
             final double tapPosition = details.localPosition.dx;
             final double sectionWidth = totalWidth / 2;
@@ -197,11 +219,6 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
               final double result = brightness.clamp(0.0, 1.0);
               setBrightness(result);
             } else {
-              // 右边区域 👈
-              // EasyThrottle.throttle(
-              //     'setVolume', const Duration(milliseconds: 20), () {
-              //
-              // });
               final double level = (mediaPlayerController.isFullScreen.value ? Get.size.height : screenWidth * 9 / 16);
               final double volume = _volumeValue.value - double.parse(delta.toStringAsFixed(1)) / level;
               final double result = volume.clamp(0.0, 1.0);
@@ -210,6 +227,53 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
           },
           onVerticalDragEnd: (DragEndDetails details) {},
         ),
+
+        /// 数据加载错误或缓存中
+        Obx(() {
+          if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController.isBuffering.value) {
+            return Center(child: loadingIndicator(size: 30, strokeWidth: 2));
+          } else if (mediaPlayerController.mediaDataStatus.error) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (mediaPlayerController.isFullScreen.value)
+                    Image.asset(Assets.commonIconFullscreenEmpty, width: 160, height: 160),
+
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 32),
+                    child: CommonText.instance(
+                      'Sorry, the video cannot be played.Hopeyou can tell us, thank you!',
+                      14,
+                      color: CommonColors.white.withOpacity(0.5),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+
+                  SizedBox(height: 16),
+
+                  CommonButton(
+                    minSize: 32,
+                    padding: EdgeInsets.symmetric(horizontal: 24),
+                    borderRadius: BorderRadius.circular(20.r),
+                    color: CommonColors.primaryColor,
+                    onPressed: () {
+                      widget.onReload?.call();
+                    },
+                    child: CommonText.instance(
+                      'Reload',
+                      14,
+                      color: CommonColors.color060600,
+                      fontWeight: CommonFontWeight.semiBold,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          } else {
+            return const SizedBox();
+          }
+        }),
 
         // 操作面板
         Obx(() {
@@ -475,15 +539,6 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
               ),
             ),
           );
-        }),
-
-        /// 数据加载错误或缓存中
-        Obx(() {
-          if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController.isBuffering.value) {
-            return Center(child: loadingIndicator(size: 30, strokeWidth: 2));
-          } else {
-            return const SizedBox();
-          }
         }),
 
         // 长按倍速提示
