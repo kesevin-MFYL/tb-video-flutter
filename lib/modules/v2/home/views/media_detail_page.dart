@@ -18,6 +18,7 @@ import 'package:editvideo/widget/media/utils/fullscreen.dart';
 import 'package:editvideo/widget/page_base.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:editvideo/widget/tabbar/common_tab_bar.dart';
+import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -59,80 +60,92 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
       builder: (controller) {
         return Obx(() {
           final isFullscreen = controller.mediaPlayerController.isFullScreen.value;
-          return isFullscreen
-              ? PopScope(
-                  canPop: false,
-                  onPopInvokedWithResult: (didPop, _) {
-                    if (!didPop) {
-                      controller.mediaPlayerController.triggerFullScreen(status: false);
-                      if (MediaQuery.of(context).orientation == Orientation.landscape) {
-                        verticalScreen();
-                      }
+          return PopScope(
+            canPop: !isFullscreen,
+            onPopInvokedWithResult: (didPop, _) {
+              if (!didPop) {
+                controller.mediaPlayerController.triggerFullScreen(status: false);
+                if (MediaQuery.of(context).orientation == Orientation.landscape) {
+                  verticalScreen();
+                }
 
-                      // 重置锁屏状态
-                      if (controller.mediaPlayerController.controlsLock.value) {
-                        controller.mediaPlayerController.controlsLock.value = false;
-                      }
-                    }
-                  },
-                  child: Scaffold(
-                    backgroundColor: CommonColors.color333333,
-                    body: SizedBox.expand(
-                      child: _buildMediaPlayerView(),
-                    ),
-                  ),
-                )
-              : Stack(
-                  children: [
-                    PageBase(
-                      hasAppBar: false,
-                      child: MultiStatusView(
-                        currentStatus: controller.multiStatusType,
-                        action: () {
-                          controller.reload();
+                // 重置锁屏状态
+                if (controller.mediaPlayerController.controlsLock.value) {
+                  controller.mediaPlayerController.controlsLock.value = false;
+                }
+              }
+            },
+            child: Stack(
+              children: [
+                PageBase(
+                  hasAppBar: false,
+                  child: MultiStatusView(
+                    currentStatus: controller.multiStatusType,
+                    action: () {
+                      controller.reload();
+                    },
+                    child: SafeArea(
+                      top: isFullscreen ? false : true,
+                      bottom: isFullscreen ? false : true,
+                      child: ExtendedNestedScrollView(
+                        headerSliverBuilder: (BuildContext context2, bool innerBoxIsScrolled) {
+                          return [
+                            SliverAppBar(
+                              automaticallyImplyLeading: false,
+                              pinned: true,
+                              elevation: 0,
+                              scrolledUnderElevation: 0,
+                              forceElevated: innerBoxIsScrolled,
+                              expandedHeight: isFullscreen ? Get.size.height : controller.videoHeight,
+                              backgroundColor: Colors.black,
+                              flexibleSpace: FlexibleSpaceBar(
+                                background: Container(color: CommonColors.color333333, child: _buildMediaPlayerView()),
+                              ),
+                            ),
+                          ];
                         },
-                        child: SafeArea(
+                        pinnedHeaderSliverHeightBuilder: () {
+                          return isFullscreen ? Get.size.height : controller.videoHeight;
+                        },
+                        onlyOneScrollInBody: true,
+                        body: SingleChildScrollView(
+                          padding: EdgeInsets.symmetric(vertical: 8.w),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                color: CommonColors.color333333,
-                                height: controller.videoHeight,
-                                child: _buildMediaPlayerView(),
-                              ),
+                              // 主要信息
+                              _buildBasicInfo(),
 
-                              Expanded(
-                                child: SingleChildScrollView(
-                                  padding: EdgeInsets.symmetric(vertical: 8.w),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      // 主要信息
-                                      _buildBasicInfo(),
+                              // 电视剧剧集
+                              _buildTvSeasons(),
 
-                                      // 电视剧剧集
-                                      _buildTvSeasons(),
+                              // 其他信息
+                              _buildOtherInfo(),
 
-                                      // 其他信息
-                                      _buildOtherInfo(),
-
-                                      // 相关推荐
-                                      ..._buildRecommend(),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                              // 相关推荐
+                              ..._buildRecommend(),
                             ],
                           ),
                         ),
                       ),
                     ),
+                  ),
+                ),
 
-                    Positioned(left: 0, right: 0, bottom: 0, child: _buildBottomOtherInfo()),
+                Visibility(
+                  visible: isFullscreen ? false : true,
+                  maintainState: true,
+                  child: Positioned(left: 0, right: 0, bottom: 0, child: _buildBottomOtherInfo()),
+                ),
 
-                    Positioned(left: 0, right: 0, bottom: 0, child: _buildBottomTvSeasons()),
-                  ],
-                );
+                Visibility(
+                  visible: isFullscreen ? false : true,
+                  maintainState: true,
+                  child: Positioned(left: 0, right: 0, bottom: 0, child: _buildBottomTvSeasons()),
+                ),
+              ],
+            ),
+          );
         });
       },
     );

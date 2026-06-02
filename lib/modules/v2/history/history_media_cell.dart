@@ -156,7 +156,7 @@ class _HistoryMediaCellState extends State<HistoryMediaCell> with SingleTickerPr
                                   Padding(
                                     padding: EdgeInsets.symmetric(horizontal: 4.w),
                                     child: CommonText.instance(
-                                      '${widget.mediaHistoryEntity.season?.title ?? ''}: Episode${widget.mediaHistoryEntity.episode?.epsNum ?? 0}',
+                                      '${widget.mediaHistoryEntity.season?.title ?? ''}: Episode ${widget.mediaHistoryEntity.episode?.epsNum ?? 0}',
                                       10.sp,
                                       color: CommonColors.white.withOpacity(0.8),
                                       fontWeight: CommonFontWeight.medium,
