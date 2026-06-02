@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/utils/extension.dart';
@@ -33,6 +31,7 @@ class MediaPlayerController {
   /// 播放状态
   final MediaPlayerStatus mediaPlayerStatus = MediaPlayerStatus();
 
+  /// 录制事件
   void Function()? recordAction;
 
   /// 视频类型
@@ -113,14 +112,14 @@ class MediaPlayerController {
   /// 上一次的播放时间
   int _lastPositionSeconds = 0;
 
-  ///todo 字幕开关 默认关闭
-  var openSubTitles = false.obs;
+  /// 字幕开关 默认关闭
+  var openCaptions = false.obs;
 
   ///todo 字幕
   var subTitles = [].obs;
   var subTitleContent = ''.obs;
 
-  ///todo 弹幕开关
+  /// 弹幕开关
   final isOpenDanmu = false.obs;
 
   ///todo 关联弹幕控制器
@@ -170,7 +169,7 @@ class MediaPlayerController {
     // 记录开关
     bool openRecord = true,
     // 是否开启字幕
-    bool openSubTitles = false,
+    bool openCaptions = false,
     // 初始进度
     Duration initVideoPosition = Duration.zero,
     // 硬件加速
@@ -188,7 +187,7 @@ class MediaPlayerController {
       this.defaultSpeed = defaultSpeed;
       this.looping = looping;
       this.openRecord = openRecord;
-      this.openSubTitles.value = openSubTitles;
+      this.openCaptions.value = openCaptions;
 
       subTitles = [].obs;
       subTitleContent.value = '';
@@ -443,7 +442,7 @@ class MediaPlayerController {
     });
   }
 
-  // 全屏
+  /// 全屏
   Future<void> triggerFullScreen({bool status = true}) async {
     await StatusBarControlPlus.setHidden(true, animation: StatusBarAnimation.FADE);
     if (!isFullScreen.value && status) {
@@ -477,6 +476,7 @@ class MediaPlayerController {
     _hideTimer = null;
   }
 
+  /// 录制操作
   void setRecrodAction(void Function()? action) {
     recordAction = action;
   }

@@ -19,11 +19,12 @@ import 'package:screen_brightness/screen_brightness.dart';
 
 /// 播放器控制面板
 class MediaPlayerControlPanel extends StatefulWidget {
-  const MediaPlayerControlPanel(this.controller, {super.key, required this.onToggleFullScreen, this.onReload});
+  const MediaPlayerControlPanel(this.controller, {super.key, required this.onToggleFullScreen, this.onChooseEpisode, this.onReload});
 
   final MediaPlayerController controller;
   final ValueChanged<bool> onToggleFullScreen;
   final VoidCallback? onReload;
+  final VoidCallback? onChooseEpisode;
 
   @override
   State<MediaPlayerControlPanel> createState() => _MediaPlayerControlPanelState();
@@ -363,9 +364,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
                               Padding(
                                 padding: EdgeInsets.only(right: 24),
                                 child: GestureDetector(
-                                  onTap: () {
-                                    //todo 选集
-                                  },
+                                  onTap: () => widget.onChooseEpisode?.call(),
                                   child: Image.asset(Assets.commonIconVideoChooseEpisode, width: 24, height: 24),
                                 ),
                               ),

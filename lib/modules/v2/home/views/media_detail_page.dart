@@ -172,6 +172,7 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
         controller.mediaPlayerFuture = controller.initMediaPlayer();
         controller.update();
       },
+      onChooseEpisode: _showRightTvSeasonsDialog,
     );
   }
 
@@ -583,6 +584,137 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
         ),
       );
     });
+  }
+
+  /// 剧集右侧弹窗(横屏)
+  void _showRightTvSeasonsDialog() {
+    if (controller.videoType != VideoType.tv) return;
+
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'SideSeasons',
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 250),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return Align(
+          alignment: Alignment.centerRight,
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              width: 343,
+              margin: EdgeInsets.only(top: 16, bottom: 16, right: 16),
+              padding: EdgeInsets.only(top: 24),
+              decoration: BoxDecoration(
+                color: CommonColors.color1B1B18.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(32),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: [
+                        CommonText.instance(
+                          'Selections',
+                          16,
+                          color: CommonColors.white.withOpacity(0.8),
+                          fontWeight: CommonFontWeight.bold,
+                        ),
+                        Spacer(),
+                        CommonButton(
+                          minSize: 0,
+                          borderRadius: BorderRadius.zero,
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Image.asset(Assets.commonIconBottomClose, width: 24, height: 24),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (controller.seasonList.isNotEmpty) ...[
+                    Padding(
+                      padding: EdgeInsets.only(top: 16),
+                      child: CommonIndicatorTabBar(
+                        tabController: controller.tabController,
+                        tabs: controller.seasonList,
+                        isScrollable: true,
+                        needAdapted: false,
+                        onChanged: controller.seasonTabChanged,
+                      ),
+                    ),
+                    Expanded(
+                      child: Obx(() {
+                        return MultiStatusView(
+                          currentStatus: controller.episodeStatusType.value,
+                          emptyWidget: CommonText.instance(
+                            'No episodes yet',
+                            14,
+                            color: CommonColors.white.withOpacity(0.5),
+                            textAlign: TextAlign.center,
+                          ),
+                          errorWidget: CommonButton(
+                            minSize: 40,
+                            borderRadius: BorderRadius.circular(20),
+                            padding: EdgeInsets.symmetric(horizontal: 24),
+                            color: CommonColors.primaryColor,
+                            onPressed: controller.reloadEpisodeList,
+                            child: CommonText.instance(
+                              'Try Again',
+                              14,
+                              color: CommonColors.color060600,
+                              fontWeight: CommonFontWeight.medium,
+                            ),
+                          ),
+                          loadingWidget: loadingIndicator(size: 50, strokeWidth: 5.5),
+                          hasAppBar: false,
+                          child: GridView.builder(
+                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 5,
+                              crossAxisSpacing: 8,
+                              mainAxisSpacing: 8,
+                              childAspectRatio: 1.0,
+                            ),
+                            itemCount: controller.episodeList.length,
+                            itemBuilder: (context, index) {
+                              final episodeItem = controller.episodeList[index];
+                              return Obx(() {
+                                final selectEpisode = controller.selectEpisode.value;
+                                return EpisodeHorizontalCell(
+                                  episodeEntity: episodeItem,
+                                  selected: selectEpisode == episodeItem,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  needAdapted: false,
+                                  action: (item) {
+                                    Navigator.of(context).pop();
+                                    controller.chooseEpisode(item);
+                                  },
+                                );
+                              });
+                            },
+                          ),
+                        );
+                      }),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(1, 0),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
+          child: child,
+        );
+      },
+    );
   }
 
   /// 推荐

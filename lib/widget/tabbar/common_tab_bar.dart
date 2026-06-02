@@ -24,6 +24,7 @@ class CommonIndicatorTabBar extends StatefulWidget {
     this.tabPadding,
     this.selectedTextStyle,
     this.unselectedTextStyle,
+    this.needAdapted = true,
     this.onChanged,
   });
 
@@ -42,6 +43,8 @@ class CommonIndicatorTabBar extends StatefulWidget {
 
   final TextStyle? unselectedTextStyle;
 
+  final bool needAdapted;
+
   final ValueChanged<int>? onChanged;
 
   @override
@@ -49,7 +52,6 @@ class CommonIndicatorTabBar extends StatefulWidget {
 }
 
 class _CommonIndicatorTabBarState extends State<CommonIndicatorTabBar> with SingleTickerProviderStateMixin {
-
   late TabController _tabController;
   final currentIndex = 0.obs;
 
@@ -81,7 +83,7 @@ class _CommonIndicatorTabBarState extends State<CommonIndicatorTabBar> with Sing
   Widget build(BuildContext context) {
     return TabBar(
       controller: _tabController,
-      padding: widget.tabBarPadding ?? EdgeInsets.symmetric(horizontal: 16.w),
+      padding: widget.tabBarPadding ?? EdgeInsets.symmetric(horizontal: widget.needAdapted ? 16.w : 16),
       overlayColor: WidgetStateProperty.all(Colors.transparent),
       tabAlignment: widget.isScrollable ? TabAlignment.start : null,
       isScrollable: widget.isScrollable,
@@ -100,16 +102,18 @@ class _CommonIndicatorTabBarState extends State<CommonIndicatorTabBar> with Sing
     return Obx(() {
       final isSelected = currentIndex.value == index;
       return Padding(
-        padding: widget.tabPadding ?? EdgeInsets.only(left: index != 0 ? 16.w : 0, right: index != widget.tabs.length - 1 ? 16.w : 0),
+        padding:
+            widget.tabPadding ??
+            EdgeInsets.only(
+              left: index != 0 ? (widget.needAdapted ? 16.w : 16) : 0,
+              right: index != widget.tabs.length - 1 ? (widget.needAdapted ? 16.w : 16) : 0,
+            ),
         child: Stack(
           clipBehavior: Clip.none,
           children: [
             Padding(
-              padding: EdgeInsets.only(bottom: 12.w),
-              child: Text(
-                tabBarItem.tabText,
-                style: isSelected ? _getSelectedStyle() : _getUnSelectedStyle(),
-              ),
+              padding: EdgeInsets.only(bottom: widget.needAdapted ? 12.w : 12),
+              child: Text(tabBarItem.tabText, style: isSelected ? _getSelectedStyle() : _getUnSelectedStyle()),
             ),
             Positioned(
               left: 0,
@@ -119,7 +123,11 @@ class _CommonIndicatorTabBarState extends State<CommonIndicatorTabBar> with Sing
                 maintainSize: true,
                 maintainAnimation: true,
                 maintainState: true,
-                child: Image.asset(Assets.commonIconTabIndicator, width: 48.w, height: 12.w),
+                child: Image.asset(
+                  Assets.commonIconTabIndicator,
+                  width: widget.needAdapted ? 48.w : 48,
+                  height: widget.needAdapted ? 12.w : 12,
+                ),
               ),
             ),
           ],
@@ -130,11 +138,11 @@ class _CommonIndicatorTabBarState extends State<CommonIndicatorTabBar> with Sing
 
   _getSelectedStyle() {
     return widget.selectedTextStyle ??
-        CommonTextStyle.instance(12.sp, color: CommonColors.primaryColor, fontWeight: CommonFontWeight.bold);
+        CommonTextStyle.instance(widget.needAdapted ? 12.sp : 12, color: CommonColors.primaryColor, fontWeight: CommonFontWeight.bold);
   }
 
   _getUnSelectedStyle() {
     return widget.unselectedTextStyle ??
-        CommonTextStyle.instance(12.sp, color: CommonColors.white.withOpacity(0.6), fontWeight: CommonFontWeight.bold);
+        CommonTextStyle.instance(widget.needAdapted ? 12.sp : 12, color: CommonColors.white.withOpacity(0.6), fontWeight: CommonFontWeight.bold);
   }
 }

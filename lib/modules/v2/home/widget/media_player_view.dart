@@ -7,12 +7,20 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
 class MediaPlayerView extends StatefulWidget {
-  const MediaPlayerView({super.key, required this.mediaId, required this.mediaPlayerController, required this.mediaPlayerFuture, this.onReload});
+  const MediaPlayerView({
+    super.key,
+    required this.mediaId,
+    required this.mediaPlayerController,
+    required this.mediaPlayerFuture,
+    this.onChooseEpisode,
+    this.onReload,
+  });
 
   final int mediaId;
   final MediaPlayerController mediaPlayerController;
   final Future<bool>? mediaPlayerFuture;
   final VoidCallback? onReload;
+  final VoidCallback? onChooseEpisode;
 
   @override
   State<MediaPlayerView> createState() => _MediaPlayerViewState();
@@ -75,6 +83,7 @@ class _MediaPlayerViewState extends State<MediaPlayerView> {
                 child: MediaPlayerControlPanel(
                   widget.mediaPlayerController,
                   onToggleFullScreen: (isFullscreen) {},
+                  onChooseEpisode: widget.onChooseEpisode,
                   onReload: widget.onReload,
                 ),
               ),

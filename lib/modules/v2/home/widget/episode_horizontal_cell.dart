@@ -5,10 +5,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class EpisodeHorizontalCell extends StatelessWidget {
-  const EpisodeHorizontalCell({super.key, required this.episodeEntity, required this.selected, this.action});
+  const EpisodeHorizontalCell({
+    super.key,
+    required this.episodeEntity,
+    required this.selected,
+    this.width,
+    this.height,
+    this.needAdapted = true,
+    this.action,
+  });
 
   final EpisodeEntity episodeEntity;
   final bool selected;
+  final double? width;
+  final double? height;
+  final bool needAdapted;
   final void Function(EpisodeEntity mediaItem)? action;
 
   @override
@@ -18,17 +29,17 @@ class EpisodeHorizontalCell extends StatelessWidget {
         action?.call(episodeEntity);
       },
       child: Container(
-        width: 48.w,
-        height: 48.w,
+        width: width ?? 48.w,
+        height: width ?? 48.w,
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: CommonColors.color333333,
-          borderRadius: BorderRadius.circular(16.4),
-          border: selected ? Border.all(color: CommonColors.primaryColor, width: 1.5.w) : null,
+          borderRadius: BorderRadius.circular(needAdapted ? 16.r : 16),
+          border: selected ? Border.all(color: CommonColors.primaryColor, width: needAdapted ? 1.5.w : 1.5) : null,
         ),
         child: CommonText.instance(
           '${episodeEntity.epsNum}',
-          14.sp,
+          needAdapted ? 14.sp : 14,
           color: selected ? CommonColors.primaryColor : CommonColors.white,
           fontWeight: CommonFontWeight.bold,
         ),

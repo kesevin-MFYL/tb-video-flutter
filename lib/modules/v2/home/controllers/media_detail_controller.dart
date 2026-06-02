@@ -123,7 +123,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
     showBottomSeasons.value = !showBottomSeasons.value;
   }
 
-  /// 选择剧集
+  /// 选择剧集 
   void chooseEpisode(EpisodeEntity episode) {
     if (tabController!.index >= seasonList.length) return;
 
