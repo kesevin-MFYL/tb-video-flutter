@@ -4,7 +4,9 @@ import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
 import 'package:editvideo/models/home_section_entity.dart';
+import 'package:editvideo/models/media_history_entity.dart';
 import 'package:editvideo/routes/app_routes.dart';
+import 'package:editvideo/utils/storage.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:get/get.dart';
 
@@ -15,6 +17,7 @@ class HomeBController extends BaseController {
 
   var homeSectionList = <HomeSectionEntity>[];
   var topPicksList = <MediaItemEntity>[];
+  var continueWatchingList = <MediaHistoryEntity>[];
 
   @override
   void fetchData() async {
@@ -22,9 +25,17 @@ class HomeBController extends BaseController {
   }
 
   void getDataFromServer() async {
+    _getContinueWatching();
     Future.wait([_getHomeSection(), getTopPicks()]).then((list) {
       update();
     });
+  }
+
+  /// 获取观看记录
+  Future<void> _getContinueWatching() async {
+    final list = Storage.getViewedMedia();
+    list.sort((a, b) => (b.viewTime ?? 0).compareTo(a.viewTime ?? 0));
+    continueWatchingList = list.take(10).toList();
   }
 
   Future<void> _getHomeSection() async {
@@ -40,17 +51,20 @@ class HomeBController extends BaseController {
     }
   }
 
-  Future<void> getTopPicks({bool needUpdate = false}) async {
+  Future<void> getTopPicks() async {
     final result = await HomeApi.getTopPicks();
     if (result.isSuccess) {
       final listData = result.responseData?.data;
       topPicksList = listData ?? [];
-      if (needUpdate) {
-        update();
-      }
     } else {
       commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
     }
+  }
+
+  void visibleFraction() {
+    Future.wait([getTopPicks(), _getContinueWatching()]).then((list) {
+      update();
+    });
   }
 
   void viewAll(SectionType sectionType, HomeSectionEntity? section) {

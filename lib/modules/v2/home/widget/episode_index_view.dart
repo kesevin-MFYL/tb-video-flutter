@@ -15,12 +15,14 @@ class EpisodeIndexView extends StatefulWidget {
     required this.seasonEntity,
     required this.mediaId,
     this.scrollDirection = Axis.vertical,
+    this.scrollerController,
     this.action,
   });
 
   final SeasonEntity seasonEntity;
   final Axis scrollDirection;
   final int mediaId;
+  final ScrollController? scrollerController;
   final void Function(EpisodeEntity episodeEntity)? action;
 
   @override
@@ -29,6 +31,7 @@ class EpisodeIndexView extends StatefulWidget {
 
 class _EpisodeIndexViewState extends State<EpisodeIndexView> with AutomaticKeepAliveClientMixin {
   late EpisodeIndexController controller;
+  late ScrollController _scrollerController;
 
   @override
   void initState() {
@@ -37,6 +40,16 @@ class _EpisodeIndexViewState extends State<EpisodeIndexView> with AutomaticKeepA
       EpisodeIndexController(seasonEntity: widget.seasonEntity, mediaId: widget.mediaId),
       tag: '${widget.seasonEntity.id ?? 0}',
     );
+
+    _scrollerController = widget.scrollerController ?? ScrollController();
+  }
+
+  @override
+  void dispose() {
+    if (widget.scrollerController == null) {
+      _scrollerController.dispose();
+    }
+    super.dispose();
   }
 
   @override
@@ -57,6 +70,7 @@ class _EpisodeIndexViewState extends State<EpisodeIndexView> with AutomaticKeepA
 
   Widget _buildVertical() {
     return ListView.separated(
+      controller: _scrollerController,
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.w),
       shrinkWrap: true,
       separatorBuilder: (context, index) => Divider(height: 16.w, color: Colors.transparent),
@@ -104,6 +118,7 @@ class _EpisodeIndexViewState extends State<EpisodeIndexView> with AutomaticKeepA
 
   Widget _buildHorizontal() {
     return ListView.separated(
+      controller: _scrollerController,
       scrollDirection: Axis.horizontal,
       padding: EdgeInsets.symmetric(horizontal: 16.w),
       shrinkWrap: true,

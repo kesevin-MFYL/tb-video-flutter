@@ -109,4 +109,10 @@ class MediaHistoryEntity extends BaseEntity {
     final double progress = (currentDuration! / totalDuration!) * 100;
     return '${progress.toInt()}%';
   }
+
+  double get progress {
+    if (totalDuration == null || currentDuration == null) return 0;
+    if (totalDuration! <= 0) return 0;
+    return currentDuration! / totalDuration!;
+  }
 }

@@ -2,8 +2,10 @@ import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/modules/v2/home/controllers/home_b_controller.dart';
+import 'package:editvideo/modules/v2/home/widget/media_continue_watching_scroller_view.dart';
 import 'package:editvideo/modules/v2/home/widget/media_scroller_view.dart';
 import 'package:editvideo/modules/v2/home/widget/tab_page_view.dart';
+import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/utils/common_ui.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/text_extension.dart';
@@ -28,7 +30,7 @@ class HomeBPage extends GetView<HomeBController> {
           key: const Key('home_b'),
           onVisibilityChanged: (info) async {
             if (info.visibleFraction > 0.0) {
-              controller.getTopPicks(needUpdate: true);
+              controller.visibleFraction();
             }
           },
           child: PageBase(
@@ -141,10 +143,32 @@ class HomeBPage extends GetView<HomeBController> {
   }
 
   Widget _buildContinueWatching() {
+    if (controller.continueWatchingList.isEmpty) {
+      return const SliverToBoxAdapter(child: SizedBox());
+    }
     return SliverPadding(
       padding: EdgeInsets.only(top: 12.w, bottom: 16.w),
       sliver: SliverToBoxAdapter(
-        child: SizedBox(),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              child: buildEmojiAlignedText(
+                '⌛Continue Watching',
+                style: CommonTextStyle.instance(14.sp, fontWeight: CommonFontWeight.bold),
+              ),
+            ),
+            SizedBox(height: 12.w),
+            MediaContinueWatchingScrollerView(
+              mediaList: controller.continueWatchingList,
+              action: (item) {
+                Get.toNamed(Routes.mediaDetailPage, arguments: {'mediaId': item.id, 'mediaType': item.type});
+              },
+            )
+          ],
+        ),
       ),
     );
   }

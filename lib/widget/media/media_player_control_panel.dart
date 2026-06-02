@@ -583,7 +583,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
-                children: [CommonText.instance('2.0X >>', 14.sp, fontWeight: CommonFontWeight.medium)],
+                children: [CommonText.instance('2.0X >>', 14, fontWeight: CommonFontWeight.medium)],
               ),
             ),
           ),
@@ -622,7 +622,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
 
                   CommonText.instance(
                     '${mediaPlayerController.fastTips} ${mediaPlayerController.fastSeconds}s',
-                    14.sp,
+                    14,
                     fontWeight: CommonFontWeight.medium,
                   ),
                 ],
@@ -668,13 +668,13 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
                   const SizedBox(width: 8.0),
                   CommonText.instance(
                     StringUtils.formatVideoDuration(sliderDuration),
-                    14.sp,
+                    14,
                     fontWeight: CommonFontWeight.medium,
                     color: isForward ? CommonColors.white : CommonColors.primaryColor,
                   ),
                   CommonText.instance(
                     '/${StringUtils.formatVideoDuration(totalDur)}',
-                    14.sp,
+                    14,
                     fontWeight: CommonFontWeight.medium,
                     color: isForward ? CommonColors.primaryColor : CommonColors.white,
                   ),
@@ -701,7 +701,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
   Widget _buildControlTips(RxBool popShow, RxDouble value, String asset) {
     return Obx(() {
       return Align(
-        alignment: Alignment.center,
+        alignment: mediaPlayerController.isFullScreen.value ? Alignment.topCenter : Alignment.center,
         child: AnimatedOpacity(
           curve: Curves.easeInOut,
           opacity: popShow.value ? 1.0 : 0.0,
@@ -710,7 +710,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
             ignoring: !popShow.value,
             child: Container(
               height: 40,
-              margin: EdgeInsets.only(top: mediaPlayerController.isFullScreen.value ? 24.0 : 6.0),
+              margin: EdgeInsets.only(top: mediaPlayerController.isFullScreen.value ? 24.0 : 0),
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
                 color: CommonColors.black.withOpacity(0.5),
