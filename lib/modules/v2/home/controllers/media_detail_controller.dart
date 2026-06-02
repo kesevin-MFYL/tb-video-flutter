@@ -18,7 +18,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class MediaDetailController extends BaseController with GetSingleTickerProviderStateMixin {
+  /// 详情状态
   var multiStatusType = MultiStatusType.statusLoading;
+
+  /// 集列表状态
+  var episodeStatusType = MultiStatusType.statusLoading.obs;
 
   /// 媒体id
   late int mediaId;
@@ -39,6 +43,9 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
 
   /// 季列表
   var seasonList = <SeasonEntity>[];
+
+  /// 集列表
+  var episodeList = <EpisodeEntity>[];
 
   /// 选中的季
   final selectSeason = Rx<SeasonEntity?>(null);
@@ -95,6 +102,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
     });
   }
 
+  /// 重置播放器和修改标题
   void changeFutureAndTitle() {
     mediaPlayerFuture = initMediaPlayer();
     changeTitle();
@@ -111,6 +119,8 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
 
   /// 选择剧集
   void chooseEpisode(EpisodeEntity episode) {
+    if (tabController!.index >= seasonList.length) return;
+
     selectEpisode.value = episode;
     if (tabController!.index < seasonList.length) {
       selectSeason.value = seasonList[tabController!.index];
@@ -157,7 +167,6 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
         if (mediaHistoryEntity != null) {
           // 有缓存记录
           selectSeason.value = mediaHistoryEntity?.season;
-          selectEpisode.value = mediaHistoryEntity?.episode;
           final seasonId = selectSeason.value?.id ?? 0;
           initialIndex = seasonList.indexWhere((element) => element.id == seasonId);
         } else {
@@ -166,10 +175,50 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
         }
 
         tabController ??= TabController(initialIndex: initialIndex, length: seasonList.length, vsync: this);
+
+        // 获取季下的所有集
+        await _getEpisodeList(seasonId: selectSeason.value?.id);
       }
     } else {
       commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
     }
+  }
+
+  /// 获取季下的所有集
+  Future<void> _getEpisodeList({int? seasonId}) async {
+    if (selectSeason.value == null) return;
+
+    final result = await HomeApi.getSeasonAllEpisodes(id: seasonId);
+    if (result.isSuccess) {
+      final listData = result.responseData?.data;
+      episodeList = listData ?? [];
+
+      if (mediaHistoryEntity != null) {
+        // 有缓存记录
+        selectEpisode.value = episodeList.firstWhereOrNull((element) => element.id == mediaHistoryEntity!.episode?.id);
+      } else {
+        // 没有缓存记录默认第一集
+        selectSeason.value = seasonList.first;
+      }
+
+      episodeStatusType.value = episodeList.isEmpty ? MultiStatusType.statusEmpty : MultiStatusType.statusContent;
+    } else {
+      commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
+      episodeStatusType.value = MultiStatusType.statusError;
+    }
+  }
+
+  /// 季Tab切换
+  void seasonTabChanged(int tabIndex) {
+    episodeStatusType.value = MultiStatusType.statusLoading;
+    _getEpisodeList(seasonId: seasonList[tabIndex].id);
+  }
+
+  /// 重新获取剧集
+  void reloadEpisodeList() {
+    if (tabController!.index >= seasonList.length) return;
+
+    _getEpisodeList(seasonId: seasonList[tabController!.index].id);
   }
 
   void mediaTap(MediaItemEntity mediaItem, SectionType sectionType) {

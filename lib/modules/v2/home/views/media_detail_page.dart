@@ -2,7 +2,8 @@ import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/modules/v2/home/controllers/media_detail_controller.dart';
-import 'package:editvideo/modules/v2/home/widget/episode_index_view.dart';
+import 'package:editvideo/modules/v2/home/widget/episode_horizontal_cell.dart';
+import 'package:editvideo/modules/v2/home/widget/episode_vertical_cell.dart';
 import 'package:editvideo/modules/v2/home/widget/media_player_view.dart';
 import 'package:editvideo/modules/v2/home/widget/media_scroller_view.dart';
 import 'package:editvideo/modules/v2/home/widget/tab_page_view.dart';
@@ -407,21 +408,55 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
                 tabController: controller.tabController,
                 tabs: controller.seasonList,
                 isScrollable: true,
+                onChanged: controller.seasonTabChanged,
               ),
             ),
             SizedBox(
               height: 48.w,
-              child: TabBarView(
-                controller: controller.tabController,
-                children: controller.seasonList.map((seasonItem) {
-                  return EpisodeIndexView(
+              child: Obx(() {
+                return MultiStatusView(
+                  currentStatus: controller.episodeStatusType.value,
+                  emptyWidget: CommonText.instance(
+                    'No episodes yet',
+                    14.sp,
+                    color: CommonColors.white.withOpacity(0.5),
+                    textAlign: TextAlign.center,
+                  ),
+                  errorWidget: CommonButton(
+                    minSize: 30.h,
+                    borderRadius: BorderRadius.circular(15.r),
+                    padding: EdgeInsets.symmetric(horizontal: 24.w),
+                    color: CommonColors.primaryColor,
+                    onPressed: controller.reloadEpisodeList,
+                    child: CommonText.instance(
+                      'Try Again',
+                      12.sp,
+                      color: CommonColors.color060600,
+                      fontWeight: CommonFontWeight.medium,
+                    ),
+                  ),
+                  hasAppBar: false,
+                  loadingWidget: loadingIndicator(size: 30.w, strokeWidth: 2),
+                  child: ListView.separated(
                     scrollDirection: Axis.horizontal,
-                    mediaId: controller.mediaId,
-                    seasonEntity: seasonItem,
-                    action: (item) => controller.chooseEpisode(item),
-                  );
-                }).toList(),
-              ),
+                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    shrinkWrap: true,
+                    separatorBuilder: (context, index) => Divider(indent: 8.w, color: Colors.transparent),
+                    itemCount: controller.episodeList.length,
+                    itemBuilder: (context, index) {
+                      final episodeItem = controller.episodeList[index];
+                      return Obx(() {
+                        final selectEpisode = controller.selectEpisode.value;
+                        return EpisodeHorizontalCell(
+                          episodeEntity: episodeItem,
+                          selected: selectEpisode == episodeItem,
+                          action: controller.chooseEpisode,
+                        );
+                      });
+                    },
+                  ),
+                );
+              }),
             ),
           ],
         ],
@@ -483,19 +518,52 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
                         tabController: controller.tabController,
                         tabs: controller.seasonList,
                         isScrollable: true,
+                        onChanged: controller.seasonTabChanged,
                       ),
                     ),
                     Expanded(
-                      child: TabBarView(
-                        controller: controller.tabController,
-                        children: controller.seasonList.map((seasonItem) {
-                          return EpisodeIndexView(
-                            seasonEntity: seasonItem,
-                            mediaId: controller.mediaId,
-                            action: (item) => controller.chooseEpisode(item),
-                          );
-                        }).toList(),
-                      ),
+                      child: Obx(() {
+                        return MultiStatusView(
+                          currentStatus: controller.episodeStatusType.value,
+                          emptyWidget: CommonText.instance(
+                            'No episodes yet',
+                            14.sp,
+                            color: CommonColors.white.withOpacity(0.5),
+                            textAlign: TextAlign.center,
+                          ),
+                          errorWidget: CommonButton(
+                            minSize: 40.h,
+                            borderRadius: BorderRadius.circular(20.r),
+                            padding: EdgeInsets.symmetric(horizontal: 24.w),
+                            color: CommonColors.primaryColor,
+                            onPressed: controller.reloadEpisodeList,
+                            child: CommonText.instance(
+                              'Try Again',
+                              14.sp,
+                              color: CommonColors.color060600,
+                              fontWeight: CommonFontWeight.medium,
+                            ),
+                          ),
+                          hasAppBar: false,
+                          child: ListView.separated(
+                            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.w),
+                            shrinkWrap: true,
+                            separatorBuilder: (context, index) => Divider(height: 16.w, color: Colors.transparent),
+                            itemCount: controller.episodeList.length,
+                            itemBuilder: (context, index) {
+                              final episodeItem = controller.episodeList[index];
+                              return Obx(() {
+                                final selectEpisode = controller.selectEpisode.value;
+                                return EpisodeVerticalCell(
+                                  episodeEntity: episodeItem,
+                                  selected: selectEpisode == episodeItem,
+                                  action: controller.chooseEpisode,
+                                );
+                              });
+                            },
+                          ),
+                        );
+                      }),
                     ),
                   ],
                 ],
