@@ -46,7 +46,7 @@ class EpisodeIndexController extends BaseController {
         // 没有缓存 默认第一季第一集
         if (initialIndex == 0 && episodeList.isNotEmpty) {
           mediaDetailController.selectEpisode.value = episodeList.first;
-          mediaDetailController.changeTitle();
+          mediaDetailController.changeFutureAndTitle();
         }
       }
 

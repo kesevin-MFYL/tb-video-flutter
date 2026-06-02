@@ -36,7 +36,6 @@ class MediaDetailPage extends StatefulWidget {
 
 class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, WidgetsBindingObserver {
   late MediaDetailController controller;
-  late Future<bool> _mediaPlayerFuture;
 
   @override
   void initState() {
@@ -44,7 +43,6 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
     WidgetsBinding.instance.addObserver(this);
 
     controller = Get.put(MediaDetailController(), tag: '${widget.mediaId}');
-    _mediaPlayerFuture = controller.initMediaPlayer();
 
     lifecycleListener();
     initPlayerStatusListener();
@@ -80,17 +78,7 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
                   child: Scaffold(
                     backgroundColor: CommonColors.color333333,
                     body: SizedBox.expand(
-                      child: MediaPlayerView(
-                        key: ValueKey(controller.mediaId),
-                        mediaId: controller.mediaId,
-                        mediaPlayerController: controller.mediaPlayerController,
-                        mediaPlayerFuture: _mediaPlayerFuture,
-                        onReload: () {
-                          setState(() {
-                            _mediaPlayerFuture = controller.initMediaPlayer();
-                          });
-                        },
-                      ),
+                      child: _buildMediaPlayerView(),
                     ),
                   ),
                 )
@@ -110,17 +98,7 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
                               Container(
                                 color: CommonColors.color333333,
                                 height: controller.videoHeight,
-                                child: MediaPlayerView(
-                                  key: ValueKey(controller.mediaId),
-                                  mediaId: controller.mediaId,
-                                  mediaPlayerController: controller.mediaPlayerController,
-                                  mediaPlayerFuture: _mediaPlayerFuture,
-                                  onReload: () {
-                                    setState(() {
-                                      _mediaPlayerFuture = controller.initMediaPlayer();
-                                    });
-                                  },
-                                ),
+                                child: _buildMediaPlayerView(),
                               ),
 
                               Expanded(
@@ -156,6 +134,19 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
                   ],
                 );
         });
+      },
+    );
+  }
+
+  Widget _buildMediaPlayerView() {
+    return MediaPlayerView(
+      key: ValueKey(controller.mediaId),
+      mediaId: controller.mediaId,
+      mediaPlayerController: controller.mediaPlayerController,
+      mediaPlayerFuture: controller.mediaPlayerFuture,
+      onReload: () {
+        controller.mediaPlayerFuture = controller.initMediaPlayer();
+        controller.update();
       },
     );
   }

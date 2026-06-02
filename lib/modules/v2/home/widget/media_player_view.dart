@@ -11,7 +11,7 @@ class MediaPlayerView extends StatefulWidget {
 
   final int mediaId;
   final MediaPlayerController mediaPlayerController;
-  final Future<bool> mediaPlayerFuture;
+  final Future<bool>? mediaPlayerFuture;
   final VoidCallback? onReload;
 
   @override
@@ -19,7 +19,7 @@ class MediaPlayerView extends StatefulWidget {
 }
 
 class _MediaPlayerViewState extends State<MediaPlayerView> {
-  late Future<bool> _currentFuture;
+  Future<bool>? _currentFuture;
 
   @override
   void initState() {

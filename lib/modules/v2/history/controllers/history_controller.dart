@@ -91,6 +91,7 @@ class HistoryController extends BaseController {
   void deleteSelected() async {
     await Storage.deleteViewedMedia(chooseList.toList());
     chooseList.clear();
+    changeEdit();
     loadHistory();
   }
 

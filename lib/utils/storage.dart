@@ -175,4 +175,13 @@ class Storage {
     }
     return [];
   }
+
+  static MediaHistoryEntity? getViewedMediaById(int id) {
+    final list = getViewedMedia();
+    try {
+      return list.firstWhere((e) => e.id == id);
+    } catch (e) {
+      return null;
+    }
+  }
 }

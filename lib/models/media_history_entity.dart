@@ -88,15 +88,18 @@ class MediaHistoryEntity extends BaseEntity {
     if (totalDuration == null || currentDuration == null) return '';
     if (totalDuration! <= 0) return '';
     final remaining = totalDuration! - currentDuration!;
-    if (remaining <= 0) return '0m remaining';
+    if (remaining <= 0) return '0s remaining';
     
-    final int hours = remaining ~/ 60;
-    final int minutes = remaining % 60;
+    final int hours = remaining ~/ 3600;
+    final int minutes = (remaining % 3600) ~/ 60;
+    final int seconds = remaining % 60;
     
     if (hours > 0) {
       return '${hours}h ${minutes}m remaining';
-    } else {
+    } else if (minutes > 0) {
       return '${minutes}m remaining';
+    } else {
+      return '${seconds}s remaining';
     }
   }
 

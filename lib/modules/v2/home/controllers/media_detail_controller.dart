@@ -52,6 +52,8 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
   /// 是否显示剧集底部弹窗
   var showBottomSeasons = false.obs;
 
+  Future<bool>? mediaPlayerFuture;
+
   double get bottomHeight => Get.height - safeAreaEdgeInsets.top - videoHeight;
 
   double get videoHeight => Get.width * 9 / 16;
@@ -71,6 +73,8 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
       mediaType = arguments['mediaType'];
 
       videoType = VideoType.instance(mediaType);
+
+      mediaHistoryEntity = Storage.getViewedMediaById(mediaId);
     }
   }
 
@@ -86,12 +90,15 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
   }
 
   void getDataFromServer() {
-    if (mediaId != null) {
-      Future.wait([_getMediaDetail(), _getMediaRecommend(), _getTvSeasons()]).then((list) {
-        changeTitle();
-        update();
-      });
-    }
+    Future.wait([_getMediaDetail(), _getMediaRecommend(), _getTvSeasons()]).then((list) {
+      changeFutureAndTitle();
+    });
+  }
+
+  void changeFutureAndTitle() {
+    mediaPlayerFuture = initMediaPlayer();
+    changeTitle();
+    update();
   }
 
   void bottomOtherInfoChanged() {
@@ -108,6 +115,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
     if (tabController!.index < seasonList.length) {
       selectSeason.value = seasonList[tabController!.index];
     }
+    changeFutureAndTitle();
   }
 
   /// 获取媒体详情
@@ -213,18 +221,32 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
 
   Future<bool> initMediaPlayer() async {
     try {
-      return await mediaPlayerController.setDataSource(
-        MediaDataSource(
-          videoSource: mediaDetailEntity?.video ?? '',
-          videoType: videoType,
-          type: MediaDataSourceType.network,
-        ),
-        initVideoPosition: mediaHistoryEntity != null && mediaHistoryEntity!.currentDuration != null
-            ? Duration(seconds: mediaHistoryEntity!.currentDuration!)
-            : Duration.zero,
-        // autoPlay: ,
-        // openRecord: ,
-      );
+      if (videoType == VideoType.video) {
+        return await mediaPlayerController.setDataSource(
+          MediaDataSource(
+            videoSource: mediaDetailEntity?.video ?? '',
+            videoType: videoType,
+            type: MediaDataSourceType.network,
+          ),
+          initVideoPosition: mediaHistoryEntity != null && mediaHistoryEntity!.currentDuration != null
+              ? Duration(seconds: mediaHistoryEntity!.currentDuration!)
+              : Duration.zero,
+        );
+      } else {
+        if (selectEpisode.value != null) {
+          return await mediaPlayerController.setDataSource(
+            MediaDataSource(
+              videoSource: selectEpisode.value?.video ?? '',
+              videoType: videoType,
+              type: MediaDataSourceType.network,
+            ),
+            initVideoPosition: mediaHistoryEntity != null && mediaHistoryEntity!.currentDuration != null
+                ? Duration(seconds: mediaHistoryEntity!.currentDuration!)
+                : Duration.zero,
+          );
+        }
+      }
+      return false;
     } catch (e) {
       commonDebugPrint(e);
     }
