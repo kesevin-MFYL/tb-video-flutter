@@ -24,6 +24,8 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
   /// 集列表状态
   var episodeStatusType = MultiStatusType.statusLoading.obs;
 
+  var firstLoad = true;
+
   /// 媒体id
   late int mediaId;
 
@@ -98,6 +100,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
 
   void getDataFromServer() {
     Future.wait([_getMediaDetail(), _getMediaRecommend(), _getTvSeasons()]).then((list) {
+      firstLoad = false;
       changeFutureAndTitle();
     });
   }
@@ -175,10 +178,11 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
         }
 
         tabController ??= TabController(initialIndex: initialIndex, length: seasonList.length, vsync: this);
-
-        // 获取季下的所有集
-        await _getEpisodeList(seasonId: selectSeason.value?.id);
       }
+
+      // 获取季下的所有集
+      await _getEpisodeList(seasonId: selectSeason.value?.id);
+
     } else {
       commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
     }
@@ -193,12 +197,14 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
       final listData = result.responseData?.data;
       episodeList = listData ?? [];
 
-      if (mediaHistoryEntity != null) {
-        // 有缓存记录
-        selectEpisode.value = episodeList.firstWhereOrNull((element) => element.id == mediaHistoryEntity!.episode?.id);
-      } else {
-        // 没有缓存记录默认第一集
-        selectSeason.value = seasonList.first;
+      if (firstLoad) {
+        if (mediaHistoryEntity != null) {
+          // 有缓存记录
+          selectEpisode.value = episodeList.firstWhereOrNull((element) => element.id == mediaHistoryEntity!.episode?.id);
+        } else {
+          // 没有缓存记录默认第一集
+          selectEpisode.value = episodeList.first;
+        }
       }
 
       episodeStatusType.value = episodeList.isEmpty ? MultiStatusType.statusEmpty : MultiStatusType.statusContent;

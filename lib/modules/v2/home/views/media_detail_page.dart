@@ -133,16 +133,26 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
                   ),
                 ),
 
-                Visibility(
-                  visible: isFullscreen ? false : true,
-                  maintainState: true,
-                  child: Positioned(left: 0, right: 0, bottom: 0, child: _buildBottomOtherInfo()),
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Visibility(
+                    visible: isFullscreen ? false : true,
+                    maintainState: true,
+                    child: _buildBottomOtherInfo(),
+                  ),
                 ),
 
-                Visibility(
-                  visible: isFullscreen ? false : true,
-                  maintainState: true,
-                  child: Positioned(left: 0, right: 0, bottom: 0, child: _buildBottomTvSeasons()),
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Visibility(
+                    visible: isFullscreen ? false : true,
+                    maintainState: true,
+                    child: _buildBottomTvSeasons(),
+                  ),
                 ),
               ],
             ),
