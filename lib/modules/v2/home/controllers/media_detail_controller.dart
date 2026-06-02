@@ -49,6 +49,9 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
   /// 集列表
   var episodeList = <EpisodeEntity>[];
 
+  /// 缓存各季的集列表
+  final Map<int, List<EpisodeEntity>> _episodeListCache = {};
+
   /// 选中的季
   final selectSeason = Rx<SeasonEntity?>(null);
 
@@ -192,26 +195,42 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
   Future<void> _getEpisodeList({int? seasonId}) async {
     if (selectSeason.value == null) return;
 
-    final result = await HomeApi.getSeasonAllEpisodes(id: seasonId);
+    final targetSeasonId = seasonId ?? selectSeason.value?.id;
+    if (targetSeasonId == null) return;
+
+    if (_episodeListCache.containsKey(targetSeasonId)) {
+      episodeList = _episodeListCache[targetSeasonId]!;
+      _handleEpisodeListSuccess();
+      return;
+    }
+
+    final result = await HomeApi.getSeasonAllEpisodes(id: targetSeasonId);
     if (result.isSuccess) {
       final listData = result.responseData?.data;
       episodeList = listData ?? [];
+      _episodeListCache[targetSeasonId] = episodeList;
 
-      if (firstLoad) {
-        if (mediaHistoryEntity != null) {
-          // 有缓存记录
-          selectEpisode.value = episodeList.firstWhereOrNull((element) => element.id == mediaHistoryEntity!.episode?.id);
-        } else {
-          // 没有缓存记录默认第一集
-          selectEpisode.value = episodeList.first;
-        }
-      }
-
-      episodeStatusType.value = episodeList.isEmpty ? MultiStatusType.statusEmpty : MultiStatusType.statusContent;
+      _handleEpisodeListSuccess();
     } else {
       commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
       episodeStatusType.value = MultiStatusType.statusError;
     }
+  }
+
+  void _handleEpisodeListSuccess() {
+    if (firstLoad) {
+      if (mediaHistoryEntity != null) {
+        // 有缓存记录
+        selectEpisode.value = episodeList.firstWhereOrNull((element) => element.id == mediaHistoryEntity!.episode?.id);
+      } else {
+        // 没有缓存记录默认第一集
+        if (episodeList.isNotEmpty) {
+          selectEpisode.value = episodeList.first;
+        }
+      }
+    }
+
+    episodeStatusType.value = episodeList.isEmpty ? MultiStatusType.statusEmpty : MultiStatusType.statusContent;
   }
 
   /// 季Tab切换
