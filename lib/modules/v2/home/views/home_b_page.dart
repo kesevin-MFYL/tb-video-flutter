@@ -16,7 +16,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
-class HomeBPage extends StatelessWidget {
+class HomeBPage extends GetView<HomeBController> {
   const HomeBPage({super.key});
 
   @override
@@ -45,6 +45,7 @@ class HomeBPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // 搜索框
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.w),
                         child: Row(
@@ -78,6 +79,7 @@ class HomeBPage extends StatelessWidget {
                           ],
                         ),
                       ),
+
                       Expanded(
                         child: CommonRefresh.instance(
                           controller: controller.refreshController,
@@ -93,16 +95,14 @@ class HomeBPage extends StatelessWidget {
                             },
                             child: CustomScrollView(
                               slivers: [
+                                _buildContinueWatching(),
+
                                 // top picks
-                                _buildVideoSection(sectionType: SectionType.topPicks, controller: controller),
+                                _buildVideoSection(sectionType: SectionType.topPicks),
 
                                 ...controller.homeSectionList.map((section) {
                                   final sectionType = SectionType.kind(section.kind);
-                                  return _buildVideoSection(
-                                    sectionType: sectionType,
-                                    section: section,
-                                    controller: controller,
-                                  );
+                                  return _buildVideoSection(sectionType: sectionType, section: section);
                                 }),
                                 SliverToBoxAdapter(child: SizedBox(height: 34.w)),
                               ],
@@ -140,11 +140,16 @@ class HomeBPage extends StatelessWidget {
     );
   }
 
-  Widget _buildVideoSection({
-    required SectionType sectionType,
-    HomeSectionEntity? section,
-    required HomeBController controller,
-  }) {
+  Widget _buildContinueWatching() {
+    return SliverPadding(
+      padding: EdgeInsets.only(top: 12.w, bottom: 16.w),
+      sliver: SliverToBoxAdapter(
+        child: SizedBox(),
+      ),
+    );
+  }
+
+  Widget _buildVideoSection({required SectionType sectionType, HomeSectionEntity? section}) {
     if ((sectionType == SectionType.topPicks && controller.topPicksList.isEmpty) ||
         (sectionType != SectionType.topPicks && section?.dataList == null || section?.dataList!.isEmpty == true)) {
       return SliverToBoxAdapter(child: const SizedBox());
@@ -186,42 +191,34 @@ class HomeBPage extends StatelessWidget {
             ),
 
             SizedBox(height: 12.w),
-            _buildSubSection(sectionType: sectionType, section: section, controller: controller),
+            _buildSubSection(sectionType: sectionType, section: section),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSubSection({
-    required SectionType sectionType,
-    HomeSectionEntity? section,
-    required HomeBController controller,
-  }) {
+  Widget _buildSubSection({required SectionType sectionType, HomeSectionEntity? section}) {
     switch (sectionType) {
       case SectionType.imdbList: //合集list
       case SectionType.mediaList: //单片
       case SectionType.topPicks:
       case SectionType.imdbInterest: //兴趣分类
-        return _buildHorizontalList(sectionType: sectionType, section: section, controller: controller);
+        return _buildHorizontalList(sectionType: sectionType, section: section);
       case SectionType.streamingMedia: //渠道
-        return _buildStreamingMedia(section: section, controller: controller);
+        return _buildStreamingMedia(section: section);
       default:
         return const SizedBox();
     }
   }
 
-  Widget _buildHorizontalList({
-    required SectionType sectionType,
-    HomeSectionEntity? section,
-    required HomeBController controller,
-  }) {
+  Widget _buildHorizontalList({required SectionType sectionType, HomeSectionEntity? section}) {
     final dataList = sectionType == SectionType.topPicks ? controller.topPicksList : section?.dataList ?? [];
 
     return MediaScrollerView(mediaList: dataList, sectionType: sectionType, action: controller.mediaTap);
   }
 
-  Widget _buildStreamingMedia({HomeSectionEntity? section, required HomeBController controller}) {
+  Widget _buildStreamingMedia({HomeSectionEntity? section}) {
     final tabBarViewHeight =
         165.w +
         12.w +

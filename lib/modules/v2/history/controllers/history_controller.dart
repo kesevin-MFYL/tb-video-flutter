@@ -5,9 +5,12 @@ import 'package:editvideo/manager/event_manager.dart';
 import 'package:editvideo/models/media_history_entity.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/utils/storage.dart';
+import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:get/get.dart';
 
 class HistoryController extends BaseController {
+  var multiStatusType = MultiStatusType.statusLoading;
+
   var isEdit = false.obs;
 
   var chooseList = <MediaHistoryEntity>[].obs;
@@ -62,6 +65,9 @@ class HistoryController extends BaseController {
         }
       }
     }
+
+    multiStatusType = todayList.isEmpty && yesterdayList.isEmpty && earlyList.isEmpty ? MultiStatusType.statusEmpty : MultiStatusType.statusContent;
+    update();
   }
 
   void toggleItem(MediaHistoryEntity item) {

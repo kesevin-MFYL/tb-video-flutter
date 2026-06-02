@@ -5,6 +5,7 @@ import 'package:editvideo/modules/v2/history/history_media_cell.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/page_base.dart';
+import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -26,30 +27,35 @@ class HistoryPage extends GetView<HistoryController> {
                 _buildHeader(),
 
                 Expanded(
-                  child: Obx(() {
-                    return SingleChildScrollView(
-                      padding: EdgeInsets.only(bottom: controller.isEdit.value ? 32.w : 0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (controller.todayList.isNotEmpty) ...[
-                            _buildSectionTitle('Today', assets: Assets.commonIconToday),
-                            ...controller.todayList.map((item) => _buildItem(item)),
-                            SizedBox(height: 16.w),
+                  child: MultiStatusView(
+                    hasAppBar: false,
+                    currentStatus: controller.multiStatusType,
+                    emptyText: 'You haven\'t watched any videoshere yet',
+                    child: Obx(() {
+                      return SingleChildScrollView(
+                        padding: EdgeInsets.only(bottom: controller.isEdit.value ? 32.w : 0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (controller.todayList.isNotEmpty) ...[
+                              _buildSectionTitle('Today', assets: Assets.commonIconToday),
+                              ...controller.todayList.map((item) => _buildItem(item)),
+                              SizedBox(height: 16.w),
+                            ],
+                            if (controller.yesterdayList.isNotEmpty) ...[
+                              _buildSectionTitle('Yesterday'),
+                              ...controller.yesterdayList.map((item) => _buildItem(item)),
+                              SizedBox(height: 16.w),
+                            ],
+                            if (controller.earlyList.isNotEmpty) ...[
+                              _buildSectionTitle('Early'),
+                              ...controller.earlyList.map((item) => _buildItem(item)),
+                            ],
                           ],
-                          if (controller.yesterdayList.isNotEmpty) ...[
-                            _buildSectionTitle('Yesterday'),
-                            ...controller.yesterdayList.map((item) => _buildItem(item)),
-                            SizedBox(height: 16.w),
-                          ],
-                          if (controller.earlyList.isNotEmpty) ...[
-                            _buildSectionTitle('Early'),
-                            ...controller.earlyList.map((item) => _buildItem(item)),
-                          ],
-                        ],
-                      ),
-                    );
-                  }),
+                        ),
+                      );
+                    }),
+                  ),
                 ),
               ],
             ),
@@ -134,7 +140,7 @@ class HistoryPage extends GetView<HistoryController> {
           controller.deleteItem(item);
         },
         tapAction: (item) {
-           controller.toMediaDetail(item);
+          controller.toMediaDetail(item);
         },
       );
     });
