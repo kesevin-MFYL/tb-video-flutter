@@ -625,6 +625,9 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
     if (status == MediaPlayerStatusType.completed) {
       // 结束播放退出全屏
       if (!controller.mediaPlayerController.controlsLock.value) {
+        if (controller.isSideSeasonsDialogOpen || controller.isSubtitleSettingsDialogOpen) {
+          Get.back();
+        }
         controller.mediaPlayerController.triggerFullScreen(status: false);
       }
 

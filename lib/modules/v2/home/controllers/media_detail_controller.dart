@@ -72,6 +72,9 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
   /// 是否显示字幕底部弹窗
   var showBottomSubtitleSettings = false.obs;
 
+  bool isSideSeasonsDialogOpen = false;
+  bool isSubtitleSettingsDialogOpen = false;
+
   Future<bool>? mediaPlayerFuture;
 
   double get bottomHeight => Get.height - safeAreaEdgeInsets.top - videoHeight;
@@ -278,6 +281,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
   void showRightTvSeasonsDialog() {
     if (videoType != VideoType.tv) return;
 
+    isSideSeasonsDialogOpen = true;
     showGeneralDialog(
       context: Get.context!,
       barrierDismissible: true,
@@ -296,12 +300,15 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
           child: child,
         );
       },
-    );
+    ).then((_) {
+      isSideSeasonsDialogOpen = false;
+    });
   }
 
   /// 字幕右侧弹窗(横屏)/底部弹窗(竖屏)
   void showSubtitleSettingsDialog() {
     if (mediaPlayerController.isFullScreen.value) {
+      isSubtitleSettingsDialogOpen = true;
       showGeneralDialog(
         context: Get.context!,
         barrierDismissible: true,
@@ -320,7 +327,9 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
             child: child,
           );
         },
-      );
+      ).then((_) {
+        isSubtitleSettingsDialogOpen = false;
+      });
     } else {
       bottomSubtitleSettingsChanged();
     }
@@ -343,7 +352,11 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
   }
 
   void toMediaDetail(MediaItemEntity mediaItemEntity) {
-    Get.toNamed(Routes.mediaDetailPage, arguments: {'mediaId': mediaItemEntity.id, 'mediaType': mediaItemEntity.type});
+    Get.toNamed(
+      Routes.mediaDetailPage,
+      arguments: {'mediaId': mediaItemEntity.id, 'mediaType': mediaItemEntity.type},
+      preventDuplicates: false,
+    );
   }
 
   void saveMedia() {
