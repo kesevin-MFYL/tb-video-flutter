@@ -3,6 +3,7 @@ import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/widget/media/model/media_data_source.dart';
 import 'package:editvideo/widget/media/model/media_data_status.dart';
+import 'package:editvideo/models/caption_entity.dart';
 import 'package:editvideo/widget/media/model/media_player_status.dart';
 import 'package:editvideo/widget/media/utils/fullscreen.dart';
 import 'package:media_kit/media_kit.dart';
@@ -115,9 +116,11 @@ class MediaPlayerController {
   /// 字幕开关 默认关闭
   var openCaptions = false.obs;
 
-  ///todo 字幕
-  var subTitles = [].obs;
-  var subTitleContent = ''.obs;
+  /// 字幕列表
+  var captionList = <CaptionEntity>[].obs;
+
+  /// 当前选中的字幕
+  final selectedCaption = Rx<CaptionEntity?>(null);
 
   /// 弹幕开关
   final isOpenDanmu = false.obs;
@@ -168,14 +171,12 @@ class MediaPlayerController {
     PlaylistMode looping = PlaylistMode.none,
     // 记录开关
     bool openRecord = true,
-    // 是否开启字幕
-    bool openCaptions = false,
     // 初始进度
     Duration initVideoPosition = Duration.zero,
     // 硬件加速
     bool hardware = false,
-    double? width,
-    double? height,
+    // 字幕列表
+    List<CaptionEntity> captionList = const [],
   }) async {
     try {
       // 初始化数据加载状态
@@ -187,10 +188,7 @@ class MediaPlayerController {
       this.defaultSpeed = defaultSpeed;
       this.looping = looping;
       this.openRecord = openRecord;
-      this.openCaptions.value = openCaptions;
-
-      subTitles = [].obs;
-      subTitleContent.value = '';
+      this.captionList.value = captionList;
 
       if (mediaPlayer != null && mediaPlayer!.state.playing) {
         await pause();
@@ -209,7 +207,7 @@ class MediaPlayerController {
       removeListeners();
 
       // 配置Player 音轨、字幕等等
-      mediaPlayer = await _createVideoController(dataSource, looping, hardware, width, height, initVideoPosition);
+      mediaPlayer = await _createVideoController(dataSource, hardware, initVideoPosition);
 
       // 添加监听
       addListeners();
@@ -222,6 +220,9 @@ class MediaPlayerController {
 
       await _initializePlayer();
 
+      // 初始化字幕
+      await _initSubtitles();
+
       return true;
     } catch (err) {
       mediaDataStatus.status.value = MediaDataStatusType.error;
@@ -231,14 +232,7 @@ class MediaPlayerController {
   }
 
   // 配置播放器
-  Future<Player> _createVideoController(
-    MediaDataSource dataSource,
-    PlaylistMode looping,
-    bool hardware,
-    double? width,
-    double? height,
-    Duration initVideoPosition,
-  ) async {
+  Future<Player> _createVideoController(MediaDataSource dataSource, bool hardware, Duration initVideoPosition) async {
     // 缓存状态
     isBuffering.value = false;
     // 缓存进度
@@ -458,6 +452,68 @@ class MediaPlayerController {
 
       isFullScreen.value = false;
     }
+  }
+
+  Future<void> _initSubtitles() async {
+    if (captionList.isEmpty) {
+      openCaptions.value = false;
+      selectedCaption.value = null;
+      await mediaPlayer?.setSubtitleTrack(SubtitleTrack.no());
+      return;
+    }
+
+    CaptionEntity? targetCaption;
+
+    // 1. Match system language
+    final String? sysLangCode = Get.deviceLocale?.languageCode;
+    if (sysLangCode != null) {
+      targetCaption = captionList.firstWhereOrNull(
+        (c) =>
+            c.shortName?.toLowerCase().startsWith(sysLangCode.toLowerCase()) == true ||
+            c.name?.toLowerCase().contains(sysLangCode.toLowerCase()) == true,
+      );
+    }
+
+    // 2. Fallback to English
+    targetCaption ??= captionList.firstWhereOrNull(
+      (c) => c.shortName?.toLowerCase().startsWith('en') == true || c.name?.toLowerCase().contains('en') == true,
+    );
+
+    // 3. Fallback to first
+    targetCaption ??= captionList.first;
+
+    selectedCaption.value = targetCaption;
+    // 默认展示
+    openCaptions.value = true;
+
+    await _applySubtitle();
+  }
+
+  Future<void> _applySubtitle() async {
+    if (mediaPlayer == null) return;
+    if (!openCaptions.value || selectedCaption.value == null || selectedCaption.value!.s3Address.isEmptyString()) {
+      await mediaPlayer!.setSubtitleTrack(SubtitleTrack.no());
+      return;
+    }
+
+    final url = selectedCaption.value!.s3Address!;
+    try {
+      await mediaPlayer!.setSubtitleTrack(SubtitleTrack.uri(url));
+    } catch (e) {
+      commonDebugPrint('setSubtitleTrack error: $e');
+    }
+  }
+
+  /// 手动设置字幕
+  Future<void> setSubtitle({CaptionEntity? caption, bool? isOpen}) async {
+    if (isOpen != null) {
+      openCaptions.value = isOpen;
+    }
+    if (caption != null) {
+      selectedCaption.value = caption;
+      openCaptions.value = true;
+    }
+    await _applySubtitle();
   }
 
   /// 开始隐藏控制栏计时

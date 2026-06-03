@@ -14,17 +14,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:get/get.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:media_kit_video/media_kit_video_controls/src/controls/extensions/duration.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 
 /// 播放器控制面板
 class MediaPlayerControlPanel extends StatefulWidget {
-  const MediaPlayerControlPanel(this.controller, {super.key, required this.onToggleFullScreen, this.onChooseEpisode, this.onReload});
+  const MediaPlayerControlPanel(this.controller, {super.key, required this.onToggleFullScreen, this.onChooseEpisode, this.onShowSubtitleSettings, this.onReload});
 
   final MediaPlayerController controller;
   final ValueChanged<bool> onToggleFullScreen;
   final VoidCallback? onReload;
   final VoidCallback? onChooseEpisode;
+  final VoidCallback? onShowSubtitleSettings;
 
   @override
   State<MediaPlayerControlPanel> createState() => _MediaPlayerControlPanelState();
@@ -290,6 +292,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
           final isLocked = mediaPlayerController.controlsLock.value;
           final mediaTitle = mediaPlayerController.mediaTitle.value;
           final videoType = mediaPlayerController.videoType.value;
+          final openCaptions = mediaPlayerController.openCaptions.value;
 
           return AnimatedOpacity(
             opacity: showControls ? 1.0 : 0.0,
@@ -371,9 +374,17 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
 
                             GestureDetector(
                               onTap: () {
-                                ///todo 字幕
+                                if (!openCaptions && mediaPlayerController.captionList.isEmpty) {
+                                  EasyLoading.showToast('Subtitles not available for this video.');
+                                  return;
+                                }
+                                widget.onShowSubtitleSettings?.call();
                               },
-                              child: Image.asset(Assets.commonIconDanmuControlOpen, width: 24, height: 24),
+                              child: Image.asset(
+                                openCaptions ? Assets.commonIconSubtitleOpen : Assets.commonIconSubtitleClose,
+                                width: 24,
+                                height: 24,
+                              ),
                             ),
                           ],
                         ),

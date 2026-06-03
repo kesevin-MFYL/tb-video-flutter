@@ -3,6 +3,7 @@ import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
 import 'package:editvideo/manager/event_manager.dart';
+import 'package:editvideo/models/caption_entity.dart';
 import 'package:editvideo/models/episode_entity.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/models/media_detail_entity.dart';
@@ -11,6 +12,7 @@ import 'package:editvideo/models/season_entity.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/utils/common_values.dart';
 import 'package:editvideo/utils/storage.dart';
+import 'package:editvideo/widget/dialog/subtitle_setting_dialog.dart';
 import 'package:editvideo/widget/media/media_player_controller.dart';
 import 'package:editvideo/widget/media/model/media_data_source.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
@@ -51,6 +53,8 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
 
   /// 缓存各季的集列表
   final Map<int, List<EpisodeEntity>> _episodeListCache = {};
+
+  var captionList = <CaptionEntity>[];
 
   /// 选中的季
   final selectSeason = Rx<SeasonEntity?>(null);
@@ -115,19 +119,21 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
     update();
   }
 
-  void bottomOtherInfoChanged() {
-    showBottomOtherInfo.value = !showBottomOtherInfo.value;
+  /// 改变标题
+  void changeTitle() {
+    mediaPlayerController.changeMediaTitle(
+      videoType == VideoType.video
+          ? mediaDetailEntity?.title ?? ''
+          : '${selectEpisode.value?.epsNum ?? 0} ${mediaDetailEntity?.title ?? ''} ${selectSeason.value?.title ?? ''}',
+    );
   }
 
-  void bottomSeasonsChanged() {
-    showBottomSeasons.value = !showBottomSeasons.value;
-  }
-
-  /// 选择剧集 
+  /// 选择剧集
   void chooseEpisode(EpisodeEntity episode) {
     if (tabController!.index >= seasonList.length) return;
 
     selectEpisode.value = episode;
+    captionList = selectEpisode.value?.captionList ?? [];
     if (tabController!.index < seasonList.length) {
       selectSeason.value = seasonList[tabController!.index];
     }
@@ -139,6 +145,9 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
     final result = await HomeApi.getMediaDetail(id: mediaId);
     if (result.isSuccess) {
       mediaDetailEntity = result.responseData?.data;
+
+      captionList = mediaDetailEntity?.captionList ?? [];
+
       multiStatusType = mediaDetailEntity == null ? MultiStatusType.statusEmpty : MultiStatusType.statusContent;
     } else {
       commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
@@ -228,6 +237,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
           selectEpisode.value = episodeList.first;
         }
       }
+      captionList = selectEpisode.value?.captionList ?? [];
     }
 
     episodeStatusType.value = episodeList.isEmpty ? MultiStatusType.statusEmpty : MultiStatusType.statusContent;
@@ -244,6 +254,39 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
     if (tabController!.index >= seasonList.length) return;
 
     _getEpisodeList(seasonId: seasonList[tabController!.index].id);
+  }
+
+  /// 信息弹窗(竖屏)
+  void bottomOtherInfoChanged() {
+    showBottomOtherInfo.value = !showBottomOtherInfo.value;
+  }
+
+  /// 剧集弹窗(竖屏)
+  void bottomSeasonsChanged() {
+    showBottomSeasons.value = !showBottomSeasons.value;
+  }
+
+  /// 字幕右侧弹窗(横屏)
+  void showSubtitleSettingsDialog() {
+    showGeneralDialog(
+      context: Get.context!,
+      barrierDismissible: true,
+      barrierLabel: 'SubtitleSettings',
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 250),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return SubtitleSettingsDialog(controller: mediaPlayerController);
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(1, 0),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
+          child: child,
+        );
+      },
+    );
   }
 
   void mediaTap(MediaItemEntity mediaItem, SectionType sectionType) {
@@ -284,15 +327,6 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
     EventBusManager.instance.post(EventBusName.historyRefresh);
   }
 
-  /// 改变标题
-  void changeTitle() {
-    mediaPlayerController.changeMediaTitle(
-      videoType == VideoType.video
-          ? mediaDetailEntity?.title ?? ''
-          : '${selectEpisode.value?.epsNum ?? 0} ${mediaDetailEntity?.title ?? ''} ${selectSeason.value?.title ?? ''}',
-    );
-  }
-
   Future<bool> initMediaPlayer() async {
     try {
       if (videoType == VideoType.video) {
@@ -305,6 +339,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
           initVideoPosition: mediaHistoryEntity != null && mediaHistoryEntity!.currentDuration != null
               ? Duration(seconds: mediaHistoryEntity!.currentDuration!)
               : Duration.zero,
+          captionList: captionList,
         );
       } else {
         if (selectEpisode.value != null) {
@@ -317,6 +352,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
             initVideoPosition: mediaHistoryEntity != null && mediaHistoryEntity!.currentDuration != null
                 ? Duration(seconds: mediaHistoryEntity!.currentDuration!)
                 : Duration.zero,
+            captionList: captionList,
           );
         }
       }

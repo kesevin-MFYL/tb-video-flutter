@@ -14,6 +14,7 @@ class MediaPlayerView extends StatefulWidget {
     required this.mediaPlayerFuture,
     this.onChooseEpisode,
     this.onReload,
+    this.onShowSubtitleSettings,
   });
 
   final int mediaId;
@@ -21,6 +22,7 @@ class MediaPlayerView extends StatefulWidget {
   final Future<bool>? mediaPlayerFuture;
   final VoidCallback? onReload;
   final VoidCallback? onChooseEpisode;
+  final VoidCallback? onShowSubtitleSettings;
 
   @override
   State<MediaPlayerView> createState() => _MediaPlayerViewState();
@@ -58,17 +60,17 @@ class _MediaPlayerViewState extends State<MediaPlayerView> {
               controls: NoVideoControls,
               fill: CommonColors.color333333,
               resumeUponEnteringForegroundMode: true,
-              subtitleViewConfiguration: const SubtitleViewConfiguration(
+              subtitleViewConfiguration: SubtitleViewConfiguration(
                 style: TextStyle(
                   height: 1.5,
-                  fontSize: 40.0,
+                  fontSize: 42.0,
                   letterSpacing: 0.0,
                   wordSpacing: 0.0,
-                  color: Color(0xffffffff),
-                  fontWeight: FontWeight.normal,
-                  backgroundColor: Color(0xaa000000),
+                  color: CommonColors.white.withOpacity(0.9),
+                  fontWeight: FontWeight.w500,
+                  backgroundColor: Colors.transparent,
                 ),
-                padding: EdgeInsets.all(24.0),
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               ),
             );
           } else {
@@ -84,6 +86,7 @@ class _MediaPlayerViewState extends State<MediaPlayerView> {
                   widget.mediaPlayerController,
                   onToggleFullScreen: (isFullscreen) {},
                   onChooseEpisode: widget.onChooseEpisode,
+                  onShowSubtitleSettings: widget.onShowSubtitleSettings,
                   onReload: widget.onReload,
                 ),
               ),
