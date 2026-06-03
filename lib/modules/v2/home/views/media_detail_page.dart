@@ -14,6 +14,7 @@ import 'package:editvideo/utils/common_values.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/button/common_button.dart';
+import 'package:editvideo/widget/dialog/subtitle_settings_bottom_sheet.dart';
 import 'package:editvideo/widget/image/common_image_view.dart';
 import 'package:editvideo/widget/media/model/media_data_source.dart';
 import 'package:editvideo/widget/media/model/media_player_status.dart';
@@ -153,6 +154,17 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
                     visible: isFullscreen ? false : true,
                     maintainState: true,
                     child: _buildBottomTvSeasons(),
+                  ),
+                ),
+
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Visibility(
+                    visible: isFullscreen ? false : true,
+                    maintainState: true,
+                    child: _buildBottomSubtitleSettings(),
                   ),
                 ),
               ],
@@ -485,6 +497,40 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
                     },
                   );
                 },
+              ),
+            ),
+          ),
+        ),
+      );
+    });
+  }
+
+  /// 字幕底部弹窗
+  Widget _buildBottomSubtitleSettings() {
+    return Obx(() {
+      final showBottomSubtitleSettings = controller.showBottomSubtitleSettings.value;
+      return IgnorePointer(
+        ignoring: !showBottomSubtitleSettings,
+        child: ClipRect(
+          child: TweenAnimationBuilder<Offset>(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOutCubic,
+            tween: showBottomSubtitleSettings
+                ? Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+                : Tween<Offset>(begin: Offset.zero, end: const Offset(0, 1)),
+            builder: (context, offset, child) {
+              return FractionalTranslation(translation: offset, child: child);
+            },
+            child: Container(
+              padding: EdgeInsets.only(top: 22.w, bottom: safeAreaBottomDistance(16.w)),
+              height: controller.bottomHeight,
+              decoration: BoxDecoration(
+                color: CommonColors.color1B1B18,
+                borderRadius: BorderRadius.only(topLeft: Radius.circular(32.h), topRight: Radius.circular(32.h)),
+              ),
+              child: SubtitleSettingsView(
+                controller: controller.mediaPlayerController,
+                onClose: controller.bottomSubtitleSettingsChanged,
               ),
             ),
           ),

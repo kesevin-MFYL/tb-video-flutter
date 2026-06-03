@@ -4,42 +4,29 @@ import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/button/common_button.dart';
 import 'package:editvideo/widget/media/media_player_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
-/// 字幕弹窗(横屏)
-class SubtitleSettingsDialog extends StatefulWidget {
+/// 字幕设置内容视图(用于竖屏底部弹窗)
+class SubtitleSettingsView extends StatefulWidget {
   final MediaPlayerController controller;
+  final VoidCallback onClose;
 
-  const SubtitleSettingsDialog({super.key, required this.controller});
+  const SubtitleSettingsView({super.key, required this.controller, required this.onClose});
 
   @override
-  State<SubtitleSettingsDialog> createState() => _SubtitleSettingsDialogState();
+  State<SubtitleSettingsView> createState() => _SubtitleSettingsViewState();
 }
 
-class _SubtitleSettingsDialogState extends State<SubtitleSettingsDialog> {
+class _SubtitleSettingsViewState extends State<SubtitleSettingsView> {
   final PageController _pageController = PageController();
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Material(
-        color: Colors.transparent,
-        child: Container(
-          width: 343,
-          margin: EdgeInsets.only(top: 16, bottom: 16, right: 16),
-          padding: EdgeInsets.only(top: 24),
-          decoration: BoxDecoration(
-            color: CommonColors.color1B1B18.withOpacity(0.9),
-            borderRadius: BorderRadius.circular(32),
-          ),
-          child: PageView(
-            controller: _pageController,
-            physics: const NeverScrollableScrollPhysics(),
-            children: [_buildMainMenu(), _buildLanguageList()],
-          ),
-        ),
-      ),
+    return PageView(
+      controller: _pageController,
+      physics: const NeverScrollableScrollPhysics(),
+      children: [_buildMainMenu(), _buildLanguageList()],
     );
   }
 
@@ -48,12 +35,12 @@ class _SubtitleSettingsDialogState extends State<SubtitleSettingsDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
+          padding: EdgeInsets.symmetric(horizontal: 16.w),
           child: Row(
             children: [
               CommonText.instance(
                 'Subtitles',
-                16,
+                16.sp,
                 color: CommonColors.white.withOpacity(0.8),
                 fontWeight: CommonFontWeight.bold,
               ),
@@ -61,22 +48,22 @@ class _SubtitleSettingsDialogState extends State<SubtitleSettingsDialog> {
               CommonButton(
                 minSize: 0,
                 borderRadius: BorderRadius.zero,
-                onPressed: () => Navigator.of(context).pop(),
-                child: Image.asset(Assets.commonIconBottomClose, width: 24, height: 24),
+                onPressed: widget.onClose,
+                child: Image.asset(Assets.commonIconBottomClose, width: 24.w, height: 24.w),
               ),
             ],
           ),
         ),
-        SizedBox(height: 16),
+        SizedBox(height: 16.w),
         Obx(() {
           final openCaptions = widget.controller.openCaptions.value;
           return Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.w),
             child: Row(
               children: [
-                Image.asset(Assets.commonIconLabelSubtitle, width: 24, height: 24),
-                SizedBox(width: 8),
-                CommonText.instance(openCaptions ? 'Turn Off Subtitles' : 'Turn On Subtitles', 14, fontWeight: CommonFontWeight.medium),
+                Image.asset(Assets.commonIconLabelSubtitle, width: 24.w, height: 24.w),
+                SizedBox(width: 8.w),
+                CommonText.instance(openCaptions ? 'Turn Off Subtitles' : 'Turn On Subtitles', 14.sp, fontWeight: CommonFontWeight.medium),
                 Spacer(),
                 GestureDetector(
                   onTap: () {
@@ -84,17 +71,17 @@ class _SubtitleSettingsDialogState extends State<SubtitleSettingsDialog> {
                   },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
-                    width: 40,
-                    height: 24,
-                    padding: EdgeInsets.all(4),
+                    width: 40.w,
+                    height: 24.w,
+                    padding: EdgeInsets.all(4.w),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12.r),
                       color: openCaptions ? CommonColors.primaryColor : CommonColors.color333333,
                     ),
                     alignment: openCaptions ? Alignment.centerRight : Alignment.centerLeft,
                     child: Container(
-                      width: 16,
-                      height: 16,
+                      width: 16.w,
+                      height: 16.w,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: openCaptions ? CommonColors.color1B1B18 : CommonColors.white.withOpacity(0.5),
@@ -107,16 +94,17 @@ class _SubtitleSettingsDialogState extends State<SubtitleSettingsDialog> {
           );
         }),
         GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTap: () {
             _pageController.animateToPage(1, duration: const Duration(milliseconds: 250), curve: Curves.easeOutCubic);
           },
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.w),
             child: Row(
               children: [
-                Image.asset(Assets.commonIconLabelSubtitleLanguage, width: 24, height: 24),
-                SizedBox(width: 8),
-                CommonText.instance('Switch Language', 14, fontWeight: CommonFontWeight.medium),
+                Image.asset(Assets.commonIconLabelSubtitleLanguage, width: 24.w, height: 24.w),
+                SizedBox(width: 8.w),
+                CommonText.instance('Switch Language', 14.sp, fontWeight: CommonFontWeight.medium),
               ],
             ),
           ),
@@ -130,11 +118,11 @@ class _SubtitleSettingsDialogState extends State<SubtitleSettingsDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
+          padding: EdgeInsets.symmetric(horizontal: 16.w),
           child: Row(
             children: [
               CommonButton(
-                minSize: 24,
+                minSize: 24.w,
                 onPressed: () {
                   _pageController.animateToPage(
                     0,
@@ -142,12 +130,12 @@ class _SubtitleSettingsDialogState extends State<SubtitleSettingsDialog> {
                     curve: Curves.easeOutCubic,
                   );
                 },
-                child: Image.asset(Assets.commonNavBack, width: 24, height: 24),
+                child: Image.asset(Assets.commonNavBack, width: 24.w, height: 24.w),
               ),
-              SizedBox(width: 8),
+              SizedBox(width: 8.w),
               CommonText.instance(
                 'Switch Language',
-                16,
+                16.sp,
                 color: CommonColors.white.withOpacity(0.8),
                 fontWeight: CommonFontWeight.bold,
               ),
@@ -155,8 +143,8 @@ class _SubtitleSettingsDialogState extends State<SubtitleSettingsDialog> {
               CommonButton(
                 minSize: 0,
                 borderRadius: BorderRadius.zero,
-                onPressed: () => Navigator.of(context).pop(),
-                child: Image.asset(Assets.commonIconBottomClose, width: 24, height: 24),
+                onPressed: widget.onClose,
+                child: Image.asset(Assets.commonIconBottomClose, width: 24.w, height: 24.w),
               ),
             ],
           ),
@@ -166,39 +154,39 @@ class _SubtitleSettingsDialogState extends State<SubtitleSettingsDialog> {
             final list = widget.controller.captionList;
             final selected = widget.controller.selectedCaption.value;
             return ListView.separated(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.w),
               itemCount: list.length,
-              separatorBuilder: (context, index) => SizedBox(height: 16),
+              separatorBuilder: (context, index) => SizedBox(height: 16.w),
               itemBuilder: (context, index) {
                 final item = list[index];
                 final isSelected = selected == item && widget.controller.openCaptions.value;
                 return GestureDetector(
                   onTap: () {
                     widget.controller.setSubtitle(caption: item);
-                    Navigator.of(context).pop();
+                    widget.onClose();
                   },
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.w),
                     decoration: BoxDecoration(
                       color: isSelected
                           ? CommonColors.color1B1B18.withOpacity(0.5)
                           : CommonColors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16),
-                      border: isSelected ? Border.all(color: CommonColors.primaryColor, width: 1.5) : null,
+                      borderRadius: BorderRadius.circular(16.r),
+                      border: isSelected ? Border.all(color: CommonColors.primaryColor, width: 1.5.w) : null,
                     ),
                     child: Row(
                       children: [
                         CommonText.instance(
                           '${index + 1}'.padLeft(2, '0'),
-                          14,
+                          14.sp,
                           color: isSelected ? CommonColors.primaryColor : Colors.white,
                           fontWeight: CommonFontWeight.bold,
                         ),
-                        SizedBox(width: 16),
+                        SizedBox(width: 16.w),
                         Expanded(
                           child: CommonText.instance(
                             item.displayName ?? item.name ?? '',
-                            14,
+                            14.sp,
                             color: isSelected ? CommonColors.primaryColor : Colors.white,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,

@@ -69,6 +69,9 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
   /// 是否显示剧集底部弹窗
   var showBottomSeasons = false.obs;
 
+  /// 是否显示字幕底部弹窗
+  var showBottomSubtitleSettings = false.obs;
+
   Future<bool>? mediaPlayerFuture;
 
   double get bottomHeight => Get.height - safeAreaEdgeInsets.top - videoHeight;
@@ -266,6 +269,11 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
     showBottomSeasons.value = !showBottomSeasons.value;
   }
 
+  /// 字幕弹窗(竖屏)
+  void bottomSubtitleSettingsChanged() {
+    showBottomSubtitleSettings.value = !showBottomSubtitleSettings.value;
+  }
+
   /// 剧集右侧弹窗(横屏)
   void showRightTvSeasonsDialog() {
     if (videoType != VideoType.tv) return;
@@ -291,27 +299,31 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
     );
   }
 
-  /// 字幕右侧弹窗(横屏)
+  /// 字幕右侧弹窗(横屏)/底部弹窗(竖屏)
   void showSubtitleSettingsDialog() {
-    showGeneralDialog(
-      context: Get.context!,
-      barrierDismissible: true,
-      barrierLabel: 'SubtitleSettings',
-      barrierColor: Colors.transparent,
-      transitionDuration: const Duration(milliseconds: 250),
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return SubtitleSettingsDialog(controller: mediaPlayerController);
-      },
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        return SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(1, 0),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
-          child: child,
-        );
-      },
-    );
+    if (mediaPlayerController.isFullScreen.value) {
+      showGeneralDialog(
+        context: Get.context!,
+        barrierDismissible: true,
+        barrierLabel: 'SubtitleSettings',
+        barrierColor: Colors.transparent,
+        transitionDuration: const Duration(milliseconds: 250),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return SubtitleSettingsDialog(controller: mediaPlayerController);
+        },
+        transitionBuilder: (context, animation, secondaryAnimation, child) {
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(1, 0),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
+            child: child,
+          );
+        },
+      );
+    } else {
+      bottomSubtitleSettingsChanged();
+    }
   }
 
   void mediaTap(MediaItemEntity mediaItem, SectionType sectionType) {
