@@ -13,6 +13,7 @@ import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/utils/common_values.dart';
 import 'package:editvideo/utils/storage.dart';
 import 'package:editvideo/widget/dialog/subtitle_setting_dialog.dart';
+import 'package:editvideo/widget/dialog/tv_season_dialog.dart';
 import 'package:editvideo/widget/media/media_player_controller.dart';
 import 'package:editvideo/widget/media/model/media_data_source.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
@@ -194,7 +195,6 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
 
       // 获取季下的所有集
       await _getEpisodeList(seasonId: selectSeason.value?.id);
-
     } else {
       commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
     }
@@ -264,6 +264,31 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
   /// 剧集弹窗(竖屏)
   void bottomSeasonsChanged() {
     showBottomSeasons.value = !showBottomSeasons.value;
+  }
+
+  /// 剧集右侧弹窗(横屏)
+  void showRightTvSeasonsDialog() {
+    if (videoType != VideoType.tv) return;
+
+    showGeneralDialog(
+      context: Get.context!,
+      barrierDismissible: true,
+      barrierLabel: 'SideSeasons',
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 250),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return TvSeasonDialog(controller: this);
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(1, 0),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
+          child: child,
+        );
+      },
+    );
   }
 
   /// 字幕右侧弹窗(横屏)

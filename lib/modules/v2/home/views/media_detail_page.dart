@@ -7,6 +7,7 @@ import 'package:editvideo/modules/v2/home/widget/episode_vertical_cell.dart';
 import 'package:editvideo/modules/v2/home/widget/media_player_view.dart';
 import 'package:editvideo/modules/v2/home/widget/media_scroller_view.dart';
 import 'package:editvideo/modules/v2/home/widget/tab_page_view.dart';
+import 'package:editvideo/modules/v2/home/widget/tv_season_view.dart';
 import 'package:editvideo/utils/common_ui.dart';
 import 'package:editvideo/utils/common_values.dart';
 import 'package:editvideo/utils/extension.dart';
@@ -18,7 +19,6 @@ import 'package:editvideo/widget/media/model/media_player_status.dart';
 import 'package:editvideo/widget/media/utils/fullscreen.dart';
 import 'package:editvideo/widget/page_base.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
-import 'package:editvideo/widget/tabbar/common_tab_bar.dart';
 import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -172,7 +172,7 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
         controller.mediaPlayerFuture = controller.initMediaPlayer();
         controller.update();
       },
-      onChooseEpisode: _showRightTvSeasonsDialog,
+      onChooseEpisode: controller.showRightTvSeasonsDialog,
       onShowSubtitleSettings: controller.showSubtitleSettingsDialog,
     );
   }
@@ -380,98 +380,31 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
   /// 剧集信息
   Widget _buildTvSeasons() {
     if (controller.videoType != VideoType.tv) return const SizedBox();
+
     return Padding(
       padding: EdgeInsetsGeometry.symmetric(vertical: 16.w),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
+      child: TvSeasonView(
+        controller: controller,
+        contentBuilder: (context, episodeList) {
+          return ListView.separated(
+            scrollDirection: Axis.horizontal,
             padding: EdgeInsets.symmetric(horizontal: 16.w),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset(Assets.commonIconSelections, width: 24.w, height: 24.w),
-                SizedBox(width: 12.w),
-                CommonText.instance('Selections', 16.sp, fontWeight: CommonFontWeight.bold),
-                Spacer(),
-                CommonButton(
-                  minSize: 0,
-                  borderRadius: BorderRadius.zero,
-                  spacing: 4.w,
-                  suffixDirectional: SuffixDirectional.right,
-                  suffixWidget: Image.asset(Assets.commonIconVideoArrowRight, width: 16.w, height: 16.w),
-                  onPressed: controller.bottomSeasonsChanged,
-                  child: CommonText.instance(
-                    'View ${controller.seasonList.length}',
-                    12.sp,
-                    color: CommonColors.primaryColor,
-                    decoration: TextDecoration.underline,
-                    decorationColor: CommonColors.primaryColor,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (controller.seasonList.isNotEmpty) ...[
-            Padding(
-              padding: EdgeInsets.only(top: 24.w, bottom: 16.w),
-              child: CommonIndicatorTabBar(
-                tabController: controller.tabController,
-                tabs: controller.seasonList,
-                isScrollable: true,
-                onChanged: controller.seasonTabChanged,
-              ),
-            ),
-            SizedBox(
-              height: 48.w,
-              child: Obx(() {
-                return MultiStatusView(
-                  currentStatus: controller.episodeStatusType.value,
-                  emptyWidget: CommonText.instance(
-                    'No episodes yet',
-                    14.sp,
-                    color: CommonColors.white.withOpacity(0.5),
-                    textAlign: TextAlign.center,
-                  ),
-                  errorWidget: CommonButton(
-                    minSize: 30.h,
-                    borderRadius: BorderRadius.circular(15.r),
-                    padding: EdgeInsets.symmetric(horizontal: 24.w),
-                    color: CommonColors.primaryColor,
-                    onPressed: controller.reloadEpisodeList,
-                    child: CommonText.instance(
-                      'Try Again',
-                      12.sp,
-                      color: CommonColors.color060600,
-                      fontWeight: CommonFontWeight.medium,
-                    ),
-                  ),
-                  hasAppBar: false,
-                  loadingWidget: loadingIndicator(size: 30.w, strokeWidth: 2),
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    padding: EdgeInsets.symmetric(horizontal: 16.w),
-                    shrinkWrap: true,
-                    separatorBuilder: (context, index) => Divider(indent: 8.w, color: Colors.transparent),
-                    itemCount: controller.episodeList.length,
-                    itemBuilder: (context, index) {
-                      final episodeItem = controller.episodeList[index];
-                      return Obx(() {
-                        final selectEpisode = controller.selectEpisode.value;
-                        return EpisodeHorizontalCell(
-                          episodeEntity: episodeItem,
-                          selected: selectEpisode == episodeItem,
-                          action: controller.chooseEpisode,
-                        );
-                      });
-                    },
-                  ),
+            shrinkWrap: true,
+            separatorBuilder: (context, index) => Divider(indent: 8.w, color: Colors.transparent),
+            itemCount: episodeList.length,
+            itemBuilder: (context, index) {
+              final episodeItem = episodeList[index];
+              return Obx(() {
+                final selectEpisode = controller.selectEpisode.value;
+                return EpisodeHorizontalCell(
+                  episodeEntity: episodeItem,
+                  selected: selectEpisode == episodeItem,
+                  action: controller.chooseEpisode,
                 );
-              }),
-            ),
-          ],
-        ],
+              });
+            },
+          );
+        },
       ),
     );
   }
@@ -479,6 +412,7 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
   /// 剧集底部弹窗
   Widget _buildBottomTvSeasons() {
     if (controller.videoType != VideoType.tv) return const SizedBox();
+
     return Obx(() {
       final showBottomSeasons = controller.showBottomSeasons.value;
       return IgnorePointer(
@@ -500,222 +434,34 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
                 color: CommonColors.color1B1B18,
                 borderRadius: BorderRadius.only(topLeft: Radius.circular(32.h), topRight: Radius.circular(32.h)),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w),
-                    child: Row(
-                      children: [
-                        CommonText.instance(
-                          'Selections',
-                          16.sp,
-                          color: CommonColors.white.withOpacity(0.8),
-                          fontWeight: CommonFontWeight.bold,
-                        ),
-                        Spacer(),
-                        CommonButton(
-                          minSize: 0,
-                          borderRadius: BorderRadius.zero,
-                          onPressed: controller.bottomSeasonsChanged,
-                          child: Image.asset(Assets.commonIconBottomClose, width: 24.w, height: 24.w),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (controller.seasonList.isNotEmpty) ...[
-                    Padding(
-                      padding: EdgeInsets.only(top: 24.w),
-                      child: CommonIndicatorTabBar(
-                        tabController: controller.tabController,
-                        tabs: controller.seasonList,
-                        isScrollable: true,
-                        onChanged: controller.seasonTabChanged,
-                      ),
-                    ),
-                    Expanded(
-                      child: Obx(() {
-                        return MultiStatusView(
-                          currentStatus: controller.episodeStatusType.value,
-                          emptyWidget: CommonText.instance(
-                            'No episodes yet',
-                            14.sp,
-                            color: CommonColors.white.withOpacity(0.5),
-                            textAlign: TextAlign.center,
-                          ),
-                          errorWidget: CommonButton(
-                            minSize: 40.h,
-                            borderRadius: BorderRadius.circular(20.r),
-                            padding: EdgeInsets.symmetric(horizontal: 24.w),
-                            color: CommonColors.primaryColor,
-                            onPressed: controller.reloadEpisodeList,
-                            child: CommonText.instance(
-                              'Try Again',
-                              14.sp,
-                              color: CommonColors.color060600,
-                              fontWeight: CommonFontWeight.medium,
-                            ),
-                          ),
-                          hasAppBar: false,
-                          child: ListView.separated(
-                            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.w),
-                            shrinkWrap: true,
-                            separatorBuilder: (context, index) => Divider(height: 16.w, color: Colors.transparent),
-                            itemCount: controller.episodeList.length,
-                            itemBuilder: (context, index) {
-                              final episodeItem = controller.episodeList[index];
-                              return Obx(() {
-                                final selectEpisode = controller.selectEpisode.value;
-                                return EpisodeVerticalCell(
-                                  episodeEntity: episodeItem,
-                                  selected: selectEpisode == episodeItem,
-                                  action: controller.chooseEpisode,
-                                );
-                              });
-                            },
-                          ),
+              child: TvSeasonView(
+                controller: controller,
+                isDialog: true,
+                contentBuilder: (context, episodeList) {
+                  return ListView.separated(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.w),
+                    shrinkWrap: true,
+                    separatorBuilder: (context, index) => Divider(height: 16.w, color: Colors.transparent),
+                    itemCount: episodeList.length,
+                    itemBuilder: (context, index) {
+                      final episodeItem = episodeList[index];
+                      return Obx(() {
+                        final selectEpisode = controller.selectEpisode.value;
+                        return EpisodeVerticalCell(
+                          episodeEntity: episodeItem,
+                          selected: selectEpisode == episodeItem,
+                          action: controller.chooseEpisode,
                         );
-                      }),
-                    ),
-                  ],
-                ],
+                      });
+                    },
+                  );
+                },
               ),
             ),
           ),
         ),
       );
     });
-  }
-
-  /// 剧集右侧弹窗(横屏)
-  void _showRightTvSeasonsDialog() {
-    if (controller.videoType != VideoType.tv) return;
-
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: 'SideSeasons',
-      barrierColor: Colors.transparent,
-      transitionDuration: const Duration(milliseconds: 250),
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return Align(
-          alignment: Alignment.centerRight,
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
-              width: 343,
-              margin: EdgeInsets.only(top: 16, bottom: 16, right: 16),
-              padding: EdgeInsets.only(top: 24),
-              decoration: BoxDecoration(
-                color: CommonColors.color1B1B18.withOpacity(0.9),
-                borderRadius: BorderRadius.circular(32),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      children: [
-                        CommonText.instance(
-                          'Selections',
-                          16,
-                          color: CommonColors.white.withOpacity(0.8),
-                          fontWeight: CommonFontWeight.bold,
-                        ),
-                        Spacer(),
-                        CommonButton(
-                          minSize: 0,
-                          borderRadius: BorderRadius.zero,
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Image.asset(Assets.commonIconBottomClose, width: 24, height: 24),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (controller.seasonList.isNotEmpty) ...[
-                    Padding(
-                      padding: EdgeInsets.only(top: 16),
-                      child: CommonIndicatorTabBar(
-                        tabController: controller.tabController,
-                        tabs: controller.seasonList,
-                        isScrollable: true,
-                        needAdapted: false,
-                        onChanged: controller.seasonTabChanged,
-                      ),
-                    ),
-                    Expanded(
-                      child: Obx(() {
-                        return MultiStatusView(
-                          currentStatus: controller.episodeStatusType.value,
-                          emptyWidget: CommonText.instance(
-                            'No episodes yet',
-                            14,
-                            color: CommonColors.white.withOpacity(0.5),
-                            textAlign: TextAlign.center,
-                          ),
-                          errorWidget: CommonButton(
-                            minSize: 40,
-                            borderRadius: BorderRadius.circular(20),
-                            padding: EdgeInsets.symmetric(horizontal: 24),
-                            color: CommonColors.primaryColor,
-                            onPressed: controller.reloadEpisodeList,
-                            child: CommonText.instance(
-                              'Try Again',
-                              14,
-                              color: CommonColors.color060600,
-                              fontWeight: CommonFontWeight.medium,
-                            ),
-                          ),
-                          loadingWidget: loadingIndicator(size: 50, strokeWidth: 5.5),
-                          hasAppBar: false,
-                          child: GridView.builder(
-                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 5,
-                              crossAxisSpacing: 8,
-                              mainAxisSpacing: 8,
-                              childAspectRatio: 1.0,
-                            ),
-                            itemCount: controller.episodeList.length,
-                            itemBuilder: (context, index) {
-                              final episodeItem = controller.episodeList[index];
-                              return Obx(() {
-                                final selectEpisode = controller.selectEpisode.value;
-                                return EpisodeHorizontalCell(
-                                  episodeEntity: episodeItem,
-                                  selected: selectEpisode == episodeItem,
-                                  width: double.infinity,
-                                  height: double.infinity,
-                                  needAdapted: false,
-                                  action: (item) {
-                                    Navigator.of(context).pop();
-                                    controller.chooseEpisode(item);
-                                  },
-                                );
-                              });
-                            },
-                          ),
-                        );
-                      }),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        return SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(1, 0),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
-          child: child,
-        );
-      },
-    );
   }
 
   /// 推荐
