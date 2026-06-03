@@ -235,7 +235,14 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
         /// 数据加载错误或缓存中
         Obx(() {
           if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController.isBuffering.value) {
-            return Center(child: loadingIndicator(size: 30, strokeWidth: 2));
+            return Center(child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                loadingIndicator(size: 30, strokeWidth: 2),
+                SizedBox(height: 6),
+                CommonText.instance('加载中....', 12),
+              ],
+            ));
           } else if (mediaPlayerController.mediaDataStatus.error) {
             return Center(
               child: Column(

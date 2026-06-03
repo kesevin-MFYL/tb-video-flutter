@@ -108,8 +108,8 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
 
   void getDataFromServer() {
     Future.wait([_getMediaDetail(), _getMediaRecommend(), _getTvSeasons()]).then((list) {
-      firstLoad = false;
       changeFutureAndTitle();
+      firstLoad = false;
     });
   }
 
@@ -361,7 +361,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
             videoType: videoType,
             type: MediaDataSourceType.network,
           ),
-          initVideoPosition: mediaHistoryEntity != null && mediaHistoryEntity!.currentDuration != null
+          initVideoPosition: firstLoad && mediaHistoryEntity != null && mediaHistoryEntity!.currentDuration != null
               ? Duration(seconds: mediaHistoryEntity!.currentDuration!)
               : Duration.zero,
           captionList: captionList,
@@ -374,7 +374,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
               videoType: videoType,
               type: MediaDataSourceType.network,
             ),
-            initVideoPosition: mediaHistoryEntity != null && mediaHistoryEntity!.currentDuration != null
+            initVideoPosition: firstLoad && mediaHistoryEntity != null && mediaHistoryEntity!.currentDuration != null
                 ? Duration(seconds: mediaHistoryEntity!.currentDuration!)
                 : Duration.zero,
             captionList: captionList,

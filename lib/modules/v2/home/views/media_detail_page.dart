@@ -2,6 +2,7 @@ import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/modules/v2/home/controllers/media_detail_controller.dart';
+import 'package:editvideo/modules/v2/home/widget/auto_scroll_episode_wrapper.dart';
 import 'package:editvideo/modules/v2/home/widget/episode_horizontal_cell.dart';
 import 'package:editvideo/modules/v2/home/widget/episode_vertical_cell.dart';
 import 'package:editvideo/modules/v2/home/widget/media_player_view.dart';
@@ -386,22 +387,36 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
       child: TvSeasonView(
         controller: controller,
         contentBuilder: (context, episodeList) {
-          return ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
-            shrinkWrap: true,
-            separatorBuilder: (context, index) => Divider(indent: 8.w, color: Colors.transparent),
-            itemCount: episodeList.length,
-            itemBuilder: (context, index) {
-              final episodeItem = episodeList[index];
-              return Obx(() {
-                final selectEpisode = controller.selectEpisode.value;
-                return EpisodeHorizontalCell(
-                  episodeEntity: episodeItem,
-                  selected: selectEpisode == episodeItem,
-                  action: controller.chooseEpisode,
-                );
-              });
+          return AutoScrollEpisodeWrapper(
+            controller: controller,
+            episodeList: episodeList,
+            calculateOffset: (index, viewportDimension) {
+              final itemWidth = 48.w;
+              final spacing = 8.w;
+              final padding = 16.w;
+              final itemCenter = padding + index * (itemWidth + spacing) + itemWidth / 2;
+              return itemCenter - viewportDimension / 2;
+            },
+            builder: (context, scrollController) {
+              return ListView.separated(
+                controller: scrollController,
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                shrinkWrap: true,
+                separatorBuilder: (context, index) => SizedBox(width: 8.w),
+                itemCount: episodeList.length,
+                itemBuilder: (context, index) {
+                  final episodeItem = episodeList[index];
+                  return Obx(() {
+                    final selectEpisode = controller.selectEpisode.value;
+                    return EpisodeHorizontalCell(
+                      episodeEntity: episodeItem,
+                      selected: selectEpisode == episodeItem,
+                      action: controller.chooseEpisode,
+                    );
+                  });
+                },
+              );
             },
           );
         },
@@ -438,21 +453,35 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
                 controller: controller,
                 isDialog: true,
                 contentBuilder: (context, episodeList) {
-                  return ListView.separated(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.w),
-                    shrinkWrap: true,
-                    separatorBuilder: (context, index) => Divider(height: 16.w, color: Colors.transparent),
-                    itemCount: episodeList.length,
-                    itemBuilder: (context, index) {
-                      final episodeItem = episodeList[index];
-                      return Obx(() {
-                        final selectEpisode = controller.selectEpisode.value;
-                        return EpisodeVerticalCell(
-                          episodeEntity: episodeItem,
-                          selected: selectEpisode == episodeItem,
-                          action: controller.chooseEpisode,
-                        );
-                      });
+                  return AutoScrollEpisodeWrapper(
+                    controller: controller,
+                    episodeList: episodeList,
+                    calculateOffset: (index, viewportDimension) {
+                      final itemHeight = 48.w;
+                      final spacing = 16.w;
+                      final padding = 16.w;
+                      final itemCenter = padding + index * (itemHeight + spacing) + itemHeight / 2;
+                      return itemCenter - viewportDimension / 2;
+                    },
+                    builder: (context, scrollController) {
+                      return ListView.separated(
+                        controller: scrollController,
+                        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.w),
+                        shrinkWrap: true,
+                        separatorBuilder: (context, index) => SizedBox(height: 16.w),
+                        itemCount: episodeList.length,
+                        itemBuilder: (context, index) {
+                          final episodeItem = episodeList[index];
+                          return Obx(() {
+                            final selectEpisode = controller.selectEpisode.value;
+                            return EpisodeVerticalCell(
+                              episodeEntity: episodeItem,
+                              selected: selectEpisode == episodeItem,
+                              action: controller.chooseEpisode,
+                            );
+                          });
+                        },
+                      );
                     },
                   );
                 },

@@ -1,5 +1,6 @@
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/utils/common_ui.dart';
+import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/media/media_player_control_panel.dart';
 import 'package:editvideo/widget/media/media_player_controller.dart';
 import 'package:flutter/material.dart';
@@ -93,7 +94,14 @@ class _MediaPlayerViewState extends State<MediaPlayerView> {
             ],
           );
         } else {
-          return Center(child: loadingIndicator(size: 30.w, strokeWidth: 2));
+          return Center(child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              loadingIndicator(size: 30, strokeWidth: 2),
+              SizedBox(height: 6),
+              CommonText.instance('播放器初始化中....', 12),
+            ],
+          ));
         }
       },
     );
