@@ -98,8 +98,11 @@ class MediaPlayerController {
   /// 当前亮度 恢复时使用
   var currentBrightness = 0.0;
 
-  /// 是否全屏
+  /// 是否正在全屏
   final isFullScreen = false.obs;
+
+  /// 是否有下一集
+  final hasNextEpisode = true.obs;
 
   /// 隐藏操作栏计时器
   Timer? _hideTimer;
@@ -345,7 +348,7 @@ class MediaPlayerController {
   Future<void> play({bool repeat = false}) async {
     // repeat为true，将从头播放
     if (repeat) {
-      await seekTo(Duration.zero);
+      mediaPlayer?.seek(Duration.zero);
     }
     await mediaPlayer?.play();
     // 播放时延迟3s隐藏控制栏
@@ -516,6 +519,14 @@ class MediaPlayerController {
     await _applySubtitle();
   }
 
+  /// 重置字幕
+  Future<void> resetSubtitle() async {
+    openCaptions.value = false;
+    captionList.clear();
+    selectedCaption.value = null;
+    setSubtitle(isOpen: false);
+  }
+
   /// 开始隐藏控制栏计时
   void _startHideTimer() {
     _cancelHideTimer();
@@ -599,9 +610,6 @@ class MediaPlayerController {
         commonDebugPrint('MediaPlayer playStatus: $event');
         if (event) {
           mediaPlayerStatus.status.value = MediaPlayerStatusType.completed;
-
-          // 播放完成显示控制栏
-          // showControls.value = true;
 
           // 触发回调事件
           _callStateChangeListeners(playerStatus: mediaPlayerStatus.status.value);

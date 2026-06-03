@@ -1,4 +1,5 @@
 import 'package:editvideo/config/color/colors.dart';
+import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/modules/v2/home/controllers/media_detail_controller.dart';
@@ -623,18 +624,19 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
   // 播放器状态监听
   void playerListener(MediaPlayerStatusType status) async {
     if (status == MediaPlayerStatusType.completed) {
-      // 结束播放退出全屏
-      if (!controller.mediaPlayerController.controlsLock.value) {
-        if (controller.isSideSeasonsDialogOpen || controller.isSubtitleSettingsDialogOpen) {
-          Get.back();
+      // 全屏的情况下，结束播放退出全屏
+      if (controller.mediaPlayerController.isFullScreen.value) {
+        // 非锁定的情况下，退出全屏
+        if (!controller.mediaPlayerController.controlsLock.value) {
+          if (controller.isSideSeasonsDialogOpen || controller.isSubtitleSettingsDialogOpen) {
+            Get.back();
+          }
+          controller.mediaPlayerController.triggerFullScreen(status: false);
         }
-        controller.mediaPlayerController.triggerFullScreen(status: false);
       }
 
-      /// 顺序播放 列表循环
-      // if (vdCtr.videoType == SearchType.video) {
-      //   videoIntroController.nextPlay();
-      // }
+      // 自动播放下一个内容
+      controller.nextPlay();
     }
   }
 

@@ -18,6 +18,7 @@ import 'package:editvideo/widget/media/media_player_controller.dart';
 import 'package:editvideo/widget/media/model/media_data_source.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 
 class MediaDetailController extends BaseController with GetSingleTickerProviderStateMixin {
@@ -116,6 +117,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
     Future.wait([_getMediaDetail(), _getMediaRecommend(), _getTvSeasons()]).then((list) {
       changeFutureAndTitle();
       firstLoad = false;
+      EasyLoading.dismiss();
     });
   }
 
@@ -207,7 +209,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
   }
 
   /// 获取季下的所有集
-  Future<void> _getEpisodeList({int? seasonId}) async {
+  Future<void> _getEpisodeList({int? seasonId, bool nextPlay = false}) async {
     if (selectSeason.value == null) return;
 
     final targetSeasonId = seasonId ?? selectSeason.value?.id;
@@ -215,7 +217,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
 
     if (_episodeListCache.containsKey(targetSeasonId)) {
       episodeList = _episodeListCache[targetSeasonId]!;
-      _handleEpisodeListSuccess();
+      _handleEpisodeListSuccess(nextPlay: nextPlay);
       return;
     }
 
@@ -225,14 +227,14 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
       episodeList = listData ?? [];
       _episodeListCache[targetSeasonId] = episodeList;
 
-      _handleEpisodeListSuccess();
+      _handleEpisodeListSuccess(nextPlay: nextPlay);
     } else {
       commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
       episodeStatusType.value = MultiStatusType.statusError;
     }
   }
 
-  void _handleEpisodeListSuccess() {
+  void _handleEpisodeListSuccess({bool nextPlay = false}) {
     if (firstLoad) {
       if (mediaHistoryEntity != null) {
         // 有缓存记录
@@ -246,7 +248,15 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
       captionList = selectEpisode.value?.captionList ?? [];
     }
 
+    if (nextPlay) {
+      if (episodeList.isNotEmpty) {
+        selectEpisode.value = episodeList.first;
+      }
+    }
+
     episodeStatusType.value = episodeList.isEmpty ? MultiStatusType.statusEmpty : MultiStatusType.statusContent;
+
+    EasyLoading.dismiss();
   }
 
   /// 季Tab切换
@@ -335,6 +345,71 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
     }
   }
 
+  void nextPlay() async {
+    // 影片播放完毕
+    if (videoType == VideoType.video) {
+      if (recommendList.isNotEmpty) {
+        // 推荐列表中单片列表的第一个影片
+        MediaItemEntity? firstRecommendItem;
+        // 获取推荐中的第一个单片对象
+        final homeSectionItem = recommendList.firstWhereOrNull((element) {
+          final sectionType = SectionType.kind(element.kind);
+          return sectionType == SectionType.mediaList;
+        });
+        if (homeSectionItem != null) {
+          if (homeSectionItem.dataList != null && homeSectionItem.dataList!.isNotEmpty) {
+            firstRecommendItem = homeSectionItem.dataList!.first;
+          }
+        }
+        if (firstRecommendItem != null) {
+          EasyLoading.show();
+          mediaId = firstRecommendItem.id ?? 0;
+          mediaType = firstRecommendItem.type ?? 1;
+          videoType = VideoType.instance(mediaType);
+          await mediaPlayerController.resetSubtitle();
+          getDataFromServer();
+        } else {
+          mediaPlayerController.showControls.value = true;
+        }
+      } else {
+        mediaPlayerController.showControls.value = true;
+      }
+    } else if (videoType == VideoType.tv) {
+      // 剧集播放完毕
+      final currentSeason = selectSeason.value;
+      final currentEpisode = selectEpisode.value;
+      if (currentSeason != null && currentEpisode != null) {
+        final episodeIndex = episodeList.indexOf(currentEpisode);
+        final seasonIndex = seasonList.indexOf(currentSeason);
+
+        if (episodeIndex != -1 && episodeIndex < episodeList.length - 1) {
+          // 不是最后一集,播放下一集
+          await mediaPlayerController.resetSubtitle();
+          final nextEpisode = episodeList[episodeIndex + 1];
+          chooseEpisode(nextEpisode);
+        } else if (episodeIndex != -1 && episodeIndex == episodeList.length - 1) {
+          // 最后一集
+          if (seasonIndex != -1 && seasonIndex < seasonList.length - 1) {
+            // 不是最后一季
+            // 播放下一季第一集
+            EasyLoading.show();
+            await mediaPlayerController.resetSubtitle();
+            final nextSeason = seasonList[seasonIndex + 1];
+            selectSeason.value = nextSeason;
+            await _getEpisodeList(seasonId: selectSeason.value?.id, nextPlay: true);
+            tabController?.animateTo(seasonIndex + 1);
+            chooseEpisode(selectEpisode.value!);
+          } else if (seasonIndex != -1 && seasonIndex == seasonList.length - 1) {
+            // 是最后一季
+            mediaPlayerController.showControls.value = true;
+          }
+        }
+      } else {
+        mediaPlayerController.showControls.value = true;
+      }
+    }
+  }
+
   void mediaTap(MediaItemEntity mediaItem, SectionType sectionType) {
     if (sectionType == SectionType.mediaList || sectionType == SectionType.topPicks) {
       // 单片，进入视频播放页
@@ -360,19 +435,24 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
   }
 
   void saveMedia() {
-    //Save history with new entity
-    final historyEntity = MediaHistoryEntity(
-      id: mediaDetailEntity?.id,
-      title: mediaDetailEntity?.title,
-      cover: mediaDetailEntity?.cover,
-      type: mediaType,
-      viewTime: DateTime.now().millisecondsSinceEpoch,
-      totalDuration: mediaPlayerController.totalDuration.value.inSeconds,
-      currentDuration: mediaPlayerController.currentPosition.value.inSeconds,
-      season: videoType == VideoType.tv ? selectSeason.value : null,
-      episode: videoType == VideoType.tv ? selectEpisode.value : null,
-    );
-    Storage.addViewedMedia(historyEntity);
+    if (mediaPlayerController.mediaPlayerStatus.completed) {
+      // 播放完成删除
+      Storage.deleteViewedMediaById(mediaDetailEntity?.id ?? 0);
+    } else {
+      //Save history with new entity
+      final historyEntity = MediaHistoryEntity(
+        id: mediaDetailEntity?.id,
+        title: mediaDetailEntity?.title,
+        cover: mediaDetailEntity?.cover,
+        type: mediaType,
+        viewTime: DateTime.now().millisecondsSinceEpoch,
+        totalDuration: mediaPlayerController.totalDuration.value.inSeconds,
+        currentDuration: mediaPlayerController.currentPosition.value.inSeconds,
+        season: videoType == VideoType.tv ? selectSeason.value : null,
+        episode: videoType == VideoType.tv ? selectEpisode.value : null,
+      );
+      Storage.addViewedMedia(historyEntity);
+    }
 
     EventBusManager.instance.post(EventBusName.historyRefresh);
   }
