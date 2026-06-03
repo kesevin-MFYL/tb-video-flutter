@@ -146,6 +146,10 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
     if (tabController!.index < seasonList.length) {
       selectSeason.value = seasonList[tabController!.index];
     }
+
+    //检查是否有下一集
+    checkHasNextPlay();
+
     changeFutureAndTitle();
   }
 
@@ -245,6 +249,10 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
           selectEpisode.value = episodeList.first;
         }
       }
+
+      // 检查是否有下一集
+      checkHasNextPlay();
+
       captionList = selectEpisode.value?.captionList ?? [];
     }
 
@@ -257,6 +265,24 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
     episodeStatusType.value = episodeList.isEmpty ? MultiStatusType.statusEmpty : MultiStatusType.statusContent;
 
     EasyLoading.dismiss();
+  }
+
+  /// 检查是否有下一集
+  void checkHasNextPlay() {
+    // 判断当前是否为最后一季的最后的最后一集
+    final currentSeason = selectSeason.value;
+    final currentEpisode = selectEpisode.value;
+    if (currentSeason != null && currentEpisode != null) {
+      final episodeIndex = episodeList.indexOf(currentEpisode);
+      final seasonIndex = seasonList.indexOf(currentSeason);
+      if (seasonIndex != -1 && seasonIndex == seasonList.length - 1 && episodeIndex != -1 && episodeIndex == episodeList.length - 1) {
+        mediaPlayerController.hasNextEpisode.value = false;
+      } else {
+        mediaPlayerController.hasNextEpisode.value = true;
+      }
+    } else {
+      mediaPlayerController.hasNextEpisode.value = true;
+    }
   }
 
   /// 季Tab切换

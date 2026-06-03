@@ -14,8 +14,9 @@ class MediaPlayerView extends StatefulWidget {
     required this.mediaPlayerController,
     required this.mediaPlayerFuture,
     this.onChooseEpisode,
-    this.onReload,
     this.onShowSubtitleSettings,
+    this.onNextPlay,
+    this.onReload,
   });
 
   final int mediaId;
@@ -24,6 +25,7 @@ class MediaPlayerView extends StatefulWidget {
   final VoidCallback? onReload;
   final VoidCallback? onChooseEpisode;
   final VoidCallback? onShowSubtitleSettings;
+  final VoidCallback? onNextPlay;
 
   @override
   State<MediaPlayerView> createState() => _MediaPlayerViewState();
@@ -88,6 +90,7 @@ class _MediaPlayerViewState extends State<MediaPlayerView> {
                   onToggleFullScreen: (isFullscreen) {},
                   onChooseEpisode: widget.onChooseEpisode,
                   onShowSubtitleSettings: widget.onShowSubtitleSettings,
+                  onNextPlay: widget.onNextPlay,
                   onReload: widget.onReload,
                 ),
               ),

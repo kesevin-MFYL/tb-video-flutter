@@ -20,13 +20,22 @@ import 'package:screen_brightness/screen_brightness.dart';
 
 /// 播放器控制面板
 class MediaPlayerControlPanel extends StatefulWidget {
-  const MediaPlayerControlPanel(this.controller, {super.key, required this.onToggleFullScreen, this.onChooseEpisode, this.onShowSubtitleSettings, this.onReload});
+  const MediaPlayerControlPanel(
+    this.controller, {
+    super.key,
+    required this.onToggleFullScreen,
+    this.onChooseEpisode,
+    this.onShowSubtitleSettings,
+    this.onNextPlay,
+    this.onReload,
+  });
 
   final MediaPlayerController controller;
   final ValueChanged<bool> onToggleFullScreen;
   final VoidCallback? onReload;
   final VoidCallback? onChooseEpisode;
   final VoidCallback? onShowSubtitleSettings;
+  final VoidCallback? onNextPlay;
 
   @override
   State<MediaPlayerControlPanel> createState() => _MediaPlayerControlPanelState();
@@ -137,7 +146,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
           },
           onDoubleTap: () {
             // 数据加载中或错误 禁用
-            if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController. mediaDataStatus.error) return;
+            if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController.mediaDataStatus.error) return;
 
             // 缓存中或锁定时🔒禁用
             if (mediaPlayerController.isBuffering.value || mediaPlayerController.controlsLock.value) return;
@@ -147,7 +156,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
           },
           onLongPress: () {
             // 数据加载中或错误 禁用
-            if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController. mediaDataStatus.error) return;
+            if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController.mediaDataStatus.error) return;
 
             // 缓存中或锁定时🔒禁用
             if (mediaPlayerController.isBuffering.value || mediaPlayerController.controlsLock.value) return;
@@ -159,7 +168,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
           },
           onLongPressEnd: (details) {
             // 数据加载中或错误 禁用
-            if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController. mediaDataStatus.error) return;
+            if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController.mediaDataStatus.error) return;
 
             // 缓存中或锁定时🔒禁用
             if (mediaPlayerController.isBuffering.value || mediaPlayerController.controlsLock.value) return;
@@ -170,7 +179,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
           },
           onHorizontalDragStart: (details) {
             // 数据加载中或错误 禁用
-            if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController. mediaDataStatus.error) return;
+            if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController.mediaDataStatus.error) return;
 
             // 缓存中或锁定时🔒禁用
             if (mediaPlayerController.isBuffering.value || mediaPlayerController.controlsLock.value) return;
@@ -179,7 +188,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
           },
           onHorizontalDragUpdate: (details) {
             // 数据加载中或错误 禁用
-            if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController. mediaDataStatus.error) return;
+            if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController.mediaDataStatus.error) return;
 
             // 缓存中或锁定时🔒禁用
             if (mediaPlayerController.isBuffering.value || mediaPlayerController.controlsLock.value) return;
@@ -193,7 +202,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
           },
           onHorizontalDragEnd: (details) {
             // 数据加载中或错误 禁用
-            if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController. mediaDataStatus.error) return;
+            if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController.mediaDataStatus.error) return;
 
             // 缓存中或锁定时🔒禁用
             if (mediaPlayerController.isBuffering.value || mediaPlayerController.controlsLock.value) return;
@@ -203,7 +212,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
           },
           onVerticalDragUpdate: (DragUpdateDetails details) async {
             // 数据加载中或错误 禁用
-            if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController. mediaDataStatus.error) return;
+            if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController.mediaDataStatus.error) return;
 
             final double totalWidth = MediaQuery.sizeOf(context).width;
             final double tapPosition = details.localPosition.dx;
@@ -235,14 +244,16 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
         /// 数据加载错误或缓存中
         Obx(() {
           if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController.isBuffering.value) {
-            return Center(child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                loadingIndicator(size: 30, strokeWidth: 2),
-                SizedBox(height: 6),
-                CommonText.instance('加载中....', 12),
-              ],
-            ));
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  loadingIndicator(size: 30, strokeWidth: 2),
+                  SizedBox(height: 6),
+                  CommonText.instance('加载中....', 12),
+                ],
+              ),
+            );
           } else if (mediaPlayerController.mediaDataStatus.error) {
             return Center(
               child: Column(
@@ -467,9 +478,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
                                 child: Obx(() {
                                   final hasNext = mediaPlayerController.hasNextEpisode.value;
                                   return GestureDetector(
-                                    onTap: hasNext ? () {
-                                      //todo 下一集
-                                    } : null,
+                                    onTap: hasNext ? () {} : null,
                                     child: Opacity(
                                       opacity: hasNext ? 1.0 : 0.5,
                                       child: Image.asset(Assets.commonIconVideoPlayNext, width: 32, height: 32),

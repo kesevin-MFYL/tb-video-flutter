@@ -188,6 +188,7 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
       },
       onChooseEpisode: controller.showRightTvSeasonsDialog,
       onShowSubtitleSettings: controller.showSubtitleSettingsDialog,
+      onNextPlay: controller.nextPlay,
     );
   }
 
