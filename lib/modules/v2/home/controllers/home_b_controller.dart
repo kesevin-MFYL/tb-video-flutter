@@ -25,17 +25,19 @@ class HomeBController extends BaseController {
   }
 
   void getDataFromServer() async {
-    _getContinueWatching();
-    Future.wait([_getHomeSection(), getTopPicks()]).then((list) {
+    Future.wait([_getHomeSection(), getTopPicks(), _getContinueWatching()]).then((list) {
       update();
     });
   }
 
   /// 获取观看记录
-  Future<void> _getContinueWatching() async {
+  Future<void> _getContinueWatching({bool needUpdate = false}) async {
     final list = Storage.getViewedMedia();
     list.sort((a, b) => (b.viewTime ?? 0).compareTo(a.viewTime ?? 0));
     continueWatchingList = list.take(10).toList();
+    if (needUpdate) {
+      update();
+    }
   }
 
   Future<void> _getHomeSection() async {
@@ -51,7 +53,7 @@ class HomeBController extends BaseController {
     }
   }
 
-  Future<void> getTopPicks() async {
+  Future<void> getTopPicks({bool needUpdate = false}) async {
     final result = await HomeApi.getTopPicks();
     if (result.isSuccess) {
       final listData = result.responseData?.data;
@@ -59,12 +61,14 @@ class HomeBController extends BaseController {
     } else {
       commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
     }
+    if (needUpdate) {
+      update();
+    }
   }
 
   void visibleFraction() {
-    Future.wait([getTopPicks(), _getContinueWatching()]).then((list) {
-      update();
-    });
+    _getContinueWatching(needUpdate: true);
+    getTopPicks(needUpdate: true);
   }
 
   void viewAll(SectionType sectionType, HomeSectionEntity? section) {

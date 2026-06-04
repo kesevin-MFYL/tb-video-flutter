@@ -43,6 +43,8 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
 
   MediaDetailEntity? mediaDetailEntity;
 
+  var videoUrl = '';
+
   var recommendList = <HomeSectionEntity>[];
 
   TabController? tabController;
@@ -104,8 +106,6 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
 
   @override
   void handRegister() {
-    /// 注册播放器记录事件
-    mediaPlayerController.setRecrodAction(saveMedia);
     mediaPlayerController.getNextVideoUrlAction = getNextVideoUrl;
   }
 
@@ -446,6 +446,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
           mediaType = firstRecommendItem.type ?? 1;
           videoType = VideoType.instance(mediaType);
           // await mediaPlayerController.resetSubtitle();
+          mediaPlayerController.setRecrodAction(null);
           getDataFromServer();
         } else {
           mediaPlayerController.showControls.value = true;
@@ -464,6 +465,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
         if (episodeIndex != -1 && episodeIndex < episodeList.length - 1) {
           // 不是最后一集,播放下一集
           // await mediaPlayerController.resetSubtitle();
+          mediaPlayerController.setRecrodAction(null);
           final nextEpisode = episodeList[episodeIndex + 1];
           chooseEpisode(nextEpisode);
         } else if (episodeIndex != -1 && episodeIndex == episodeList.length - 1) {
@@ -473,6 +475,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
             // 播放下一季第一集
             EasyLoading.show();
             // await mediaPlayerController.resetSubtitle();
+            mediaPlayerController.setRecrodAction(null);
             final nextSeason = seasonList[seasonIndex + 1];
             selectSeason.value = nextSeason;
             await _getEpisodeList(seasonId: selectSeason.value?.id, nextPlay: true);
@@ -524,6 +527,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
         title: mediaDetailEntity?.title,
         cover: mediaDetailEntity?.cover,
         type: mediaType,
+        videoUrl: videoUrl,
         viewTime: DateTime.now().millisecondsSinceEpoch,
         totalDuration: mediaPlayerController.totalDuration.value.inSeconds,
         currentDuration: mediaPlayerController.currentPosition.value.inSeconds,
@@ -539,6 +543,10 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
 
   Future<bool> initMediaPlayer() async {
     try {
+      videoUrl = videoType == VideoType.video ? mediaDetailEntity?.video ?? '' : selectEpisode.value?.video ?? '';
+      /// 注册播放器记录事件
+      mediaPlayerController.setRecrodAction(saveMedia);
+
       if (videoType == VideoType.video) {
         return await mediaPlayerController.setDataSource(
           MediaDataSource(

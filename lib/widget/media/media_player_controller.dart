@@ -800,6 +800,7 @@ class MediaPlayerController {
       if (mediaPlayer != null) {
         var pp = mediaPlayer!.platform as NativePlayer;
         await pp.setProperty('audio-files', '');
+        recordAction = null;
         removeListeners();
         await mediaPlayer?.dispose();
         mediaPlayer = null;

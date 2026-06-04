@@ -7,6 +7,7 @@ class MediaHistoryEntity extends BaseEntity {
   String? title;
   String? cover;
   int? type;
+  String? videoUrl;
   int? viewTime;
   int? totalDuration;
   int? currentDuration;
@@ -18,6 +19,7 @@ class MediaHistoryEntity extends BaseEntity {
     this.title,
     this.cover,
     this.type,
+    this.videoUrl,
     this.viewTime,
     this.totalDuration,
     this.currentDuration,
@@ -35,6 +37,7 @@ class MediaHistoryEntity extends BaseEntity {
     if (json['type'] != null) {
       type = int.tryParse(json['type'].toString());
     }
+    videoUrl = json['video_url'];
     if (json['view_time'] != null) {
       viewTime = int.tryParse(json['view_time'].toString());
     }
@@ -59,6 +62,7 @@ class MediaHistoryEntity extends BaseEntity {
     data['title'] = title;
     data['cover'] = cover;
     data['type'] = type;
+    data['video_url'] = videoUrl;
     data['view_time'] = viewTime;
     data['total_duration'] = totalDuration;
     data['current_duration'] = currentDuration;
