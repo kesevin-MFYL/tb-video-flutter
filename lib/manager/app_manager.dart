@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:media_kit/media_kit.dart';
+import 'package:flutter_video_caching/flutter_video_caching.dart';
 
 class AppManager {
   static final instance = AppManager._();
@@ -38,6 +39,11 @@ class AppManager {
     };
 
     MediaKit.ensureInitialized();
+
+    await VideoProxy.init(
+      logPrint: true,   // 开启日志，便于调试
+      maxStorageCacheSize: 2048, // 磁盘缓存 1 GB
+    );
 
     // 配置日志
     LoggerConfig.instantiate();

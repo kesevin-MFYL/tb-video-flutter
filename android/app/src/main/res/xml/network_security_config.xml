@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">127.0.0.1</domain>
+        <domain includeSubdomains="true">localhost</domain>
+    </domain-config>
+    <!-- Optionally, you can also set base-config if needed, but domain-config for localhost is usually enough -->
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>
