@@ -20,6 +20,27 @@ class VideoCacheManager extends CacheManager {
           maxNrOfCacheObjects: 500,
         ));
 
+  Future<int> getCacheSize() async {
+    try {
+      final cacheDir = await getTemporaryDirectory();
+      final videoCacheDir = Directory('${cacheDir.path}/$key');
+      if (!await videoCacheDir.exists()) return 0;
+
+      int totalSize = 0;
+      final List<FileSystemEntity> files = videoCacheDir.listSync(recursive: true);
+
+      for (var file in files) {
+        if (file is File) {
+          totalSize += await file.length();
+        }
+      }
+      return totalSize;
+    } catch (e) {
+      print('Get cache size error: $e');
+      return 0;
+    }
+  }
+
   Future<void> checkAndCleanCache() async {
     try {
       final cacheDir = await getTemporaryDirectory();

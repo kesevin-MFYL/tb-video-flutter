@@ -5,10 +5,11 @@ import 'package:editvideo/base/base_controller.dart';
 import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
+import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/models/page_model.dart';
 import 'package:editvideo/routes/app_routes.dart';
-import 'package:editvideo/widget/bottom_sheet/delete_search_history_bottom_sheet.dart';
+import 'package:editvideo/widget/bottom_sheet/delete_bottom_sheet.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -186,7 +187,10 @@ class SearchController extends BaseController {
 
   void showDeleteHistoryBottomSheet() {
     unfocus();
-    DeleteSearchHistoryBottomSheet.show(
+    DeleteBottomSheet.show(
+      title: 'Clear',
+      tips: 'Please confirm whether to clear thesearch history.',
+      imageAsset: Assets.commonIconBottomDeleteHistory,
       onConfirm: () {
         clearSearchHistory();
       },

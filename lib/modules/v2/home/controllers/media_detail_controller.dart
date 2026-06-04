@@ -518,19 +518,26 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
       // 播放完成删除
       Storage.deleteViewedMediaById(mediaDetailEntity?.id ?? 0);
     } else {
-      //Save history with new entity
-      final historyEntity = MediaHistoryEntity(
-        id: mediaDetailEntity?.id,
-        title: mediaDetailEntity?.title,
-        cover: mediaDetailEntity?.cover,
-        type: mediaType,
-        viewTime: DateTime.now().millisecondsSinceEpoch,
-        totalDuration: mediaPlayerController.totalDuration.value.inSeconds,
-        currentDuration: mediaPlayerController.currentPosition.value.inSeconds,
-        season: videoType == VideoType.tv ? selectSeason.value : null,
-        episode: videoType == VideoType.tv ? selectEpisode.value : null,
-      );
-      Storage.addViewedMedia(historyEntity);
+      final progress = mediaPlayerController.currentPosition.value.inMilliseconds / mediaPlayerController.totalDuration.value.inMilliseconds;
+      if (progress >= 0.98) {
+        // 播放完成删除
+        Storage.deleteViewedMediaById(mediaDetailEntity?.id ?? 0);
+      } else {
+        //Save history with new entity
+        final historyEntity = MediaHistoryEntity(
+          id: mediaDetailEntity?.id,
+          title: mediaDetailEntity?.title,
+          cover: mediaDetailEntity?.cover,
+          type: mediaType,
+          viewTime: DateTime.now().millisecondsSinceEpoch,
+          totalDuration: mediaPlayerController.totalDuration.value.inSeconds,
+          currentDuration: mediaPlayerController.currentPosition.value.inSeconds,
+          season: videoType == VideoType.tv ? selectSeason.value : null,
+          episode: videoType == VideoType.tv ? selectEpisode.value : null,
+        );
+
+        Storage.addViewedMedia(historyEntity);
+      }
     }
 
     EventBusManager.instance.post(EventBusName.historyRefresh);

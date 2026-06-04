@@ -8,9 +8,18 @@ import 'package:get/get.dart';
 
 import '../../generated/assets.dart';
 
-class DeleteSearchHistoryBottomSheet extends StatelessWidget {
-  const DeleteSearchHistoryBottomSheet({super.key, required this.onConfirm});
+class DeleteBottomSheet extends StatelessWidget {
+  const DeleteBottomSheet({
+    super.key,
+    required this.title,
+    required this.tips,
+    required this.imageAsset,
+    required this.onConfirm,
+  });
 
+  final String title;
+  final String tips;
+  final String imageAsset;
   final VoidCallback onConfirm;
 
   @override
@@ -32,7 +41,7 @@ class DeleteSearchHistoryBottomSheet extends StatelessWidget {
                   child: Padding(
                     padding: EdgeInsets.only(top: 24.w, bottom: 16.w),
                     child: CommonText.instance(
-                      'Clear',
+                      title,
                       16.sp,
                       color: CommonColors.primaryColor,
                       fontWeight: CommonFontWeight.bold,
@@ -42,7 +51,7 @@ class DeleteSearchHistoryBottomSheet extends StatelessWidget {
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 16.w),
                   child: CommonText.instance(
-                    'Please confirm whether to clear thesearch history.',
+                    tips,
                     14.sp,
                     color: CommonColors.white.withOpacity(0.8),
                     textAlign: TextAlign.center,
@@ -88,16 +97,21 @@ class DeleteSearchHistoryBottomSheet extends StatelessWidget {
           Positioned(
             top: -40.w,
             left: 16.w,
-            child: Image.asset(Assets.commonIconBottomDeleteHistory, width: 80.w, height: 80.w),
+            child: Image.asset(imageAsset, width: 80.w, height: 80.w),
           ),
         ],
       ),
     );
   }
 
-  static void show({required VoidCallback onConfirm}) {
+  static void show({
+    required String title,
+    required String tips,
+    required String imageAsset,
+    required VoidCallback onConfirm,
+  }) {
     Get.bottomSheet(
-      DeleteSearchHistoryBottomSheet(onConfirm: onConfirm),
+      DeleteBottomSheet(title: title, tips: tips, imageAsset: imageAsset, onConfirm: onConfirm),
       barrierColor: CommonColors.black.withOpacity(0.5),
       ignoreSafeArea: true,
       isScrollControlled: true,

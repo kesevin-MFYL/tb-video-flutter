@@ -28,7 +28,7 @@ class EpisodeVerticalCell extends StatelessWidget {
         child: Row(
           children: [
             CommonText.instance(
-              '${episodeEntity.epsNum}',
+              '${episodeEntity.epsNum}'.padLeft(2, '0'),
               14.sp,
               color: selected ? CommonColors.primaryColor : CommonColors.white,
               fontWeight: CommonFontWeight.bold,

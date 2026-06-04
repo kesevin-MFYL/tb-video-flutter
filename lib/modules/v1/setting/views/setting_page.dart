@@ -48,10 +48,10 @@ class SettingPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(24.r),
                     color: CommonColors.color333333,
                     onPressed: () {
-                      Get.toNamed(Routes.webPage, arguments: {
-                        'webType': WebViewType.privacyPolicy,
-                        'webUrl': 'https://movixweb.com/privacy/',
-                      });
+                      Get.toNamed(
+                        Routes.webPage,
+                        arguments: {'webType': WebViewType.privacyPolicy, 'webUrl': 'https://movixweb.com/privacy/'},
+                      );
                     },
                     child: Row(
                       children: [
@@ -70,16 +70,18 @@ class SettingPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(24.r),
                     color: CommonColors.color333333,
                     onPressed: () {
-                      Get.toNamed(Routes.webPage, arguments: {
-                        'webType': WebViewType.userAgreement,
-                        'webUrl': 'https://movixweb.com/terms/',
-                      });
+                      Get.toNamed(
+                        Routes.webPage,
+                        arguments: {'webType': WebViewType.userAgreement, 'webUrl': 'https://movixweb.com/terms/'},
+                      );
                     },
                     child: Row(
                       children: [
                         Image.asset(Assets.commonIconUserAgreement, width: 24.w, height: 24.w),
                         SizedBox(width: 8.w),
-                        Expanded(child: CommonText.instance('User Agreement', 16.sp, fontWeight: CommonFontWeight.semiBold)),
+                        Expanded(
+                          child: CommonText.instance('User Agreement', 16.sp, fontWeight: CommonFontWeight.semiBold),
+                        ),
                         Image.asset(Assets.commonArrowRight, width: 24.w, height: 24.w),
                       ],
                     ),
@@ -98,6 +100,25 @@ class SettingPage extends StatelessWidget {
                         SizedBox(width: 8.w),
                         Expanded(child: CommonText.instance('Feedback', 16.sp, fontWeight: CommonFontWeight.semiBold)),
                         Image.asset(Assets.commonArrowRight, width: 24.w, height: 24.w),
+                      ],
+                    ),
+                  ),
+
+                  SizedBox(height: 16.h),
+                  CommonButton(
+                    minSize: 0,
+                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 19.h),
+                    borderRadius: BorderRadius.circular(24.r),
+                    color: CommonColors.color333333,
+                    onPressed: controller.clearCache,
+                    child: Row(
+                      children: [
+                        Image.asset(Assets.commonIconCache, width: 24.w, height: 24.w),
+                        SizedBox(width: 8.w),
+                        Expanded(child: CommonText.instance('Cache', 16.sp, fontWeight: CommonFontWeight.semiBold)),
+                        Obx(() {
+                          return CommonText.instance(controller.cacheString.value, 12.sp, color: CommonColors.colorDB88E6);
+                        }),
                       ],
                     ),
                   ),
@@ -121,7 +142,6 @@ class SettingPage extends StatelessWidget {
                   //     ),
                   //   ),
                   // ],
-
                   SizedBox(height: 16.h),
                   CommonButton(
                     minSize: 0,
@@ -142,7 +162,6 @@ class SettingPage extends StatelessWidget {
                       ],
                     ),
                   ),
-
                 ],
               ),
             ),

@@ -1,19 +1,27 @@
+import 'dart:io';
 import 'package:editvideo/base/base_controller.dart';
 import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/config/network/api/common_api.dart';
 import 'package:editvideo/config/network/http_utils.dart';
+import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/manager/admob/consent_manager.dart';
+import 'package:editvideo/utils/video_cache_manager.dart';
+import 'package:editvideo/widget/bottom_sheet/delete_bottom_sheet.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:get/get.dart';
 
 class SettingController extends BaseController {
 
   bool isPrivacyOptionsRequired = false;
 
+  var cacheString = ''.obs;
+
   @override
-  void onInit() async {
-    super.onInit();
-    // final result = await CommonApi.getIpAddress();
+  void fetchData() {
+    _getCacheSize();
     //todo GDPR权限检查
     // _checkPrivacyOptionsRequired();
   }
@@ -34,6 +42,74 @@ class SettingController extends BaseController {
   //     _checkPrivacyOptionsRequired();
   //   });
   // }
+
+  _getCacheSize() async {
+    try {
+      int totalSize = 0;
+
+      // 1. 获取视频缓存大小
+      totalSize += await VideoCacheManager().getCacheSize();
+
+      // 2. 获取图片缓存大小 (DefaultCacheManager 默认使用的 key 是 libCachedImageData)
+      final cacheDir = await getTemporaryDirectory();
+      final imageCacheDir = Directory('${cacheDir.path}/libCachedImageData');
+      if (await imageCacheDir.exists()) {
+        final List<FileSystemEntity> files = imageCacheDir.listSync(recursive: true);
+        for (var file in files) {
+          if (file is File) {
+            totalSize += await file.length();
+          }
+        }
+      }
+
+      // 将 bytes 转换为 MB 或 GB 等更易读的格式
+      if (totalSize < 1024 * 1024) {
+        cacheString.value = '${(totalSize / 1024).toStringAsFixed(2)} KB';
+      } else if (totalSize < 1024 * 1024 * 1024) {
+        cacheString.value = '${(totalSize / (1024 * 1024)).toStringAsFixed(2)} MB';
+      } else {
+        cacheString.value = '${(totalSize / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
+      }
+    } catch (e) {
+      commonDebugPrint('Get total cache size error: $e');
+      cacheString.value = '0.00 KB';
+    }
+  }
+
+  void clearCache() async {
+    DeleteBottomSheet.show(
+      title: 'Cache',
+      tips: 'Are you sure you want to delete cached data? It will be permanently removed.',
+      imageAsset: Assets.commonIconClearCache,
+      onConfirm: () async {
+        EasyLoading.show();
+        try {
+          // 1. 清除视频缓存
+          await VideoCacheManager().emptyCache();
+
+          // 2. 清除图片缓存
+          await DefaultCacheManager().emptyCache();
+
+          // 保险起见，手动清理图片缓存目录
+          final cacheDir = await getTemporaryDirectory();
+          final imageCacheDir = Directory('${cacheDir.path}/libCachedImageData');
+          if (await imageCacheDir.exists()) {
+            await imageCacheDir.delete(recursive: true);
+          }
+
+          // 3. 重新获取缓存大小更新 UI
+          await _getCacheSize();
+          
+          EasyLoading.dismiss();
+          EasyLoading.showToast('Cache cleared successfully');
+        } catch (e) {
+          commonDebugPrint('Clear cache error: $e');
+          EasyLoading.dismiss();
+          EasyLoading.showToast('Failed to clear cache');
+        }
+      },
+    );
+  }
 
   Future<void> feedback() async {
     final Uri emailLaunchUri = Uri(

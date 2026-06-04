@@ -61,6 +61,7 @@ class Assets {
   static const String commonIconUnselected = 'assets/images/common/icon_unselected.png';
   static const String commonIconVideoList = 'assets/images/common/icon_video_list.png';
   static const String commonTakeVideoTips = 'assets/images/common/take_video_tips.png';
+  static const String commonIconClearCache = 'assets/images/common/icon_clear_cache.png';
   static const String commonIconDatePicker = 'assets/images/common/icon_date_picker.png';
   static const String commonIconRewindTips = 'assets/images/common/icon_rewind_tips.png';
   static const String commonIconVideoError = 'assets/images/common/icon_video_error.png';
