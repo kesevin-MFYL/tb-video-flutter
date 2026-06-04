@@ -106,6 +106,59 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
   void handRegister() {
     /// 注册播放器记录事件
     mediaPlayerController.setRecrodAction(saveMedia);
+    mediaPlayerController.getNextVideoUrlAction = getNextVideoUrl;
+  }
+
+  Future<String?> getNextVideoUrl() async {
+    if (videoType == VideoType.video) {
+      if (recommendList.isNotEmpty) {
+        MediaItemEntity? firstRecommendItem;
+        final homeSectionItem = recommendList.firstWhereOrNull((element) {
+          final sectionType = SectionType.kind(element.kind);
+          return sectionType == SectionType.mediaList;
+        });
+        if (homeSectionItem != null && homeSectionItem.dataList != null && homeSectionItem.dataList!.isNotEmpty) {
+          firstRecommendItem = homeSectionItem.dataList!.first;
+        }
+        if (firstRecommendItem != null) {
+          final result = await HomeApi.getMediaDetail(id: firstRecommendItem.id ?? 0);
+          if (result.isSuccess) {
+            return result.responseData?.data?.video;
+          }
+        }
+      }
+      return null;
+    } else if (videoType == VideoType.tv) {
+      final currentSeason = selectSeason.value;
+      final currentEpisode = selectEpisode.value;
+      if (currentSeason != null && currentEpisode != null) {
+        final episodeIndex = episodeList.indexOf(currentEpisode);
+        final seasonIndex = seasonList.indexOf(currentSeason);
+        if (episodeIndex != -1 && episodeIndex < episodeList.length - 1) {
+          return episodeList[episodeIndex + 1].video;
+        } else if (episodeIndex != -1 && episodeIndex == episodeList.length - 1) {
+          if (seasonIndex != -1 && seasonIndex < seasonList.length - 1) {
+            final nextSeason = seasonList[seasonIndex + 1];
+            if (_episodeListCache.containsKey(nextSeason.id)) {
+              final nextEpisodeList = _episodeListCache[nextSeason.id]!;
+              if (nextEpisodeList.isNotEmpty) {
+                return nextEpisodeList.first.video;
+              }
+            } else {
+              final result = await HomeApi.getSeasonAllEpisodes(id: nextSeason.id);
+              if (result.isSuccess) {
+                final listData = result.responseData?.data ?? [];
+                _episodeListCache[nextSeason.id!] = listData;
+                if (listData.isNotEmpty) {
+                  return listData.first.video;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return null;
   }
 
   @override

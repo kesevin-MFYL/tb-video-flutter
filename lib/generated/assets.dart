@@ -19,6 +19,7 @@ class Assets {
   static const String commonFieldDate = 'assets/images/common/field_date.png';
   static const String commonFieldMemo = 'assets/images/common/field_memo.png';
   static const String commonHistoryOn = 'assets/images/common/history_on.png';
+  static const String commonIconCache = 'assets/images/common/icon_cache.png';
   static const String commonIconClear = 'assets/images/common/icon_clear.png';
   static const String commonIconMovie = 'assets/images/common/icon_movie.png';
   static const String commonIconPause = 'assets/images/common/icon_pause.png';
