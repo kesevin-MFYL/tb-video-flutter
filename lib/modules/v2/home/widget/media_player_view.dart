@@ -96,14 +96,16 @@ class _MediaPlayerViewState extends State<MediaPlayerView> {
             ],
           );
         } else {
-          return Center(child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              loadingIndicator(size: 30, strokeWidth: 2),
-              SizedBox(height: 6),
-              CommonText.instance('loading....', 12),
-            ],
-          ));
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                loadingIndicator(size: 30, strokeWidth: 2),
+                SizedBox(height: 6),
+                CommonText.instance('loading....', 12),
+              ],
+            ),
+          );
         }
       },
     );

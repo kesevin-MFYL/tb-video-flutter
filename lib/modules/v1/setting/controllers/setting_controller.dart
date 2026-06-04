@@ -21,7 +21,7 @@ class SettingController extends BaseController {
 
   @override
   void fetchData() {
-    _getCacheSize();
+    getCacheSize();
     //todo GDPR权限检查
     // _checkPrivacyOptionsRequired();
   }
@@ -43,7 +43,7 @@ class SettingController extends BaseController {
   //   });
   // }
 
-  _getCacheSize() async {
+  getCacheSize() async {
     try {
       int totalSize = 0;
 
@@ -98,7 +98,7 @@ class SettingController extends BaseController {
           }
 
           // 3. 重新获取缓存大小更新 UI
-          await _getCacheSize();
+          await getCacheSize();
           
           EasyLoading.dismiss();
           EasyLoading.showToast('Cache cleared successfully');

@@ -67,7 +67,7 @@ class MediaPlayerController {
 
   /// 控制面板相关
   /// 显示控制面板 默认开启
-  final showControls = true.obs;
+  final showControls = false.obs;
 
   /// 视频标题
   final mediaTitle = ''.obs;
@@ -286,8 +286,8 @@ class MediaPlayerController {
 
   // 配置播放器
   Future<Player> _createVideoController(MediaDataSource dataSource, bool hardware, Duration initVideoPosition) async {
-    // 缓存状态
-    isBuffering.value = false;
+    // 缓存状态，初始化为true，避免开始播放前的灰色等待时间
+    isBuffering.value = true;
     // 缓存进度
     bufferedDuration.value = Duration.zero;
     // 当前进度
@@ -352,11 +352,11 @@ class MediaPlayerController {
       final assetUrl = dataSource.videoSource!.startsWith("asset://")
           ? dataSource.videoSource!
           : "asset://${dataSource.videoSource!}";
-      await player.open(Media(assetUrl, httpHeaders: dataSource.httpHeaders), play: false);
+      await player.open(Media(assetUrl, httpHeaders: dataSource.httpHeaders), play: autoPlay);
     } else {
       await player.open(
         Media(dataSource.videoSource!, httpHeaders: dataSource.httpHeaders, start: initVideoPosition),
-        play: false,
+        play: autoPlay,
       );
     }
     return player;
@@ -405,11 +405,6 @@ class MediaPlayerController {
 
   //
   Future _initializePlayer() async {
-    /// 自动播放
-    if (autoPlay) {
-      await play();
-    }
-
     /// 设置倍速
     await setPlaybackSpeed(defaultSpeed);
   }
@@ -666,6 +661,12 @@ class MediaPlayerController {
       /// 进度监听
       mediaPlayer!.stream.position.listen((event) {
         currentPosition.value = event >= Duration.zero ? event : Duration.zero;
+        
+        // 只要进度开始推进，说明已经开始播放，取消缓冲状态
+        if (isBuffering.value && event.inMilliseconds > 0) {
+          isBuffering.value = false;
+        }
+
         // 拖动进度条时，不更新进度
         if (!isSliderMoving.value) {
           sliderPosition.value = event;
@@ -684,7 +685,7 @@ class MediaPlayerController {
 
       /// 播放/暂停监听
       mediaPlayer!.stream.playing.listen((event) {
-        commonDebugPrint('MediaPlayer playStatus: $event');
+        commonDebugPrint('MediaPlayer playing playStatus: $event');
         mediaPlayerStatus.status.value = event ? MediaPlayerStatusType.playing : MediaPlayerStatusType.paused;
 
         // 触发回调事件
@@ -698,7 +699,7 @@ class MediaPlayerController {
 
       /// 播放完成监听
       mediaPlayer!.stream.completed.listen((event) {
-        commonDebugPrint('MediaPlayer playStatus: $event');
+        commonDebugPrint('MediaPlayer completed playStatus: $event');
         if (event) {
           mediaPlayerStatus.status.value = MediaPlayerStatusType.completed;
 
