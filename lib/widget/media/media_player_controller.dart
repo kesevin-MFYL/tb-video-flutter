@@ -24,6 +24,12 @@ class MediaPlayerController {
   /// 视频控制器
   VideoController? videoController;
 
+  /// 预览播放器 (用于进度条滑动时显示缩略图)
+  Player? previewPlayer;
+  
+  /// 预览视频控制器
+  VideoController? previewVideoController;
+
   var playerCount = 0.obs;
 
   /// 数据加载状态
@@ -241,6 +247,9 @@ class MediaPlayerController {
       // 配置Player 音轨、字幕等等
       mediaPlayer = await _createVideoController(dataSource, hardware, initVideoPosition);
 
+      // 配置预览Player
+      await _createPreviewController(dataSource, hardware);
+
       // 添加监听
       addListeners();
 
@@ -351,6 +360,47 @@ class MediaPlayerController {
       );
     }
     return player;
+  }
+
+  Future<void> _createPreviewController(MediaDataSource dataSource, bool hardware) async {
+    try {
+      previewPlayer ??= Player(
+        configuration: const PlayerConfiguration(
+          bufferSize: 2 * 1024 * 1024,
+        ),
+      );
+
+      var pp = previewPlayer!.platform as NativePlayer;
+      await pp.setProperty('vid', '1'); // Enable video
+      await pp.setProperty('aid', 'no'); // Disable audio
+      await pp.setProperty('sid', 'no'); // Disable subtitles
+
+      previewVideoController ??= VideoController(
+        previewPlayer!,
+        configuration: VideoControllerConfiguration(
+          enableHardwareAcceleration: hardware,
+          androidAttachSurfaceAfterVideoParameters: false,
+        ),
+      );
+
+      if (dataSource.type == MediaDataSourceType.asset) {
+        final assetUrl = dataSource.videoSource!.startsWith("asset://")
+            ? dataSource.videoSource!
+            : "asset://${dataSource.videoSource!}";
+        await previewPlayer!.open(Media(assetUrl, httpHeaders: dataSource.httpHeaders), play: false);
+      } else {
+        await previewPlayer!.open(
+          Media(dataSource.videoSource!, httpHeaders: dataSource.httpHeaders),
+          play: false,
+        );
+      }
+    } catch (e) {
+      commonDebugPrint('MediaPlayer _createPreviewController error: $e');
+    }
+  }
+
+  void seekPreview(Duration position) {
+    previewPlayer?.seek(position);
   }
 
   //
@@ -752,6 +802,10 @@ class MediaPlayerController {
         removeListeners();
         await mediaPlayer?.dispose();
         mediaPlayer = null;
+      }
+      if (previewPlayer != null) {
+        await previewPlayer?.dispose();
+        previewPlayer = null;
       }
       // 关闭所有视频页面恢复亮度
       // resetBrightness();

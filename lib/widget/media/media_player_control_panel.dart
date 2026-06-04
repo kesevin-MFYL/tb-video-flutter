@@ -15,6 +15,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:media_kit_video/media_kit_video.dart';
 import 'package:media_kit_video/media_kit_video_controls/src/controls/extensions/duration.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 
@@ -199,6 +200,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
             final Duration result = pos.clamp(Duration.zero, mediaPlayerController.totalDuration.value);
             mediaPlayerController.sliderPosition.value = result;
             mediaPlayerController.isSliderMoving.value = true;
+            mediaPlayerController.seekPreview(result);
           },
           onHorizontalDragEnd: (details) {
             // 数据加载中或错误 禁用
@@ -513,6 +515,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
                                       },
                                       onDragUpdate: (duration) {
                                         mediaPlayerController.sliderPosition.value = duration.timeStamp;
+                                        mediaPlayerController.seekPreview(duration.timeStamp);
                                       },
                                       onSeek: (duration) {
                                         mediaPlayerController.isSliderMoving.value = false;
@@ -669,6 +672,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
   /// 时间进度条提示
   Widget _buildTimeProgressTips() {
     return Obx(() {
+      final isFullScreen = mediaPlayerController.isFullScreen.value;
       final sliderDuration = mediaPlayerController.sliderPosition.value;
       final totalDur = mediaPlayerController.totalDuration.value;
       final isForward = sliderDuration >= (tempSliderPosition ?? sliderDuration);
@@ -681,47 +685,71 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
           duration: const Duration(milliseconds: 150),
           child: IgnorePointer(
             ignoring: !mediaPlayerController.isSliderMoving.value,
-            child: Container(
-              height: 40,
-              padding: const EdgeInsets.symmetric(horizontal: 12.0),
-              decoration: BoxDecoration(
-                color: CommonColors.black.withOpacity(0.5),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Image.asset(
-                    Assets.commonIconVideoSlideArrowLeft,
-                    width: 16,
-                    height: 16,
-                    color: isForward ? null : CommonColors.primaryColor,
-                  ),
-                  const SizedBox(width: 8.0),
-                  CommonText.instance(
-                    StringUtils.formatVideoDuration(sliderDuration),
-                    14,
-                    fontWeight: CommonFontWeight.medium,
-                    color: isForward ? CommonColors.white : CommonColors.primaryColor,
-                  ),
-                  CommonText.instance(
-                    '/${StringUtils.formatVideoDuration(totalDur)}',
-                    14,
-                    fontWeight: CommonFontWeight.medium,
-                    color: isForward ? CommonColors.primaryColor : CommonColors.white,
-                  ),
-                  const SizedBox(width: 8.0),
-                  RotatedBox(
-                    quarterTurns: 2,
-                    child: Image.asset(
-                      Assets.commonIconVideoSlideArrowLeft,
-                      width: 16,
-                      height: 16,
-                      color: isForward ? CommonColors.primaryColor : null,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (mediaPlayerController.previewVideoController != null)
+                  Container(
+                    width: isFullScreen ? 130 : 90,
+                    height: isFullScreen ? 73 : 51,
+                    margin: const EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
+                      color: CommonColors.color333333,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Video(
+                        controller: mediaPlayerController.previewVideoController!,
+                        controls: NoVideoControls,
+                        fill: CommonColors.color333333,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
-                ],
-              ),
+                Container(
+                  height: 40,
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  decoration: BoxDecoration(
+                    color: CommonColors.black.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        Assets.commonIconVideoSlideArrowLeft,
+                        width: 16,
+                        height: 16,
+                        color: isForward ? null : CommonColors.primaryColor,
+                      ),
+                      const SizedBox(width: 8.0),
+                      CommonText.instance(
+                        StringUtils.formatVideoDuration(sliderDuration),
+                        14,
+                        fontWeight: CommonFontWeight.medium,
+                        color: isForward ? CommonColors.white : CommonColors.primaryColor,
+                      ),
+                      CommonText.instance(
+                        '/${StringUtils.formatVideoDuration(totalDur)}',
+                        14,
+                        fontWeight: CommonFontWeight.medium,
+                        color: isForward ? CommonColors.primaryColor : CommonColors.white,
+                      ),
+                      const SizedBox(width: 8.0),
+                      RotatedBox(
+                        quarterTurns: 2,
+                        child: Image.asset(
+                          Assets.commonIconVideoSlideArrowLeft,
+                          width: 16,
+                          height: 16,
+                          color: isForward ? CommonColors.primaryColor : null,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ),
