@@ -107,6 +107,7 @@ class _SubtitleSettingsDialogState extends State<SubtitleSettingsDialog> {
           );
         }),
         GestureDetector(
+          behavior: HitTestBehavior.translucent,
           onTap: () {
             _pageController.animateToPage(1, duration: const Duration(milliseconds: 250), curve: Curves.easeOutCubic);
           },

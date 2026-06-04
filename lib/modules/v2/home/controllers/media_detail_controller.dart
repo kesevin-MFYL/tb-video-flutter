@@ -445,7 +445,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
           mediaId = firstRecommendItem.id ?? 0;
           mediaType = firstRecommendItem.type ?? 1;
           videoType = VideoType.instance(mediaType);
-          await mediaPlayerController.resetSubtitle();
+          // await mediaPlayerController.resetSubtitle();
           getDataFromServer();
         } else {
           mediaPlayerController.showControls.value = true;
@@ -463,7 +463,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
 
         if (episodeIndex != -1 && episodeIndex < episodeList.length - 1) {
           // 不是最后一集,播放下一集
-          await mediaPlayerController.resetSubtitle();
+          // await mediaPlayerController.resetSubtitle();
           final nextEpisode = episodeList[episodeIndex + 1];
           chooseEpisode(nextEpisode);
         } else if (episodeIndex != -1 && episodeIndex == episodeList.length - 1) {
@@ -472,7 +472,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
             // 不是最后一季
             // 播放下一季第一集
             EasyLoading.show();
-            await mediaPlayerController.resetSubtitle();
+            // await mediaPlayerController.resetSubtitle();
             final nextSeason = seasonList[seasonIndex + 1];
             selectSeason.value = nextSeason;
             await _getEpisodeList(seasonId: selectSeason.value?.id, nextPlay: true);
@@ -518,26 +518,20 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
       // 播放完成删除
       Storage.deleteViewedMediaById(mediaDetailEntity?.id ?? 0);
     } else {
-      final progress = mediaPlayerController.currentPosition.value.inMilliseconds / mediaPlayerController.totalDuration.value.inMilliseconds;
-      if (progress >= 0.98) {
-        // 播放完成删除
-        Storage.deleteViewedMediaById(mediaDetailEntity?.id ?? 0);
-      } else {
-        //Save history with new entity
-        final historyEntity = MediaHistoryEntity(
-          id: mediaDetailEntity?.id,
-          title: mediaDetailEntity?.title,
-          cover: mediaDetailEntity?.cover,
-          type: mediaType,
-          viewTime: DateTime.now().millisecondsSinceEpoch,
-          totalDuration: mediaPlayerController.totalDuration.value.inSeconds,
-          currentDuration: mediaPlayerController.currentPosition.value.inSeconds,
-          season: videoType == VideoType.tv ? selectSeason.value : null,
-          episode: videoType == VideoType.tv ? selectEpisode.value : null,
-        );
+      //Save history with new entity
+      final historyEntity = MediaHistoryEntity(
+        id: mediaDetailEntity?.id,
+        title: mediaDetailEntity?.title,
+        cover: mediaDetailEntity?.cover,
+        type: mediaType,
+        viewTime: DateTime.now().millisecondsSinceEpoch,
+        totalDuration: mediaPlayerController.totalDuration.value.inSeconds,
+        currentDuration: mediaPlayerController.currentPosition.value.inSeconds,
+        season: videoType == VideoType.tv ? selectSeason.value : null,
+        episode: videoType == VideoType.tv ? selectEpisode.value : null,
+      );
 
-        Storage.addViewedMedia(historyEntity);
-      }
+      Storage.addViewedMedia(historyEntity);
     }
 
     EventBusManager.instance.post(EventBusName.historyRefresh);

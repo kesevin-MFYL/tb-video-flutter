@@ -14,7 +14,6 @@ import 'dart:io';
 import 'package:get/get.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:media_kit_video/media_kit_video_controls/src/controls/extensions/duration.dart';
-import 'package:ns_danmaku/ns_danmaku.dart';
 import 'package:status_bar_control_plus/status_bar_control_plus.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -133,7 +132,7 @@ class MediaPlayerController {
   final isOpenDanmu = false.obs;
 
   ///todo 关联弹幕控制器
-  DanmakuController? danmakuController;
+  // DanmakuController? danmakuController;
 
   ///todo 弹幕相关配置
   late List blockTypes;
@@ -143,6 +142,9 @@ class MediaPlayerController {
   late double strokeWidth;
   late double danmakuDurationVal;
   late List<double> speedsList;
+
+  /// 是否已经为当前媒体初始化过字幕
+  bool _isSubtitleInitializedForCurrentMedia = false;
 
   /// 事件流
   var subscriptions = <StreamSubscription>[];
@@ -191,6 +193,7 @@ class MediaPlayerController {
     try {
       // 初始化数据加载状态
       mediaDataStatus.status.value = MediaDataStatusType.loading;
+      _isSubtitleInitializedForCurrentMedia = false;
 
       videoType.value = dataSource.videoType;
 
@@ -199,6 +202,7 @@ class MediaPlayerController {
       this.looping = looping;
       this.openRecord = openRecord;
       this.captionList.value = captionList;
+      print('MediaPlayer----${captionList.length}');
 
       if (mediaPlayer != null && mediaPlayer!.state.playing) {
         await pause();
@@ -283,9 +287,9 @@ class MediaPlayerController {
     _lastPositionSeconds = 0;
 
     // 初始化时清空弹幕，防止上次重叠
-    if (danmakuController != null) {
-      danmakuController!.clear();
-    }
+    // if (danmakuController != null) {
+    //   danmakuController!.clear();
+    // }
 
     // 创建播放器
     Player player =
@@ -648,10 +652,11 @@ class MediaPlayerController {
         if (event) {
           mediaPlayerStatus.status.value = MediaPlayerStatusType.completed;
 
-          // 触发回调事件
-          _callStateChangeListeners(playerStatus: mediaPlayerStatus.status.value);
           // 播放状态变化时记录播放信息
           recordPlayerInfo(progress: currentPosition.value.inSeconds, playStatusChanged: true);
+
+          // 触发回调事件
+          _callStateChangeListeners(playerStatus: mediaPlayerStatus.status.value);
         }
       }),
 
@@ -666,6 +671,16 @@ class MediaPlayerController {
       /// 缓冲状态
       mediaPlayer!.stream.buffering.listen((event) {
         isBuffering.value = event;
+      }),
+
+      /// 音视频轨道监听，确保在轨道加载完成后再应用字幕，防止被内部默认轨道覆盖
+      mediaPlayer!.stream.tracks.listen((event) {
+        if (!_isSubtitleInitializedForCurrentMedia && (event.video.isNotEmpty || event.audio.isNotEmpty)) {
+          _isSubtitleInitializedForCurrentMedia = true;
+          Future.delayed(const Duration(milliseconds: 250), () {
+            _applySubtitle();
+          });
+        }
       }),
     ]);
   }

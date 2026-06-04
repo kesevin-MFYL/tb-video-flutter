@@ -250,7 +250,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
                 children: [
                   loadingIndicator(size: 30, strokeWidth: 2),
                   SizedBox(height: 6),
-                  CommonText.instance('加载中....', 12),
+                  CommonText.instance('loading....', 12),
                 ],
               ),
             );

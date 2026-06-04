@@ -829,15 +829,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.5.1"
-  ns_danmaku:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: HEAD
-      resolved-ref: "0ebdc129f331f8227fe07d616dcf822a359f8a0c"
-      url: "https://github.com/lucinhu/flutter_ns_danmaku.git"
-    source: git
-    version: "0.0.3"
   objective_c:
     dependency: transitive
     description:

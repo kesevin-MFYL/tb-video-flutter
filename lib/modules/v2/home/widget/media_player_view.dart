@@ -4,7 +4,6 @@ import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/media/media_player_control_panel.dart';
 import 'package:editvideo/widget/media/media_player_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
 class MediaPlayerView extends StatefulWidget {
@@ -66,14 +65,14 @@ class _MediaPlayerViewState extends State<MediaPlayerView> {
               subtitleViewConfiguration: SubtitleViewConfiguration(
                 style: TextStyle(
                   height: 1.5,
-                  fontSize: 42.0,
+                  fontSize: 46.0,
                   letterSpacing: 0.0,
                   wordSpacing: 0.0,
                   color: CommonColors.white.withOpacity(0.9),
                   fontWeight: FontWeight.w500,
                   backgroundColor: Colors.transparent,
                 ),
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               ),
             );
           } else {
@@ -102,7 +101,7 @@ class _MediaPlayerViewState extends State<MediaPlayerView> {
             children: [
               loadingIndicator(size: 30, strokeWidth: 2),
               SizedBox(height: 6),
-              CommonText.instance('播放器初始化中....', 12),
+              CommonText.instance('loading....', 12),
             ],
           ));
         }
