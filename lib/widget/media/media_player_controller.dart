@@ -217,7 +217,7 @@ class MediaPlayerController {
       }
 
       if (currentVideoUrl != null && !isCurrentVideoCacheCompleted && currentVideoUrl != dataSource.videoSource) {
-        commonDebugPrint('切换视频，上一个视频未缓存完成，删除缓存文件: $currentVideoUrl');
+        commonDebugPrint('MediaPlayerController: 切换视频，上一个视频未缓存完成，删除缓存文件: $currentVideoUrl');
         VideoCacheManager().removeFile(currentVideoUrl!);
       }
 
@@ -227,7 +227,8 @@ class MediaPlayerController {
         currentVideoUrl = videoUrl;
         final fileInfo = await VideoCacheManager().getFileFromCache(videoUrl);
         if (fileInfo != null) {
-          commonDebugPrint('使用本地缓存播放: $videoUrl', needSplit: true);
+          commonDebugPrint('MediaPlayerController: 缓存的视频大小: ${await fileInfo.file.length()}');
+          commonDebugPrint('MediaPlayerController: 使用本地缓存播放: $videoUrl');
           isCurrentVideoCacheCompleted = true;
           dataSource.videoSource = fileInfo.file.path;
           dataSource.type = MediaDataSourceType.file;
@@ -273,21 +274,22 @@ class MediaPlayerController {
     try {
       final file = await VideoCacheManager().downloadFile(url);
       if (file.file.existsSync()) {
+        commonDebugPrint('MediaPlayerController: ${await file.file.length()}');
         if (currentVideoUrl == url) {
-          commonDebugPrint('当前视频缓存完成: $url');
+          commonDebugPrint('MediaPlayerController: 当前视频缓存完成: $url');
           isCurrentVideoCacheCompleted = true;
         } else {
-          commonDebugPrint('后台预缓存视频完成: $url');
+          commonDebugPrint('MediaPlayerController: 后台预缓存视频完成: $url');
         }
         // Cache finished, download next video
         final nextUrl = await getNextVideoUrlAction?.call();
         if (nextUrl != null && nextUrl.isNotEmpty) {
           final nextFileInfo = await VideoCacheManager().getFileFromCache(nextUrl);
           if (nextFileInfo == null) {
-            commonDebugPrint('开始预缓存下一视频: $nextUrl');
+            commonDebugPrint('MediaPlayerController: 开始预缓存下一视频: $nextUrl');
             VideoCacheManager().downloadFile(nextUrl);
           } else {
-            commonDebugPrint('下一视频已存在缓存: $nextUrl');
+            commonDebugPrint('MediaPlayerController: 下一视频已存在缓存: $nextUrl');
           }
         }
       }
@@ -754,12 +756,12 @@ class MediaPlayerController {
     try {
       if (currentVideoUrl != null) {
         if (!isCurrentVideoCacheCompleted) {
-          commonDebugPrint('退出页面，当前视频未缓存完成，删除缓存文件: $currentVideoUrl');
+          commonDebugPrint('MediaPlayerController: 退出页面，当前视频未缓存完成，删除缓存文件: $currentVideoUrl');
           VideoCacheManager().removeFile(currentVideoUrl!);
         } else if (totalDuration.value.inMilliseconds > 0) {
           final progress = currentPosition.value.inMilliseconds / totalDuration.value.inMilliseconds;
           if (progress >= 0.95) {
-            commonDebugPrint('退出页面，当前视频播放超过95%，删除缓存文件: $currentVideoUrl');
+            commonDebugPrint('MediaPlayerController: 退出页面，当前视频播放超过95%，删除缓存文件: $currentVideoUrl');
             VideoCacheManager().removeFile(currentVideoUrl!);
           }
         }
