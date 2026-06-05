@@ -32,6 +32,7 @@ class SearchController extends BaseController {
   var multiStatus = MultiStatusType.statusLoading;
 
   final _pageHelper = PageModel();
+  var hasRefresh = true;
   var hasMore = false;
 
   /// 联想词集合
@@ -142,6 +143,8 @@ class SearchController extends BaseController {
       pageSize: _pageHelper.pageSize,
     );
     if (result.isSuccess) {
+      hasRefresh = true;
+
       final dataList = result.responseData?.data ?? [];
       if (isRefresh) {
         mediaList.clear();
@@ -159,6 +162,13 @@ class SearchController extends BaseController {
 
       update();
     } else {
+      hasRefresh = false;
+
+      if (isRefresh) {
+        refreshController.finishRefresh();
+      } else {
+        refreshController.finishLoad();
+      }
       commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
       multiStatus = MultiStatusType.statusError;
     }

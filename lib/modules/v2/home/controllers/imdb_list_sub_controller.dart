@@ -13,6 +13,8 @@ class ImdbListSubController extends BaseController {
 
   final refreshController = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: false);
 
+  var hasRefresh = true;
+
   late MediaItemEntity mediaItemEntity;
 
   var imdbSubList = <MediaItemEntity>[];
@@ -32,11 +34,14 @@ class ImdbListSubController extends BaseController {
   void getImdbListSubDetail() async {
     final result = await HomeApi.getImdbListSubDetail(id: mediaItemEntity.id);
     if (result.isSuccess) {
+      hasRefresh = true;
       final subEntity = result.responseData?.data;
       imdbSubList = subEntity?.dataList ?? [];
       multiStatusType = imdbSubList.isEmpty ? MultiStatusType.statusEmpty : MultiStatusType.statusContent;
       refreshController.finishRefresh();
     } else {
+      hasRefresh = false;
+      refreshController.finishRefresh();
       commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
       multiStatusType = MultiStatusType.statusError;
     }

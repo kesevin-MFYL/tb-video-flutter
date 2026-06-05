@@ -15,6 +15,8 @@ class HomeBController extends BaseController {
 
   final refreshController = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: false);
 
+  var hasRefresh = true;
+
   var homeSectionList = <HomeSectionEntity>[];
   var topPicksList = <MediaItemEntity>[];
   var continueWatchingList = <MediaHistoryEntity>[];
@@ -43,11 +45,14 @@ class HomeBController extends BaseController {
   Future<void> _getHomeSection() async {
     final result = await HomeApi.getHomeSection();
     if (result.isSuccess) {
+      hasRefresh = true;
       final listData = result.responseData?.data;
       homeSectionList = listData ?? [];
       multiStatusType = homeSectionList.isEmpty ? MultiStatusType.statusEmpty : MultiStatusType.statusContent;
       refreshController.finishRefresh();
     } else {
+      hasRefresh = false;
+      refreshController.finishRefresh();
       commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
       multiStatusType = MultiStatusType.statusError;
     }

@@ -97,8 +97,9 @@ class ExplorePage extends GetView<ExploreController> {
                               body: CommonRefresh.instance(
                                 controller: controller.refreshController,
                                 onRefresh: controller.onRefresh,
+                                hasBefore: controller.hasRefresh,
                                 hasMore: controller.hasMore,
-                                onLoad: controller.onLoadMore,
+                                onLoad: controller.hasRefresh ? controller.onLoadMore : null,
                                 child: MultiStatusView(
                                   hasAppBar: false,
                                   currentStatus: controller.multiStatus,

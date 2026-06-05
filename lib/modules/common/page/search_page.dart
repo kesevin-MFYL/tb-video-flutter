@@ -321,8 +321,9 @@ class SearchPage extends GetView<SearchController> {
     return CommonRefresh.instance(
       controller: controller.refreshController,
       onRefresh: controller.onRefresh,
+      hasBefore: controller.hasRefresh,
       hasMore: controller.hasMore,
-      onLoad: controller.onLoadMore,
+      onLoad: controller.hasRefresh ? controller.onLoadMore : null,
       child: MultiStatusView(
         currentStatus: controller.multiStatus,
         action: () {

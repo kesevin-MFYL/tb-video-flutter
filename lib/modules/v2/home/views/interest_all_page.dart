@@ -36,6 +36,7 @@ class InterestAllPage extends GetView<InterestAllController> {
                 child: CommonRefresh.instance(
                   controller: controller.refreshController,
                   onRefresh: controller.getInterestAllList,
+                  hasBefore: controller.hasRefresh,
                   hasMore: false,
                   child: MultiStatusView(
                     currentStatus: controller.multiStatusType,

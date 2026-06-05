@@ -86,6 +86,7 @@ class HomeBPage extends GetView<HomeBController> {
                         child: CommonRefresh.instance(
                           controller: controller.refreshController,
                           onRefresh: controller.getDataFromServer,
+                          hasBefore: controller.hasRefresh,
                           hasMore: false,
                           child: MultiStatusView(
                             hasAppBar: false,

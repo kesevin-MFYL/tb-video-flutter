@@ -20,6 +20,7 @@ class ExploreController extends BaseController {
   var multiStatus = MultiStatusType.statusLoading;
 
   final _pageModel = PageModel();
+  var hasRefresh = true;
   var hasMore = false;
 
   /// 搜索结果
@@ -147,6 +148,8 @@ class ExploreController extends BaseController {
       pageSize: _pageModel.pageSize,
     );
     if (result.isSuccess) {
+      hasRefresh = true;
+
       final dataList = result.responseData?.data ?? [];
       if (isRefresh) {
         mediaList.clear();
@@ -166,6 +169,13 @@ class ExploreController extends BaseController {
         update();
       }
     } else {
+      hasRefresh = false;
+
+      if (isRefresh) {
+        refreshController.finishRefresh();
+      } else {
+        refreshController.finishLoad();
+      }
       commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
       multiStatus = MultiStatusType.statusError;
       update();

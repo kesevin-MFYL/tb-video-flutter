@@ -14,6 +14,8 @@ class InterestAllController extends BaseController {
 
   final refreshController = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: false);
 
+  var hasRefresh = true;
+
   var interestAllList = <InterestAllEntity>[];
 
   @override
@@ -24,11 +26,14 @@ class InterestAllController extends BaseController {
   void getInterestAllList() async {
     final result = await HomeApi.getAllInterest();
     if (result.isSuccess) {
+      hasRefresh = true;
       final listData = result.responseData?.data;
       interestAllList = listData ?? [];
       multiStatusType = interestAllList.isEmpty ? MultiStatusType.statusEmpty : MultiStatusType.statusContent;
       refreshController.finishRefresh();
     } else {
+      hasRefresh = false;
+      refreshController.finishRefresh();
       commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
       multiStatusType = MultiStatusType.statusError;
     }

@@ -34,6 +34,7 @@ class ImdbListSubPage extends GetView<ImdbListSubController> {
                 child: CommonRefresh.instance(
                   controller: controller.refreshController,
                   onRefresh: controller.getImdbListSubDetail,
+                  hasBefore: controller.hasRefresh,
                   hasMore: false,
                   child: MultiStatusView(
                     currentStatus: controller.multiStatusType,
