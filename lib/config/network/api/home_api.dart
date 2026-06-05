@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:editvideo/config/network/http_utils.dart';
 import 'package:editvideo/config/network/model/api_error.dart';
 import 'package:editvideo/config/network/model/api_result.dart';
+import 'package:editvideo/config/network/model/base_entity.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
 import 'package:editvideo/config/network/model/list_response.dart';
 import 'package:editvideo/models/episode_entity.dart';
@@ -31,6 +32,8 @@ class HomeApi {
   static final mediaRecommendPath = '/DFTJEUpY/zuWvNHqf/cKf';
   static final tvAllSeasonPath = '/VXBTwAg/YgB';
   static final tvSeasonAllEpisodePath = '/SSxOkjA/DkEpWK';
+
+  static final submitViewVideoPath = 'https://api.graphql.imdb.com';
 
   /// 获取首页数据
   static Future<ApiResult<ListResponse<HomeSectionEntity>?, ApiError>> getHomeSection() async {
@@ -177,6 +180,17 @@ class HomeApi {
       body: body,
       construction: EpisodeEntity.fromJson,
       decoder: ListResponse<EpisodeEntity>.fromJson,
+    );
+  }
+
+  /// 提交已看过的影视到IMDB
+  static Future<ApiResult<BaseResponse<VoidObject>?, ApiError>> submitViewVideo({required int? id}) async {
+    final Map<String, dynamic> body = {'x-amzn-sessionid': id};
+    return await HttpUtils.postRequest(
+      submitViewVideoPath,
+      body: body,
+      construction: VoidObject.fromJson,
+      decoder: BaseResponse<VoidObject>.fromJson,
     );
   }
 }

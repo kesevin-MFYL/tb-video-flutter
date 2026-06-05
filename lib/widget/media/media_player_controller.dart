@@ -1,3 +1,6 @@
+import 'dart:math';
+import 'dart:nativewrappers/_internal/vm/lib/ffi_allocation_patch.dart';
+
 import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/utils/extension.dart';
@@ -40,6 +43,9 @@ class MediaPlayerController {
 
   /// 录制事件
   void Function()? recordAction;
+
+  /// 提交事件
+  void Function()? submitVideoAction;
 
   /// 获取下一个视频URL的事件
   Future<String?> Function()? getNextVideoUrlAction;
@@ -124,6 +130,9 @@ class MediaPlayerController {
 
   /// 上一次的播放时间
   int _lastPositionSeconds = 0;
+
+  /// 是否需要立即记录播放信息
+  bool _needRecordImmediately = false;
 
   /// 字幕开关 默认关闭
   var openCaptions = false.obs;
@@ -267,7 +276,7 @@ class MediaPlayerController {
       return true;
     } catch (err) {
       mediaDataStatus.status.value = MediaDataStatusType.error;
-      commonDebugPrint('MediaPlayer setDataSource error: $err');
+      commonDebugPrint('MediaPlayerController setDataSource error: $err');
     }
     return false;
   }
@@ -280,7 +289,7 @@ class MediaPlayerController {
         VideoCaching.precache(nextUrl);
       }
     } catch (e) {
-      commonDebugPrint('Video cache error for next url: $e');
+      commonDebugPrint('MediaPlayerController Video cache error for next url: $e');
     }
   }
 
@@ -294,6 +303,7 @@ class MediaPlayerController {
     currentPosition.value = Duration.zero;
     // 上一次的播放时间
     _lastPositionSeconds = 0;
+    _needRecordImmediately = true;
 
     // 初始化时清空弹幕，防止上次重叠
     // if (danmakuController != null) {
@@ -352,11 +362,11 @@ class MediaPlayerController {
       final assetUrl = dataSource.videoSource!.startsWith("asset://")
           ? dataSource.videoSource!
           : "asset://${dataSource.videoSource!}";
-      await player.open(Media(assetUrl, httpHeaders: dataSource.httpHeaders), play: autoPlay);
+      await player.open(Media(assetUrl, httpHeaders: dataSource.httpHeaders), play: false);
     } else {
       await player.open(
         Media(dataSource.videoSource!, httpHeaders: dataSource.httpHeaders, start: initVideoPosition),
-        play: autoPlay,
+        play: false,
       );
     }
     return player;
@@ -395,7 +405,7 @@ class MediaPlayerController {
         );
       }
     } catch (e) {
-      commonDebugPrint('MediaPlayer _createPreviewController error: $e');
+      commonDebugPrint('MediaPlayerController _createPreviewController error: $e');
     }
   }
 
@@ -405,6 +415,11 @@ class MediaPlayerController {
 
   //
   Future _initializePlayer() async {
+    /// 自动播放
+    if (autoPlay) {
+      await play();
+    }
+
     /// 设置倍速
     await setPlaybackSpeed(defaultSpeed);
   }
@@ -435,6 +450,7 @@ class MediaPlayerController {
     // repeat为true，将从头播放
     if (repeat) {
       mediaPlayer?.seek(Duration.zero);
+      _needRecordImmediately = true;
     }
     await mediaPlayer?.play();
     // 播放时延迟5s隐藏控制栏
@@ -453,7 +469,7 @@ class MediaPlayerController {
         position = Duration.zero;
       }
       currentPosition.value = position;
-      _lastPositionSeconds = position.inSeconds;
+      _needRecordImmediately = true;
       if (totalDuration.value.inSeconds != 0) {
         if (!isHorizontalMove) {
           await mediaPlayer?.stream.buffer.first;
@@ -463,7 +479,7 @@ class MediaPlayerController {
         _startHideTimer();
       }
     } catch (err) {
-      commonDebugPrint('MediaPlayer seek error: $err');
+      commonDebugPrint('MediaPlayerController seek error: $err');
     }
   }
 
@@ -497,6 +513,7 @@ class MediaPlayerController {
       mediaPlayer!.seek(result);
       mediaPlayer!.play();
 
+      _needRecordImmediately = true;
       fastRewindStatus.value = false;
 
       _rewindTimer?.cancel();
@@ -518,6 +535,7 @@ class MediaPlayerController {
       mediaPlayer!.seek(result);
       mediaPlayer!.play();
 
+      _needRecordImmediately = true;
       fastForwardStatus.value = false;
 
       _forwardTimer?.cancel();
@@ -589,7 +607,7 @@ class MediaPlayerController {
     try {
       await mediaPlayer!.setSubtitleTrack(SubtitleTrack.uri(url));
     } catch (e) {
-      commonDebugPrint('setSubtitleTrack error: $e');
+      commonDebugPrint('MediaPlayer setSubtitleTrack error: $e');
     }
   }
 
@@ -634,6 +652,11 @@ class MediaPlayerController {
     recordAction = action;
   }
 
+  /// 提交已看过影视到IMDB
+  void setSubmitVideoAction(void Function()? action) {
+    submitVideoAction = action;
+  }
+
   /// 改变标题
   void changeMediaTitle(String title) {
     mediaTitle.value = title;
@@ -646,12 +669,20 @@ class MediaPlayerController {
     }
     // 播放状态变化时，更新
     if (playStatusChanged) {
-      recordAction?.call();
-    } else
-    // 正常播放时，间隔5秒更新一次
-    if (progress - _lastPositionSeconds >= 5) {
       _lastPositionSeconds = progress;
       recordAction?.call();
+    } else {
+      if (_needRecordImmediately) {
+        commonDebugPrint('recordPlayerInfo: 立即记录视频信息');
+        _needRecordImmediately = false;
+        _lastPositionSeconds = progress;
+        recordAction?.call();
+      } else if (progress - _lastPositionSeconds >= 5 || progress < _lastPositionSeconds) {
+        commonDebugPrint('recordPlayerInfo: 每5s记录一次视频信息');
+        // 正常播放时，间隔5秒更新一次
+        _lastPositionSeconds = progress;
+        recordAction?.call();
+      }
     }
   }
 
@@ -680,26 +711,31 @@ class MediaPlayerController {
         }
 
         // 播放进度变化时记录播放信息
-        recordPlayerInfo(progress: currentPosition.value.inSeconds);
+        if (mediaPlayerStatus.playing && !isBuffering.value && !isSliderMoving.value) {
+          recordPlayerInfo(progress: currentPosition.value.inSeconds);
+        }
+
+        if (event.inMilliseconds > 0) {
+          submitVideoAction?.call();
+        }
       }),
 
       /// 播放/暂停监听
       mediaPlayer!.stream.playing.listen((event) {
-        commonDebugPrint('MediaPlayer playing playStatus: $event');
+        commonDebugPrint('MediaPlayerController playing: $event');
         mediaPlayerStatus.status.value = event ? MediaPlayerStatusType.playing : MediaPlayerStatusType.paused;
 
         // 触发回调事件
         _callStateChangeListeners(playerStatus: mediaPlayerStatus.status.value);
 
-        if (mediaPlayer!.state.position.inSeconds != 0) {
-          // 播放状态变化时记录播放信息
-          recordPlayerInfo(progress: currentPosition.value.inSeconds, playStatusChanged: true);
+        if (event) {
+          _needRecordImmediately = true;
         }
       }),
 
       /// 播放完成监听
       mediaPlayer!.stream.completed.listen((event) {
-        commonDebugPrint('MediaPlayer completed playStatus: $event');
+        commonDebugPrint('MediaPlayerController completed: $event');
         if (event) {
           mediaPlayerStatus.status.value = MediaPlayerStatusType.completed;
 
@@ -721,6 +757,7 @@ class MediaPlayerController {
 
       /// 缓冲状态
       mediaPlayer!.stream.buffering.listen((event) {
+        commonDebugPrint('MediaPlayerController buffering: $event');
         isBuffering.value = event;
       }),
 
@@ -812,7 +849,7 @@ class MediaPlayerController {
       // 关闭所有视频页面恢复亮度
       // resetBrightness();
     } catch (err) {
-      commonDebugPrint('MediaPlayer dispose error: $err');
+      commonDebugPrint('MediaPlayerController dispose error: $err');
     }
   }
 }

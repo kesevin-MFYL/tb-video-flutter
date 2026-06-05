@@ -106,6 +106,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
 
   @override
   void handRegister() {
+    mediaPlayerController.submitVideoAction = submitViewVideo;
     mediaPlayerController.getNextVideoUrlAction = getNextVideoUrl;
   }
 
@@ -539,6 +540,18 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
     }
 
     EventBusManager.instance.post(EventBusName.historyRefresh);
+  }
+
+  /// 提交已看过影视到IMDB
+  void submitViewVideo() async {
+    final result = await HomeApi.submitViewVideo(id: mediaId);
+    if (result.isSuccess) {
+      final hasPlayVideo = Storage.getHasPlayVideo() ?? false;
+      if (!hasPlayVideo) {
+        // 记录用户行为
+        Storage.setHasPlayVideo(true);
+      }
+    }
   }
 
   Future<bool> initMediaPlayer() async {

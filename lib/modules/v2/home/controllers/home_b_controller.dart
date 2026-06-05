@@ -59,6 +59,9 @@ class HomeBController extends BaseController {
   }
 
   Future<void> getTopPicks({bool needUpdate = false}) async {
+    final hasPlayVideo = Storage.getHasPlayVideo() ?? false;
+    if (!hasPlayVideo) return;
+
     final result = await HomeApi.getTopPicks();
     if (result.isSuccess) {
       final listData = result.responseData?.data;

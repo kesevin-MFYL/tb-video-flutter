@@ -10,6 +10,7 @@ class Storage {
   static const _kSavedMemories = '_saved_memories_key';
   static const _kDraftMemories = '_draft_memories_key';
   static const _kAdRulesConfig = '_ad_rules_config_key';
+  static const _kHasPlayVideo = '_has_play_video_key';
   static const _kSessionId = '_session_id_key';
   static const _kSearchHistory = '_search_history_key';
   static const _kViewedMedia = '_viewed_media_key';
@@ -29,6 +30,14 @@ class Storage {
 
   static bool? getFirstOpen() {
     return _getStorage!.read<bool?>(_kFirstOpen);
+  }
+
+  static Future<void> setHasPlayVideo(bool? hasPlayVideo) async {
+    return _getStorage!.write(_kHasPlayVideo, hasPlayVideo);
+  }
+
+  static bool? getHasPlayVideo() {
+    return _getStorage!.read<bool?>(_kHasPlayVideo);
   }
 
   static Future<void> setCanToB(bool? canToB) async {
