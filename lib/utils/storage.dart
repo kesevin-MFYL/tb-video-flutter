@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:editvideo/models/memory_info.dart';
 import 'package:editvideo/models/media_history_entity.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:flutter_video_caching/flutter_video_caching.dart';
 
 class Storage {
   static const _kFirstOpen = '_first_open_key';
@@ -162,6 +163,11 @@ class Storage {
 
   static Future<void> deleteViewedMedia(List<MediaHistoryEntity> itemsToRemove) async {
     List<MediaHistoryEntity> list = getViewedMedia();
+    for (var item in itemsToRemove) {
+      if (item.videoUrl != null && item.videoUrl!.isNotEmpty) {
+        LruCacheSingleton().removeCacheByUrl(item.videoUrl!);
+      }
+    }
     list.removeWhere((e) => itemsToRemove.contains(e));
     final jsonList = list.map((e) => e.toJson()).toList();
     await _getStorage!.write(_kViewedMedia, jsonEncode(jsonList));
@@ -169,6 +175,14 @@ class Storage {
 
   static Future<void> deleteViewedMediaById(int id) async {
     List<MediaHistoryEntity> list = getViewedMedia();
+    try {
+      final itemToRemove = list.firstWhere((e) => e.id == id);
+      if (itemToRemove.videoUrl != null && itemToRemove.videoUrl!.isNotEmpty) {
+        LruCacheSingleton().removeCacheByUrl(itemToRemove.videoUrl!);
+      }
+    } catch (e) {
+      // ignore
+    }
     list.removeWhere((e) => e.id == id);
     final jsonList = list.map((e) => e.toJson()).toList();
     await _getStorage!.write(_kViewedMedia, jsonEncode(jsonList));
