@@ -68,31 +68,34 @@ class HttpUtils {
   static Future<ApiResult<T, ApiError>> getRequest<T extends ApiResponse, B>(
     String url, {
     Map<String, dynamic>? query,
+    Options? options,
     required ConstructionAction<B> construction,
     required DecoderAction<T, B> decoder,
   }) async {
-    return _request(url, method: "GET", query: query, decoder: decoder, construction: construction);
+    return _request(url, method: "GET", query: query, options: options, decoder: decoder, construction: construction);
   }
 
   /// postRequest
   static Future<ApiResult<T, ApiError>> postRequest<T extends ApiResponse, B>(
     String url, {
     dynamic body,
+    Options? options,
     required ConstructionAction<B> construction,
     required DecoderAction<T, B> decoder,
     bool? hideCatch,
   }) {
-    return _request(url, method: "POST", body: body, decoder: decoder, construction: construction);
+    return _request(url, method: "POST", body: body, options: options, decoder: decoder, construction: construction);
   }
 
   /// putRequest
   static Future<ApiResult<T, ApiError>> putRequest<T extends ApiResponse, B>(
     String url,
     dynamic body, {
+    Options? options,
     required ConstructionAction<B> construction,
     required DecoderAction<T, B> decoder,
   }) {
-    return _request(url, method: "PUT", body: body, decoder: decoder, construction: construction);
+    return _request(url, method: "PUT", body: body, options: options, decoder: decoder, construction: construction);
   }
 
   /// deleteRequest
@@ -100,10 +103,19 @@ class HttpUtils {
     String url, {
     Map<String, dynamic>? query,
     dynamic body,
+    Options? options,
     required ConstructionAction<B> construction,
     required DecoderAction<T, B> decoder,
   }) async {
-    return _request(url, method: "DELETE", query: query, body: body, decoder: decoder, construction: construction);
+    return _request(
+      url,
+      method: "DELETE",
+      query: query,
+      body: body,
+      options: options,
+      decoder: decoder,
+      construction: construction,
+    );
   }
 
   /// 核心请求 _request
@@ -112,6 +124,7 @@ class HttpUtils {
     required String method,
     dynamic body,
     Map<String, dynamic>? query,
+    Options? options,
     required ConstructionAction<B> construction,
     required DecoderAction<T, B> decoder,
   }) async {
@@ -146,7 +159,7 @@ class HttpUtils {
         path,
         queryParameters: finalQuery is Map<String, dynamic> ? finalQuery : finalQuery as Map<String, dynamic>?,
         data: finalBody,
-        options: Options(method: method),
+        options: options?.copyWith(method: method) ?? Options(method: method),
       );
 
       try {
@@ -155,8 +168,10 @@ class HttpUtils {
           decryptedData = _decryptResponseData(response.data);
           commonDebugPrint('Response: _decryptResponseData---$decryptedData', needSplit: true);
         }
-        
-        final finalResponseData = shouldMapping ? _translateResponseParams(decryptedData, _reverseEntityRules) : decryptedData;
+
+        final finalResponseData = shouldMapping
+            ? _translateResponseParams(decryptedData, _reverseEntityRules)
+            : decryptedData;
         final deResponse = decoder(finalResponseData, construction);
         if (deResponse.isSuccess()) {
           commonDebugPrint(
@@ -206,7 +221,7 @@ class HttpUtils {
       try {
         // 1. 去掉头部9个字符
         String processed = data.length > 9 ? data.substring(9) : '';
-        
+
         // 2. 大小写互换
         StringBuffer swapped = StringBuffer();
         for (int i = 0; i < processed.length; i++) {
@@ -219,11 +234,11 @@ class HttpUtils {
             swapped.write(lower);
           }
         }
-        
+
         // 3. base64解码
         String normalized = base64.normalize(swapped.toString());
         String decodedStr = utf8.decode(base64Decode(normalized));
-        
+
         // 尝试解析为 JSON
         try {
           return jsonDecode(decodedStr);
@@ -257,7 +272,7 @@ class HttpUtils {
       }
     }
   }
-  
+
   static Future<void> _loadEntityRules() async {
     if (_entityRules == null) {
       try {
@@ -279,7 +294,7 @@ class HttpUtils {
 
   static dynamic _translateParams(dynamic data, Map<String, dynamic>? rules) {
     if (rules == null || rules.isEmpty || data == null) return data;
-    
+
     if (data is Map) {
       Map<String, dynamic> result = {};
       data.forEach((key, value) {

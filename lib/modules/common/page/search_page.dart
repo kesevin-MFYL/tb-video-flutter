@@ -326,6 +326,20 @@ class SearchPage extends GetView<SearchController> {
       onLoad: controller.hasRefresh ? controller.onLoadMore : null,
       child: MultiStatusView(
         currentStatus: controller.multiStatus,
+        emptyWidget: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(Assets.commonIconSearchEmpty, width: 150.w, height: 150.w),
+            SizedBox(height: 16.h),
+            CommonText.instance(
+              'No results found. Try different keywords',
+              14.sp,
+              color: CommonColors.white.withOpacity(0.5),
+              fontWeight: CommonFontWeight.semiBold,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
         action: () {
           controller.multiStatus = MultiStatusType.statusLoading;
           controller.onRefresh();

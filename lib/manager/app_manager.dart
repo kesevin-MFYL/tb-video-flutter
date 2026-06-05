@@ -41,7 +41,6 @@ class AppManager {
     MediaKit.ensureInitialized();
 
     await VideoProxy.init(
-      logPrint: true,   // 开启日志，便于调试
       maxStorageCacheSize: 2048, // 磁盘缓存 1 GB
     );
 

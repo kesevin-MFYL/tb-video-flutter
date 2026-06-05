@@ -69,6 +69,7 @@ class Assets {
   static const String commonIconBottomClose = 'assets/images/common/icon_bottom_close.png';
   static const String commonIconForwardTips = 'assets/images/common/icon_forward_tips.png';
   static const String commonIconHistoryEdit = 'assets/images/common/icon_history_edit.png';
+  static const String commonIconSearchEmpty = 'assets/images/common/icon_search_empty.png';
   static const String commonIconSubTitleBg = 'assets/images/common/icon_sub_title_bg.png';
   static const String commonIconVideoLocked = 'assets/images/common/icon_video_locked.png';
   static const String commonIconVideoRewind = 'assets/images/common/icon_video_rewind.png';

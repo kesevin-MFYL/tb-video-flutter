@@ -1,8 +1,12 @@
+import 'package:dio/dio.dart';
 import 'package:editvideo/config/network/http_utils.dart';
 import 'package:editvideo/config/network/model/api_error.dart';
 import 'package:editvideo/config/network/model/api_result.dart';
+import 'package:editvideo/config/network/model/base_entity.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
 import 'package:editvideo/models/ip_config_entity.dart';
+import 'package:editvideo/utils/storage.dart';
+import 'package:editvideo/widget/media/utils/string_utils.dart';
 import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -31,9 +35,12 @@ class CommonApi {
   static final cloakPath = 'https://terrier.movixweb.com/unix/inductee';
   static final ipAddressPath = '/TaaEbOP/VkcwZy/HgIshGoVv';
 
+  static final submitViewVideoPath = 'https://api.graphql.imdb.com';
+
   // 不需要映射
   static final List<String> noMappingPath = [
     cloakPath,
+    submitViewVideoPath,
   ];
 
   /// 是否黑名单
@@ -84,6 +91,32 @@ class CommonApi {
       ipAddressPath,
       construction: IpConfigEntity.fromJson,
       decoder: BaseResponse<IpConfigEntity>.fromJson,
+    );
+  }
+
+  /// 提交已看过的影视到IMDB
+  static Future<ApiResult<BaseResponse<VoidObject>?, ApiError>> submitViewVideo({required String imdbId}) async {
+    String? sessionId = Storage.getSessionId();
+    if (sessionId == null || sessionId.isEmpty) {
+      sessionId = StringUtils.generateSessionId();
+      await Storage.saveSessionId(sessionId);
+    }
+
+    return await HttpUtils.postRequest(
+      submitViewVideoPath,
+      body: {
+        "query": "mutation RVI_TitleView(" r"$constId" ": ID!) {\n  addToRecentlyViewedItems(input: {item: " r"$constId" "}) {\n    dateAdded\n    id\n  }\n}",
+        "operationName": "RVI_TitleView",
+        "variables": {
+          "constId": imdbId
+        }
+      },
+      options: Options(headers: {'x-amzn-sessionid': sessionId}),
+      construction: VoidObject.fromJson,
+      decoder: (dynamic data, construction) {
+        return BaseResponse<VoidObject>(code: 200, msg: 'success')
+          ..data = construction(data['data'] ?? data);
+      },
     );
   }
 

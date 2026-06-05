@@ -1,5 +1,6 @@
 import 'package:editvideo/base/base_controller.dart';
 import 'package:editvideo/config/log/logger.dart';
+import 'package:editvideo/config/network/api/common_api.dart';
 import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
 import 'package:editvideo/manager/event_manager.dart';
@@ -11,6 +12,7 @@ import 'package:editvideo/models/media_history_entity.dart';
 import 'package:editvideo/models/season_entity.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/utils/common_values.dart';
+import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/storage.dart';
 import 'package:editvideo/widget/dialog/subtitle_setting_dialog.dart';
 import 'package:editvideo/widget/dialog/tv_season_dialog.dart';
@@ -544,7 +546,9 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
 
   /// 提交已看过影视到IMDB
   void submitViewVideo() async {
-    final result = await HomeApi.submitViewVideo(id: mediaId);
+    if (mediaDetailEntity == null || mediaDetailEntity!.imdbId.isEmptyString()) return;
+
+    final result = await CommonApi.submitViewVideo(imdbId: mediaDetailEntity!.imdbId!);
     if (result.isSuccess) {
       final hasPlayVideo = Storage.getHasPlayVideo() ?? false;
       if (!hasPlayVideo) {

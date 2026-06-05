@@ -1,6 +1,3 @@
-import 'dart:math';
-import 'dart:nativewrappers/_internal/vm/lib/ffi_allocation_patch.dart';
-
 import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/utils/extension.dart';
@@ -161,6 +158,9 @@ class MediaPlayerController {
   /// 是否已经为当前媒体初始化过字幕
   bool _isSubtitleInitializedForCurrentMedia = false;
 
+  /// 是否已经提交过当前视频
+  bool _hasSubmittedVideo = false;
+
   /// 事件流
   var subscriptions = <StreamSubscription>[];
 
@@ -209,6 +209,7 @@ class MediaPlayerController {
       // 初始化数据加载状态
       mediaDataStatus.status.value = MediaDataStatusType.loading;
       _isSubtitleInitializedForCurrentMedia = false;
+      _hasSubmittedVideo = false;
 
       videoType.value = dataSource.videoType;
 
@@ -702,8 +703,6 @@ class MediaPlayerController {
         if (!isSliderMoving.value) {
           sliderPosition.value = event;
         }
-        //todo
-        // querySubtitleContent(videoPlayerController!.state.position.inSeconds.toDouble());
 
         // 触发进度回调事件
         for (var element in _positionListeners) {
@@ -715,8 +714,9 @@ class MediaPlayerController {
           recordPlayerInfo(progress: currentPosition.value.inSeconds);
         }
 
-        if (event.inMilliseconds > 0) {
+        if (event.inMilliseconds > 0 && !_hasSubmittedVideo) {
           submitVideoAction?.call();
+          _hasSubmittedVideo = true;
         }
       }),
 

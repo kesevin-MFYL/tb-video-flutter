@@ -1,9 +1,6 @@
-import 'dart:math';
-
 import 'package:editvideo/config/network/http_utils.dart';
 import 'package:editvideo/config/network/model/api_error.dart';
 import 'package:editvideo/config/network/model/api_result.dart';
-import 'package:editvideo/config/network/model/base_entity.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
 import 'package:editvideo/config/network/model/list_response.dart';
 import 'package:editvideo/models/episode_entity.dart';
@@ -16,6 +13,7 @@ import 'package:editvideo/models/media_filter_entity.dart';
 import 'package:editvideo/models/season_entity.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/storage.dart';
+import 'package:editvideo/widget/media/utils/string_utils.dart';
 
 class HomeApi {
   static final searchMediaPath = '/NHOhEdapcW/pdhKdrLk';
@@ -33,8 +31,6 @@ class HomeApi {
   static final tvAllSeasonPath = '/VXBTwAg/YgB';
   static final tvSeasonAllEpisodePath = '/SSxOkjA/DkEpWK';
 
-  static final submitViewVideoPath = 'https://api.graphql.imdb.com';
-
   /// 获取首页数据
   static Future<ApiResult<ListResponse<HomeSectionEntity>?, ApiError>> getHomeSection() async {
     return await HttpUtils.postRequest(
@@ -48,7 +44,7 @@ class HomeApi {
   static Future<ApiResult<ListResponse<MediaItemEntity>?, ApiError>> getTopPicks() async {
     String? sessionId = Storage.getSessionId();
     if (sessionId == null || sessionId.isEmpty) {
-      sessionId = _generateSessionId();
+      sessionId = StringUtils.generateSessionId();
       await Storage.saveSessionId(sessionId);
     }
 
@@ -70,14 +66,6 @@ class HomeApi {
       construction: ImdbListSubEntity.fromJson,
       decoder: BaseResponse<ImdbListSubEntity>.fromJson,
     );
-  }
-
-  static String _generateSessionId() {
-    final random = Random();
-    final int part1 = 100 + random.nextInt(900); // 3 digits: 100-999
-    final int part2 = 1000000 + random.nextInt(9000000); // 7 digits: 1000000-9999999
-    final int part3 = 1000000 + random.nextInt(9000000); // 7 digits: 1000000-9999999
-    return '$part1-$part2-$part3';
   }
 
   /// 获取所有分类数据
@@ -180,17 +168,6 @@ class HomeApi {
       body: body,
       construction: EpisodeEntity.fromJson,
       decoder: ListResponse<EpisodeEntity>.fromJson,
-    );
-  }
-
-  /// 提交已看过的影视到IMDB
-  static Future<ApiResult<BaseResponse<VoidObject>?, ApiError>> submitViewVideo({required int? id}) async {
-    final Map<String, dynamic> body = {'x-amzn-sessionid': id};
-    return await HttpUtils.postRequest(
-      submitViewVideoPath,
-      body: body,
-      construction: VoidObject.fromJson,
-      decoder: BaseResponse<VoidObject>.fromJson,
     );
   }
 }

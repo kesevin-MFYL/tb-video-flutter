@@ -671,8 +671,6 @@ class MediaPlayerControllerTwo {
         if (!isSliderMoving.value) {
           sliderPosition.value = event;
         }
-        //todo
-        // querySubtitleContent(videoPlayerController!.state.position.inSeconds.toDouble());
 
         // 触发进度回调事件
         for (var element in _positionListeners) {
