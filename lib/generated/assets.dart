@@ -95,6 +95,7 @@ class Assets {
   static const String commonIconBottomDeleteHistory = 'assets/images/common/icon_bottom_delete_history.png';
   static const String commonIconVideoSlideArrowLeft = 'assets/images/common/icon_video_slide_arrow_left.png';
   static const String commonIconLabelSubtitleLanguage = 'assets/images/common/icon_label_subtitle_language.png';
+  static const String commonIconVideoSlideArrowLeftOn = 'assets/images/common/icon_video_slide_arrow_left_on.png';
   static const String launchLaunchImage = 'assets/images/launch/launch_image.png';
   static const String jsonEntityRules = 'assets/json/entity_rules.json';
   static const String jsonHeaderRules = 'assets/json/header_rules.json';

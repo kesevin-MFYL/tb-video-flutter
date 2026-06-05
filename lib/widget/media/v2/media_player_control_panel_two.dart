@@ -6,10 +6,10 @@ import 'package:editvideo/utils/common_ui.dart';
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/button/common_button.dart';
-import 'package:editvideo/widget/media/media_player_controller.dart';
 import 'package:editvideo/widget/media/model/media_data_source.dart';
 import 'package:editvideo/widget/media/utils/fullscreen.dart';
 import 'package:editvideo/widget/media/utils/string_utils.dart';
+import 'package:editvideo/widget/media/v2/media_player_controller_two.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_volume_controller/flutter_volume_controller.dart';
@@ -22,16 +22,16 @@ import 'package:screen_brightness/screen_brightness.dart';
 /// 播放器控制面板
 class MediaPlayerControlPanel extends StatefulWidget {
   const MediaPlayerControlPanel(
-    this.controller, {
-    super.key,
-    required this.onToggleFullScreen,
-    this.onChooseEpisode,
-    this.onShowSubtitleSettings,
-    this.onNextPlay,
-    this.onReload,
-  });
+      this.controller, {
+        super.key,
+        required this.onToggleFullScreen,
+        this.onChooseEpisode,
+        this.onShowSubtitleSettings,
+        this.onNextPlay,
+        this.onReload,
+      });
 
-  final MediaPlayerController controller;
+  final MediaPlayerControllerTwo controller;
   final ValueChanged<bool> onToggleFullScreen;
   final VoidCallback? onReload;
   final VoidCallback? onChooseEpisode;
@@ -43,7 +43,7 @@ class MediaPlayerControlPanel extends StatefulWidget {
 }
 
 class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
-  late MediaPlayerController mediaPlayerController;
+  late MediaPlayerControllerTwo mediaPlayerController;
 
   late double screenWidth;
 
@@ -162,7 +162,8 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
             // 缓存中或锁定时🔒禁用
             if (mediaPlayerController.isBuffering.value || mediaPlayerController.controlsLock.value) return;
 
-            mediaPlayerController.longPressStatus.value = true;
+            mediaPlayerController.longPressStatus = true;
+            longPressKey.currentState?.setState(() {});
             tempSpeed = mediaPlayerController.defaultSpeed;
             //长按2倍速度
             mediaPlayerController.setPlaybackSpeed(tempSpeed * 2);
@@ -174,9 +175,11 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
             // 缓存中或锁定时🔒禁用
             if (mediaPlayerController.isBuffering.value || mediaPlayerController.controlsLock.value) return;
 
-            mediaPlayerController.longPressStatus.value = false;
+            mediaPlayerController.longPressStatus = false;
+            longPressKey.currentState?.setState(() {});
             //长按结束时恢复本来的速度
             mediaPlayerController.setPlaybackSpeed(tempSpeed);
+
           },
           onHorizontalDragStart: (details) {
             // 数据加载中或错误 禁用
@@ -415,39 +418,39 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
                     Center(
                       child: !isSliderMoving
                           ? Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                GestureDetector(
-                                  onTap: mediaPlayerController.fastRewind,
-                                  child: Image.asset(
-                                    Assets.commonIconVideoRewind,
-                                    width: isFullScreen ? 40 : 32,
-                                    height: isFullScreen ? 40 : 32,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                                SizedBox(width: isFullScreen ? 88 : 66),
-                                GestureDetector(
-                                  onTap: mediaPlayerController.togglePlay,
-                                  child: Image.asset(
-                                    isPlaying ? Assets.commonVideoPause : Assets.commonVideoPlayBig,
-                                    width: isFullScreen ? 64 : 48,
-                                    height: isFullScreen ? 64 : 48,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                                SizedBox(width: isFullScreen ? 88 : 66),
-                                GestureDetector(
-                                  onTap: mediaPlayerController.fastForward,
-                                  child: Image.asset(
-                                    Assets.commonIconVideoForward,
-                                    width: isFullScreen ? 40 : 32,
-                                    height: isFullScreen ? 40 : 32,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ],
-                            )
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          GestureDetector(
+                            onTap: mediaPlayerController.fastRewind,
+                            child: Image.asset(
+                              Assets.commonIconVideoRewind,
+                              width: isFullScreen ? 40 : 32,
+                              height: isFullScreen ? 40 : 32,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          SizedBox(width: isFullScreen ? 88 : 66),
+                          GestureDetector(
+                            onTap: mediaPlayerController.togglePlay,
+                            child: Image.asset(
+                              isPlaying ? Assets.commonVideoPause : Assets.commonVideoPlayBig,
+                              width: isFullScreen ? 64 : 48,
+                              height: isFullScreen ? 64 : 48,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          SizedBox(width: isFullScreen ? 88 : 66),
+                          GestureDetector(
+                            onTap: mediaPlayerController.fastForward,
+                            child: Image.asset(
+                              Assets.commonIconVideoForward,
+                              width: isFullScreen ? 40 : 32,
+                              height: isFullScreen ? 40 : 32,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ],
+                      )
                           : const SizedBox(),
                     ),
 
@@ -597,34 +600,39 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
     );
   }
 
+  GlobalKey longPressKey = GlobalKey();
+
   /// 倍速提示
   Widget _buildDoubleSpeedTips() {
-    return Obx(() {
-      return Align(
-        alignment: Alignment.topCenter,
-        child: AnimatedOpacity(
-          curve: Curves.easeInOut,
-          opacity: mediaPlayerController.longPressStatus.value ? 1.0 : 0.0,
-          duration: const Duration(milliseconds: 150),
-          child: IgnorePointer(
-            ignoring: !mediaPlayerController.longPressStatus.value,
-            child: Container(
-              height: 40,
-              margin: EdgeInsets.only(top: mediaPlayerController.isFullScreen.value ? 24.0 : 6.0),
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                color: CommonColors.black.withOpacity(0.5),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [CommonText.instance('2.0X >>', 14, fontWeight: CommonFontWeight.medium)],
+    return Align(
+      alignment: Alignment.topCenter,
+      child: StatefulBuilder(
+        key: longPressKey,
+        builder: (context, setState) {
+          return AnimatedOpacity(
+            curve: Curves.easeInOut,
+            opacity: mediaPlayerController.longPressStatus ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 150),
+            child: IgnorePointer(
+              ignoring: !mediaPlayerController.longPressStatus,
+              child: Container(
+                height: 40,
+                margin: EdgeInsets.only(top: mediaPlayerController.isFullScreen.value ? 24.0 : 6.0),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: CommonColors.black.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [CommonText.instance('2.0X >>', 14, fontWeight: CommonFontWeight.medium)],
+                ),
               ),
             ),
-          ),
-        ),
-      );
-    });
+          );
+        },
+      ),
+    );
   }
 
   /// 倍速提示
