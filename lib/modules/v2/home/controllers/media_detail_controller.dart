@@ -80,8 +80,6 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
   bool isSideSeasonsDialogOpen = false;
   bool isSubtitleSettingsDialogOpen = false;
 
-  Future<bool>? mediaPlayerFuture;
-
   double get bottomHeight => Get.height - safeAreaEdgeInsets.top - videoHeight;
 
   double get videoHeight => Get.width * 9 / 16;
@@ -179,7 +177,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
 
   /// 重置播放器和修改标题
   void changeFutureAndTitle() {
-    mediaPlayerFuture = openMediaData();
+    openMediaData();
     changeTitle();
     update();
   }
@@ -558,14 +556,14 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
     }
   }
 
-  Future<bool> openMediaData() async {
+  void openMediaData() async {
     try {
       videoUrl = videoType == VideoType.video ? mediaDetailEntity?.video ?? '' : selectEpisode.value?.video ?? '';
       /// 注册播放器记录事件
       mediaPlayerController.setRecrodAction(saveMedia);
 
       if (videoType == VideoType.video) {
-        return await mediaPlayerController.setDataSource(
+        await mediaPlayerController.setDataSource(
           MediaDataSource(
             videoSource: mediaDetailEntity?.video ?? '',
             videoType: videoType,
@@ -578,7 +576,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
         );
       } else {
         if (selectEpisode.value != null) {
-          return await mediaPlayerController.setDataSource(
+          await mediaPlayerController.setDataSource(
             MediaDataSource(
               videoSource: selectEpisode.value?.video ?? '',
               videoType: videoType,
@@ -591,11 +589,9 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
           );
         }
       }
-      return false;
     } catch (e) {
       commonDebugPrint(e);
     }
-    return false;
   }
 
   @override

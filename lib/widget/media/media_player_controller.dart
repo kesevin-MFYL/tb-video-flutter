@@ -244,7 +244,7 @@ class MediaPlayerController {
   }
 
   /// 设置数据源
-  Future<bool> setDataSource(
+  Future<void> setDataSource(
     MediaDataSource dataSource, {
     // 默认不循环
     PlaylistMode looping = PlaylistMode.none,
@@ -265,12 +265,12 @@ class MediaPlayerController {
       }
 
       if (playerCount.value == 0) {
-        return false;
+        return;
       }
 
       if (dataSource.videoSource.isEmptyString()) {
         mediaDataStatus.status.value = MediaDataStatusType.error;
-        return false;
+        return;
       }
 
       if (currentVideoUrl != null && currentVideoUrl != dataSource.videoSource) {
@@ -350,13 +350,10 @@ class MediaPlayerController {
 
       /// 设置倍速
       // await setPlaybackSpeed(defaultSpeed);
-
-      return true;
     } catch (err) {
       mediaDataStatus.status.value = MediaDataStatusType.error;
       commonDebugPrint('MediaPlayerController setDataSource error: $err');
     }
-    return false;
   }
 
   /// 预缓存下一个视频

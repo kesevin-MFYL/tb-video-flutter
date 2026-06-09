@@ -5,7 +5,7 @@ import 'package:editvideo/modules/v2/home/controllers/media_detail_controller.da
 import 'package:editvideo/modules/v2/home/widget/auto_scroll_episode_wrapper.dart';
 import 'package:editvideo/modules/v2/home/widget/episode_horizontal_cell.dart';
 import 'package:editvideo/modules/v2/home/widget/episode_vertical_cell.dart';
-import 'package:editvideo/widget/media/media_player_view.dart';
+import 'package:editvideo/widget/media/media_player_control_panel.dart';
 import 'package:editvideo/modules/v2/home/widget/media_scroller_view.dart';
 import 'package:editvideo/modules/v2/home/widget/tab_page_view.dart';
 import 'package:editvideo/modules/v2/home/widget/tv_season_view.dart';
@@ -25,6 +25,7 @@ import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:media_kit_video/media_kit_video.dart';
 
 /// 影片详情
 class MediaDetailPage extends StatefulWidget {
@@ -176,18 +177,42 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
   }
 
   Widget _buildMediaPlayerView() {
-    return MediaPlayerView(
-      key: ValueKey(controller.mediaId),
-      mediaId: controller.mediaId,
-      mediaPlayerController: controller.mediaPlayerController,
-      mediaPlayerFuture: controller.mediaPlayerFuture,
-      onReload: () {
-        controller.mediaPlayerFuture = controller.openMediaData();
-        controller.update();
-      },
-      onChooseEpisode: controller.showRightTvSeasonsDialog,
-      onShowSubtitleSettings: controller.showSubtitleSettingsDialog,
-      onNextPlay: controller.nextPlay,
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Center(
+          child: Video(
+            key: ValueKey(controller.mediaId),
+            controller: controller.mediaPlayerController.videoController,
+            controls: NoVideoControls,
+            fill: CommonColors.color333333,
+            resumeUponEnteringForegroundMode: true,
+            subtitleViewConfiguration: SubtitleViewConfiguration(
+              style: TextStyle(
+                height: 1.5,
+                fontSize: 46.0,
+                letterSpacing: 0.0,
+                wordSpacing: 0.0,
+                color: CommonColors.white.withOpacity(0.9),
+                fontWeight: FontWeight.w500,
+                backgroundColor: Colors.transparent,
+              ),
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            ),
+          ),
+        ),
+        // Center(child: danmaku),
+        Center(
+          child: MediaPlayerControlPanel(
+            controller.mediaPlayerController,
+            onToggleFullScreen: (isFullscreen) {},
+            onChooseEpisode: controller.showRightTvSeasonsDialog,
+            onShowSubtitleSettings: controller.showSubtitleSettingsDialog,
+            onNextPlay: controller.nextPlay,
+            onReload: controller.openMediaData,
+          ),
+        ),
+      ],
     );
   }
 
