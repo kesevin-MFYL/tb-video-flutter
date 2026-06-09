@@ -159,8 +159,6 @@ class SearchController extends BaseController {
       } else {
         refreshController.finishLoad(hasMore ? IndicatorResult.success : IndicatorResult.noMore);
       }
-
-      update();
     } else {
       hasRefresh = false;
 
@@ -170,8 +168,11 @@ class SearchController extends BaseController {
         refreshController.finishLoad();
       }
       commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
-      multiStatus = MultiStatusType.statusError;
+
+      multiStatus = result.error?.code == 10005 ? MultiStatusType.statusNoNetwork : MultiStatusType.statusError;
     }
+
+    update();
   }
 
   void changeToHistory() {
@@ -181,6 +182,8 @@ class SearchController extends BaseController {
 
     showTrigger.value = false;
     showSearchResult.value = false;
+
+    textController.clear();
 
     triggerWordList.clear();
     mediaList.clear();

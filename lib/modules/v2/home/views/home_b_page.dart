@@ -156,9 +156,29 @@ class HomeBPage extends GetView<HomeBController> {
           children: [
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.w),
-              child: buildEmojiAlignedText(
-                '⌛Continue Watching',
-                style: CommonTextStyle.instance(14.sp, fontWeight: CommonFontWeight.bold),
+              child: Row(
+                children: [
+                  buildEmojiAlignedText(
+                    '⌛Continue Watching',
+                    style: CommonTextStyle.instance(14.sp, fontWeight: CommonFontWeight.bold),
+                  ),
+                  Spacer(),
+                  CommonButton(
+                    minSize: 0,
+                    borderRadius: BorderRadius.zero,
+                    spacing: 4.w,
+                    suffixDirectional: SuffixDirectional.right,
+                    suffixWidget: Image.asset(Assets.commonIconVideoArrowRight, width: 16.w, height: 16.w),
+                    onPressed: () => controller.viewAllWithContinueWatching(),
+                    child: CommonText.instance(
+                      'View All',
+                      12.sp,
+                      color: CommonColors.primaryColor,
+                      decoration: TextDecoration.underline,
+                      decorationColor: CommonColors.primaryColor,
+                    ),
+                  ),
+                ],
               ),
             ),
             SizedBox(height: 12.w),

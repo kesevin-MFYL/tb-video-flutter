@@ -376,19 +376,22 @@ class MediaPlayerController {
   /// 切换操作栏状态
   void toggleControls() {
     showControls.value = !showControls.value;
-    if (showControls.value && mediaPlayerStatus.playing) {
+    if (showControls.value) {
       _startHideTimer();
-    } else {
-      _cancelHideTimer();
     }
+    // if (showControls.value && mediaPlayerStatus.playing) {
+    //   _startHideTimer();
+    // } else {
+    //   _cancelHideTimer();
+    // }
   }
 
   /// 切换播放状态
   void togglePlay() async {
     if (mediaPlayerStatus.playing) {
-      pause();
       showControls.value = true;
-      _cancelHideTimer();
+      pause();
+      // _cancelHideTimer();
     } else {
       play(repeat: mediaPlayerStatus.completed ? true : false);
     }
@@ -409,6 +412,8 @@ class MediaPlayerController {
   /// 暂停播放
   Future<void> pause({bool isInterrupt = false}) async {
     await mediaPlayer.pause();
+    // 播放时延迟5s隐藏控制栏
+    _startHideTimer();
   }
 
   /// 跳转至指定位置
@@ -584,7 +589,7 @@ class MediaPlayerController {
     _cancelHideTimer();
 
     _hideTimer = Timer(const Duration(seconds: 5), () {
-      if (mediaPlayerStatus.playing && !isSliderMoving.value) {
+      if (/*mediaPlayerStatus.playing && */!isSliderMoving.value) {
         showControls.value = false;
       }
     });

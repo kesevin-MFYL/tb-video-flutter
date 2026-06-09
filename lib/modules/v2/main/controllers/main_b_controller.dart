@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:editvideo/base/base_controller.dart';
 import 'package:editvideo/manager/admob/app_lifecycle_reactor.dart';
 import 'package:editvideo/manager/event_manager.dart';
+import 'package:editvideo/models/media_history_entity.dart';
 import 'package:editvideo/modules/v1/setting/views/setting_page.dart';
 import 'package:editvideo/modules/v2/explore/views/explore_page.dart';
 import 'package:editvideo/modules/v2/history/controllers/history_controller.dart';
@@ -20,6 +21,7 @@ class MainBController extends BaseController {
 
   late StreamSubscription<EventBusModel> _historyEditSubscription;
 
+  var chooseList = <MediaHistoryEntity>[].obs;
   var showDeletePopup = false.obs;
 
   @override

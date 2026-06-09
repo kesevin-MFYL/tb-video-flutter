@@ -69,12 +69,23 @@ class SwitchManager {
   ///
   /// 所有条件均通过后，将 [remoteAllow] 置为 true。
   Future<bool> _getFirebaseRemoteConfig() async {
-    await RemoteConfigManager().fetchAndActivateConfig();
-    
+    try {
+      await RemoteConfigManager().fetchAndActivateConfig();
+      return await _checkAllow();
+    } catch (e) {
+      // 无网络或未翻墙，获取失败情况下
+      commonDebugPrint("SwitchManager: _getFirebaseRemoteConfig error: $e");
+    }
+    return await _checkAllow();
+  }
+
+  Future<bool> _checkAllow() async {
     final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.instance;
     String movixRefferClo = remoteConfig.getString('movix_reffer_clo').isEmptyString() ? 'all' : remoteConfig.getString('movix_reffer_clo');
     String movixCloakAdd = remoteConfig.getString('movix_cloak_add').isEmptyString() ? 'open' : remoteConfig.getString('movix_cloak_add');
-    String movixCountryCloak = remoteConfig.getString('movix_country_cloak').isEmptyString() ? 'Minnesota' : remoteConfig.getString('movix_country_cloak');
+    String movixCountryCloak = remoteConfig.getString('movix_country_cloak').isEmptyString() ? 'Minnesota; London' : remoteConfig.getString('movix_country_cloak');
+
+    commonDebugPrint('SwitchManager: movix_reffer_clo: $movixRefferClo, movix_cloak_add: $movixCloakAdd, movix_country_cloak: $movixCountryCloak');
 
     bool allowToB = false; // 默认为false
 
@@ -104,6 +115,7 @@ class SwitchManager {
     }
 
     commonDebugPrint("SwitchManager remoteAllow: $allowToB (reffer_clo: $movixRefferClo, cloak_add: $movixCloakAdd, country_cloak: $movixCountryCloak)");
+
     return allowToB;
   }
 

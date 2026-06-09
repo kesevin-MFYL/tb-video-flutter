@@ -60,6 +60,7 @@ class Assets {
   static const String commonIconSubSearch = 'assets/images/common/icon_sub_search.png';
   static const String commonIconUnselected = 'assets/images/common/icon_unselected.png';
   static const String commonIconVideoList = 'assets/images/common/icon_video_list.png';
+  static const String commonPageNoNetwork = 'assets/images/common/page_no_network.png';
   static const String commonTakeVideoTips = 'assets/images/common/take_video_tips.png';
   static const String commonIconClearCache = 'assets/images/common/icon_clear_cache.png';
   static const String commonIconDatePicker = 'assets/images/common/icon_date_picker.png';
@@ -87,6 +88,7 @@ class Assets {
   static const String commonIconSubtitleClose = 'assets/images/common/icon_subtitle_close.png';
   static const String commonIconUserAgreement = 'assets/images/common/icon_user_agreement.png';
   static const String commonIconVideoPlayNext = 'assets/images/common/icon_video_play_next.png';
+  static const String commonVideoDeleteDisable = 'assets/images/common/video_delete_disable.png';
   static const String commonIconFullscreenEmpty = 'assets/images/common/icon_fullscreen_empty.png';
   static const String commonIconVideoBrightness = 'assets/images/common/icon_video_brightness.png';
   static const String commonIconFilterArrowDown = 'assets/images/common/icon_filter_arrow_down.png';

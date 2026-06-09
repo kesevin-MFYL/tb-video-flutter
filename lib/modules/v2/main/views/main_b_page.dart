@@ -58,6 +58,7 @@ class MainBPage extends StatelessWidget {
               bottom: 0,
               child: Obx(() {
                 final showDeletePopup = controller.showDeletePopup.value;
+                final chooseCount = controller.chooseList.length;
                 return IgnorePointer(
                   ignoring: !showDeletePopup,
                   child: ClipRect(
@@ -74,7 +75,7 @@ class MainBPage extends StatelessWidget {
                         padding: EdgeInsets.only(bottom: safeAreaEdgeInsets.bottom),
                         height: controller.getDeletePopupHeight,
                         decoration: BoxDecoration(
-                          color: CommonColors.primaryColor,
+                          color: chooseCount > 0 ? CommonColors.primaryColor : CommonColors.color333333,
                           borderRadius: BorderRadius.only(
                             topLeft: Radius.circular(32.h),
                             topRight: Radius.circular(32.h),
@@ -84,14 +85,18 @@ class MainBPage extends StatelessWidget {
                           child: CommonButton(
                             minSize: 0,
                             borderRadius: BorderRadius.zero,
-                            onPressed: controller.deleteHistory,
+                            onPressed: () {
+                              if (chooseCount > 0) {
+                                controller.deleteHistory();
+                              }
+                            },
                             child: ClipOval(
                               child: Container(
-                                color: CommonColors.colorD43364,
+                                color: chooseCount > 0 ? CommonColors.colorD43364 : CommonColors.white.withOpacity(0.3),
                                 alignment: Alignment.center,
                                 width: 54.w,
                                 height: 54.w,
-                                child: Image.asset(Assets.commonVideoDeleteWhite, width: 32.w, height: 32.w),
+                                child: Image.asset(chooseCount > 0 ? Assets.commonVideoDeleteWhite : Assets.commonVideoDeleteDisable, width: 32.w, height: 32.w),
                               ),
                             ),
                           ),

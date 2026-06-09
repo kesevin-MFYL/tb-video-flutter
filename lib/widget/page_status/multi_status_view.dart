@@ -31,6 +31,9 @@ enum MultiStatusType {
   ///无数据
   statusEmpty,
 
+  ///无网络
+  statusNoNetwork,
+
   ///数据错误
   statusError,
 }
@@ -42,6 +45,7 @@ class MultiStatusView extends StatefulWidget {
     this.currentStatus = MultiStatusType.statusContent,
     this.loadingWidget,
     this.errorWidget,
+    this.noNetWorkWidget,
     this.emptyWidget,
     this.emptyText,
     this.emptyActionType = EmptyActionType.text,
@@ -55,6 +59,7 @@ class MultiStatusView extends StatefulWidget {
   final MultiStatusType currentStatus;
   final Widget? loadingWidget;
   final Widget? errorWidget;
+  final Widget? noNetWorkWidget;
 
   final Widget? emptyWidget;
   final EmptyActionType emptyActionType;
@@ -88,6 +93,8 @@ class _MultiStatusViewState extends State<MultiStatusView> with AutomaticKeepAli
         return _buildEmptyWidget();
       case MultiStatusType.statusError:
         return _buildErrorWidget();
+      case MultiStatusType.statusNoNetwork:
+        return _buildNoNetWorkWidget();
     }
   }
 
@@ -169,7 +176,57 @@ class _MultiStatusViewState extends State<MultiStatusView> with AutomaticKeepAli
                         padding: EdgeInsets.symmetric(horizontal: 24.w),
                         color: CommonColors.primaryColor,
                         onPressed: widget.action,
-                        child: CommonText.instance(widget.actionText ?? 'Try Again', 14.sp, color: CommonColors.color060600, fontWeight: CommonFontWeight.medium),
+                        child: CommonText.instance(
+                          widget.actionText ?? 'Try Again',
+                          14.sp,
+                          color: CommonColors.color060600,
+                          fontWeight: CommonFontWeight.medium,
+                        ),
+                      ),
+                    ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  _buildNoNetWorkWidget() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          child: Container(
+            color: widget.backgroundColor,
+            width: Get.width,
+            height: constraints.maxHeight,
+            padding: EdgeInsets.only(bottom: !widget.hasAppBar ? 0 : safeAreaEdgeInsets.top + kAppbarHeight.h),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: widget.noNetWorkWidget != null
+                  ? [widget.noNetWorkWidget!]
+                  : [
+                      Image.asset(Assets.commonPageNoNetwork, width: 150.w, height: 150.w),
+                      SizedBox(height: 16.h),
+                      CommonText.instance(
+                        'Sourece loaded failed,please check your network',
+                        14.sp,
+                        color: CommonColors.white.withOpacity(0.5),
+                        fontWeight: CommonFontWeight.semiBold,
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 16.h),
+                      CommonButton(
+                        minSize: 40.h,
+                        borderRadius: BorderRadius.circular(20.r),
+                        padding: EdgeInsets.symmetric(horizontal: 24.w),
+                        color: CommonColors.primaryColor,
+                        onPressed: widget.action,
+                        child: CommonText.instance(
+                          widget.actionText ?? 'Try Again',
+                          14.sp,
+                          color: CommonColors.color060600,
+                          fontWeight: CommonFontWeight.medium,
+                        ),
                       ),
                     ],
             ),

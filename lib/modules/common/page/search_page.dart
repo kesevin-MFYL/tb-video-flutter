@@ -53,7 +53,7 @@ class SearchPage extends GetView<SearchController> {
                         return GestureDetector(
                           onTap: () {
                             if (showSearchResult) {
-                              controller.changeToTrigger();
+                              controller.changeToHistory();
                             } else {
                               controller.toSearch();
                             }

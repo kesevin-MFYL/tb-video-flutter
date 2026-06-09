@@ -3,17 +3,20 @@ import 'dart:async';
 import 'package:editvideo/base/base_controller.dart';
 import 'package:editvideo/manager/event_manager.dart';
 import 'package:editvideo/models/media_history_entity.dart';
+import 'package:editvideo/modules/v2/main/controllers/main_b_controller.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/utils/storage.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:get/get.dart';
 
 class HistoryController extends BaseController {
+  MainBController get mainBController => Get.find<MainBController>();
+
   var multiStatusType = MultiStatusType.statusLoading;
 
   var isEdit = false.obs;
 
-  var chooseList = <MediaHistoryEntity>[].obs;
+  RxList<MediaHistoryEntity> get chooseList => mainBController.chooseList;
 
   var todayList = <MediaHistoryEntity>[].obs;
   var yesterdayList = <MediaHistoryEntity>[].obs;
