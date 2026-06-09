@@ -16,11 +16,11 @@ class SearchMediaCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => action?.call(mediaItem),
-      child: Stack(
-        children: [
-          Container(
+    return Stack(
+      children: [
+        GestureDetector(
+          onTap: () => action?.call(mediaItem),
+          child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16.r),
               color: CommonColors.color333333,
@@ -41,25 +41,26 @@ class SearchMediaCell extends StatelessWidget {
               ),
             ),
           ),
+        ),
 
-          Positioned(
-            left: 92.w,
-            right: 0,
-            top: 12.w,
-            bottom: 12.w,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHighlightedText(mediaItem.title ?? '', keyword),
-                if (mediaItem.certification.isNotEmptyString()) _buildTag(tagName: mediaItem.certification!),
-                if ((mediaItem.countryCodeList != null && mediaItem.countryCodeList!.isNotEmpty) || mediaItem.year.isNotEmptyString())
-                  CommonText.instance(_getCountryYearText(), 12.sp, color: CommonColors.primaryColor.withOpacity(0.5)),
-              ],
-            ),
+        Positioned(
+          left: 92.w,
+          right: 0,
+          top: 12.w,
+          bottom: 12.w,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHighlightedText(mediaItem.title ?? '', keyword),
+              if (mediaItem.certification.isNotEmptyString()) _buildTag(tagName: mediaItem.certification!),
+              if ((mediaItem.countryCodeList != null && mediaItem.countryCodeList!.isNotEmpty) ||
+                  mediaItem.year.isNotEmptyString())
+                CommonText.instance(_getCountryYearText(), 12.sp, color: CommonColors.primaryColor.withOpacity(0.5)),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -86,7 +87,12 @@ class SearchMediaCell extends StatelessWidget {
 
   Widget _buildHighlightedText(String text, String keyword) {
     if (keyword.isEmpty) {
-      return CommonText.instance(text, 14.sp, color: CommonColors.white.withOpacity(0.5), fontWeight: CommonFontWeight.bold);
+      return CommonText.instance(
+        text,
+        14.sp,
+        color: CommonColors.white.withOpacity(0.5),
+        fontWeight: CommonFontWeight.bold,
+      );
     }
 
     final pattern = RegExp(RegExp.escape(keyword), caseSensitive: false);
@@ -95,18 +101,26 @@ class SearchMediaCell extends StatelessWidget {
     text.splitMapJoin(
       pattern,
       onMatch: (Match match) {
-        spans.add(TextSpan(
-          text: match.group(0),
-          style: CommonTextStyle.instance(14.sp, fontWeight: CommonFontWeight.bold),
-        ));
+        spans.add(
+          TextSpan(
+            text: match.group(0),
+            style: CommonTextStyle.instance(14.sp, fontWeight: CommonFontWeight.bold),
+          ),
+        );
         return '';
       },
       onNonMatch: (String nonMatch) {
         if (nonMatch.isNotEmpty) {
-          spans.add(TextSpan(
-            text: nonMatch,
-            style: CommonTextStyle.instance(14.sp, color: CommonColors.white.withOpacity(0.5), fontWeight: CommonFontWeight.bold),
-          ));
+          spans.add(
+            TextSpan(
+              text: nonMatch,
+              style: CommonTextStyle.instance(
+                14.sp,
+                color: CommonColors.white.withOpacity(0.5),
+                fontWeight: CommonFontWeight.bold,
+              ),
+            ),
+          );
         }
         return '';
       },
