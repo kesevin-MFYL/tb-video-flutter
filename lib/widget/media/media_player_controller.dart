@@ -19,16 +19,16 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 class MediaPlayerController {
   /// 播放器
-  Player? mediaPlayer;
+  late final Player mediaPlayer;
 
   /// 视频控制器
-  VideoController? videoController;
+  late final VideoController videoController;
 
   /// 预览播放器 (用于进度条滑动时显示缩略图)
-  Player? previewPlayer;
-  
+  late final Player previewPlayer;
+
   /// 预览视频控制器
-  VideoController? previewVideoController;
+  late final VideoController previewVideoController;
 
   var playerCount = 0.obs;
 
@@ -183,44 +183,84 @@ class MediaPlayerController {
   String? currentVideoUrl;
 
   // 获取实例 传参
-  MediaPlayerController() {
-    playerCount.value += 1;
-  }
-
-  // 初始化资源
-  Future<bool> setDataSource(
-    MediaDataSource dataSource, {
+  MediaPlayerController({
     // 默认自动播放
-    bool autoPlay = true,
+    this.autoPlay = true,
     // 默认自动播放
-    double defaultSpeed = 1.0,
+    this.defaultSpeed = 1.0,
     // 默认不循环
-    PlaylistMode looping = PlaylistMode.none,
+    this.looping = PlaylistMode.none,
     // 记录开关
-    bool openRecord = true,
-    // 初始进度
-    Duration initVideoPosition = Duration.zero,
+    this.openRecord = true,
     // 硬件加速
     bool hardware = false,
+  }) {
+    playerCount.value += 1;
+
+    _createVideoController(hardware);
+
+    _createPreviewController(hardware);
+  }
+
+  /// 配置播放器
+  void _createVideoController(bool hardware) {
+    try {
+      // 创建播放器
+      mediaPlayer = Player(
+        configuration: PlayerConfiguration(
+          // 默认缓存 5M 大小
+          bufferSize: 5 * 1024 * 1024,
+        ),
+      );
+
+      // 创建视频控制器
+      videoController = VideoController(
+        mediaPlayer,
+        configuration: VideoControllerConfiguration(
+          enableHardwareAcceleration: hardware,
+          androidAttachSurfaceAfterVideoParameters: false,
+        ),
+      );
+    } catch (e) {
+      commonDebugPrint('MediaPlayerController _createVideoController error: $e');
+    }
+  }
+
+  /// 配置预览播放器
+  void _createPreviewController(bool hardware) {
+    try {
+      previewPlayer = Player(configuration: const PlayerConfiguration(bufferSize: 2 * 1024 * 1024));
+
+      previewVideoController = VideoController(
+        previewPlayer,
+        configuration: VideoControllerConfiguration(
+          enableHardwareAcceleration: hardware,
+          androidAttachSurfaceAfterVideoParameters: false,
+        ),
+      );
+    } catch (e) {
+      commonDebugPrint('MediaPlayerController _createPreviewController error: $e');
+    }
+  }
+
+  /// 设置数据源
+  Future<bool> setDataSource(
+    MediaDataSource dataSource, {
+    // 默认不循环
+    PlaylistMode looping = PlaylistMode.none,
+    // 初始进度
+    Duration initVideoPosition = Duration.zero,
     // 字幕列表
     List<CaptionEntity> captionList = const [],
   }) async {
     try {
-      // 初始化数据加载状态
       mediaDataStatus.status.value = MediaDataStatusType.loading;
-      _isSubtitleInitializedForCurrentMedia = false;
-      _hasSubmittedVideo = false;
 
       videoType.value = dataSource.videoType;
 
-      this.autoPlay = autoPlay;
-      this.defaultSpeed = defaultSpeed;
-      this.looping = looping;
-      this.openRecord = openRecord;
       this.captionList.value = captionList;
-      print('MediaPlayer----${captionList.length}');
 
-      if (mediaPlayer != null && mediaPlayer!.state.playing) {
+      if (mediaPlayer != null && mediaPlayer.state.playing) {
         await pause();
       }
 
@@ -233,8 +273,7 @@ class MediaPlayerController {
         return false;
       }
 
-      if (currentVideoUrl != null && 
-          currentVideoUrl != dataSource.videoSource) {
+      if (currentVideoUrl != null && currentVideoUrl != dataSource.videoSource) {
         // 如果需要，可以在切换视频时清除上一个视频的缓存
         // LruCacheSingleton().removeCacheByUrl(currentVideoUrl!);
       }
@@ -242,37 +281,75 @@ class MediaPlayerController {
       if (dataSource.type == MediaDataSourceType.network) {
         final videoUrl = dataSource.videoSource!;
         currentVideoUrl = videoUrl;
-        
+
         dataSource.videoSource = videoUrl.toLocalUrl();
-        
+
         // 预缓存下一个视频
         _startVideoCacheNext();
       } else {
         currentVideoUrl = null;
       }
 
-      // 每次配置时先移除监听
-      removeListeners();
-
-      // 配置Player 音轨、字幕等等
-      mediaPlayer = await _createVideoController(dataSource, hardware, initVideoPosition);
-
-      // 配置预览Player
-      await _createPreviewController(dataSource, hardware);
-
-      // 添加监听
-      addListeners();
-
-      // 获取视频时长
-      totalDuration.value = mediaPlayer!.state.duration;
-
       // 数据加载完成
       mediaDataStatus.status.value = MediaDataStatusType.completed;
 
-      await _initializePlayer();
+      // 每次配置时先移除监听
+      removeListeners();
+      // 重置配置
+      resetConfig();
+      // 添加监听
+      addListeners();
+
+      // 配置Player 音轨、字幕等等
+      var pp = mediaPlayer.platform as NativePlayer;
+      // 解除倍速限制
+      await pp.setProperty("af", "scaletempo2=max-speed=8");
+      // todo// 音量不一致
+      // if (Platform.isAndroid) {
+      //   await pp.setProperty("volume-max", "100");
+      //   String defaultAoOutput = setting.get(SettingBoxKey.defaultAoOutput, defaultValue: '0');
+      //   await pp.setProperty("ao", aoOutputList.where((e) => e['value'] == defaultAoOutput).first['title']);
+      // }
+
+      await mediaPlayer.setAudioTrack(AudioTrack.auto());
+
+      // 音轨
+      if (dataSource.audioSource != '' && dataSource.audioSource != null) {
+        // await pp.setProperty(
+        //   'audio-files',
+        //   UniversalPlatform.isWindows
+        //       ? dataSource.audioSource!.replaceAll(';', '\\;')
+        //       : dataSource.audioSource!.replaceAll(':', '\\:'),
+        // );
+      } else {
+        await pp.setProperty('audio-files', '');
+      }
+
+      // 配置预览Player
+      var previewPP = previewPlayer.platform as NativePlayer;
+      await previewPP.setProperty('vid', '1'); // Enable video
+      await previewPP.setProperty('aid', 'no'); // Disable audio
+      await previewPP.setProperty('sid', 'no'); // Disable subtitles
 
       // 初始化字幕
       await _initSubtitles();
+
+      if (dataSource.type == MediaDataSourceType.asset) {
+        final assetUrl = dataSource.videoSource!.startsWith("asset://")
+            ? dataSource.videoSource!
+            : "asset://${dataSource.videoSource!}";
+        await mediaPlayer.open(Media(assetUrl, httpHeaders: dataSource.httpHeaders), play: autoPlay);
+        await previewPlayer.open(Media(assetUrl, httpHeaders: dataSource.httpHeaders), play: false);
+      } else {
+        await mediaPlayer.open(
+          Media(dataSource.videoSource!, httpHeaders: dataSource.httpHeaders, start: initVideoPosition),
+          play: autoPlay,
+        );
+        await previewPlayer!.open(Media(dataSource.videoSource!, httpHeaders: dataSource.httpHeaders), play: false);
+      }
+
+      /// 设置倍速
+      // await setPlaybackSpeed(defaultSpeed);
 
       return true;
     } catch (err) {
@@ -282,6 +359,7 @@ class MediaPlayerController {
     return false;
   }
 
+  /// 预缓存下一个视频
   void _startVideoCacheNext() async {
     try {
       final nextUrl = await getNextVideoUrlAction?.call();
@@ -294,135 +372,8 @@ class MediaPlayerController {
     }
   }
 
-  // 配置播放器
-  Future<Player> _createVideoController(MediaDataSource dataSource, bool hardware, Duration initVideoPosition) async {
-    // 缓存状态，初始化为true，避免开始播放前的灰色等待时间
-    isBuffering.value = true;
-    // 缓存进度
-    bufferedDuration.value = Duration.zero;
-    // 当前进度
-    currentPosition.value = Duration.zero;
-    // 上一次的播放时间
-    _lastPositionSeconds = 0;
-    _needRecordImmediately = true;
-
-    // 初始化时清空弹幕，防止上次重叠
-    // if (danmakuController != null) {
-    //   danmakuController!.clear();
-    // }
-
-    // 创建播放器
-    Player player =
-        mediaPlayer ??
-        Player(
-          configuration: PlayerConfiguration(
-            // 默认缓存 5M 大小
-            bufferSize: 5 * 1024 * 1024,
-          ),
-        );
-
-    var pp = player.platform as NativePlayer;
-    // 解除倍速限制
-    await pp.setProperty("af", "scaletempo2=max-speed=8");
-    // todo// 音量不一致
-    // if (Platform.isAndroid) {
-    //   await pp.setProperty("volume-max", "100");
-    //   String defaultAoOutput = setting.get(SettingBoxKey.defaultAoOutput, defaultValue: '0');
-    //   await pp.setProperty("ao", aoOutputList.where((e) => e['value'] == defaultAoOutput).first['title']);
-    // }
-
-    await player.setAudioTrack(AudioTrack.auto());
-
-    // 音轨
-    if (dataSource.audioSource != '' && dataSource.audioSource != null) {
-      // await pp.setProperty(
-      //   'audio-files',
-      //   UniversalPlatform.isWindows
-      //       ? dataSource.audioSource!.replaceAll(';', '\\;')
-      //       : dataSource.audioSource!.replaceAll(':', '\\:'),
-      // );
-    } else {
-      await pp.setProperty('audio-files', '');
-    }
-
-    // 创建视频控制器
-    videoController =
-        videoController ??
-        VideoController(
-          player,
-          configuration: VideoControllerConfiguration(
-            enableHardwareAcceleration: hardware,
-            androidAttachSurfaceAfterVideoParameters: false,
-          ),
-        );
-
-    // 播放模式
-    player.setPlaylistMode(looping);
-
-    if (dataSource.type == MediaDataSourceType.asset) {
-      final assetUrl = dataSource.videoSource!.startsWith("asset://")
-          ? dataSource.videoSource!
-          : "asset://${dataSource.videoSource!}";
-      await player.open(Media(assetUrl, httpHeaders: dataSource.httpHeaders), play: false);
-    } else {
-      await player.open(
-        Media(dataSource.videoSource!, httpHeaders: dataSource.httpHeaders, start: initVideoPosition),
-        play: false,
-      );
-    }
-    return player;
-  }
-
-  Future<void> _createPreviewController(MediaDataSource dataSource, bool hardware) async {
-    try {
-      previewPlayer ??= Player(
-        configuration: const PlayerConfiguration(
-          bufferSize: 2 * 1024 * 1024,
-        ),
-      );
-
-      var pp = previewPlayer!.platform as NativePlayer;
-      await pp.setProperty('vid', '1'); // Enable video
-      await pp.setProperty('aid', 'no'); // Disable audio
-      await pp.setProperty('sid', 'no'); // Disable subtitles
-
-      previewVideoController ??= VideoController(
-        previewPlayer!,
-        configuration: VideoControllerConfiguration(
-          enableHardwareAcceleration: hardware,
-          androidAttachSurfaceAfterVideoParameters: false,
-        ),
-      );
-
-      if (dataSource.type == MediaDataSourceType.asset) {
-        final assetUrl = dataSource.videoSource!.startsWith("asset://")
-            ? dataSource.videoSource!
-            : "asset://${dataSource.videoSource!}";
-        await previewPlayer!.open(Media(assetUrl, httpHeaders: dataSource.httpHeaders), play: false);
-      } else {
-        await previewPlayer!.open(
-          Media(dataSource.videoSource!, httpHeaders: dataSource.httpHeaders),
-          play: false,
-        );
-      }
-    } catch (e) {
-      commonDebugPrint('MediaPlayerController _createPreviewController error: $e');
-    }
-  }
-
   void seekPreview(Duration position) {
     previewPlayer?.seek(position);
-  }
-
-  //
-  Future _initializePlayer() async {
-    /// 自动播放
-    if (autoPlay) {
-      await play();
-    }
-
-    /// 设置倍速
-    await setPlaybackSpeed(defaultSpeed);
   }
 
   /// 切换操作栏状态
@@ -450,17 +401,17 @@ class MediaPlayerController {
   Future<void> play({bool repeat = false}) async {
     // repeat为true，将从头播放
     if (repeat) {
-      mediaPlayer?.seek(Duration.zero);
+      mediaPlayer.seek(Duration.zero);
       _needRecordImmediately = true;
     }
-    await mediaPlayer?.play();
+    await mediaPlayer.play();
     // 播放时延迟5s隐藏控制栏
     _startHideTimer();
   }
 
   /// 暂停播放
   Future<void> pause({bool isInterrupt = false}) async {
-    await mediaPlayer?.pause();
+    await mediaPlayer.pause();
   }
 
   /// 跳转至指定位置
@@ -473,9 +424,9 @@ class MediaPlayerController {
       _needRecordImmediately = true;
       if (totalDuration.value.inSeconds != 0) {
         if (!isHorizontalMove) {
-          await mediaPlayer?.stream.buffer.first;
+          await mediaPlayer.stream.buffer.first;
         }
-        await mediaPlayer?.seek(position);
+        await mediaPlayer.seek(position);
 
         _startHideTimer();
       }
@@ -486,7 +437,7 @@ class MediaPlayerController {
 
   /// 设置倍速
   Future<void> setPlaybackSpeed(double speed) async {
-    await mediaPlayer?.setRate(speed);
+    await mediaPlayer.setRate(speed);
     // try {
     // DanmakuOption currentOption = danmakuController!.option;
     // defaultDuration ??= currentOption.duration;
@@ -509,10 +460,10 @@ class MediaPlayerController {
     fastRewindStatus.value = true;
 
     _rewindTimer = Timer(const Duration(milliseconds: 200), () {
-      Duration result = mediaPlayer!.state.position - Duration(seconds: fastSeconds);
-      result = result.clamp(Duration.zero, mediaPlayer!.state.duration);
-      mediaPlayer!.seek(result);
-      mediaPlayer!.play();
+      Duration result = mediaPlayer.state.position - Duration(seconds: fastSeconds);
+      result = result.clamp(Duration.zero, mediaPlayer.state.duration);
+      mediaPlayer.seek(result);
+      mediaPlayer.play();
 
       _needRecordImmediately = true;
       fastRewindStatus.value = false;
@@ -531,10 +482,10 @@ class MediaPlayerController {
     fastForwardStatus.value = true;
 
     _forwardTimer = Timer(const Duration(milliseconds: 200), () {
-      Duration result = mediaPlayer!.state.position + Duration(seconds: fastSeconds);
-      result = result.clamp(Duration.zero, mediaPlayer!.state.duration);
-      mediaPlayer!.seek(result);
-      mediaPlayer!.play();
+      Duration result = mediaPlayer.state.position + Duration(seconds: fastSeconds);
+      result = result.clamp(Duration.zero, mediaPlayer.state.duration);
+      mediaPlayer.seek(result);
+      mediaPlayer.play();
 
       _needRecordImmediately = true;
       fastForwardStatus.value = false;
@@ -566,7 +517,7 @@ class MediaPlayerController {
     if (captionList.isEmpty) {
       openCaptions.value = false;
       selectedCaption.value = null;
-      await mediaPlayer?.setSubtitleTrack(SubtitleTrack.no());
+      await mediaPlayer.setSubtitleTrack(SubtitleTrack.no());
       return;
     }
 
@@ -598,15 +549,14 @@ class MediaPlayerController {
   }
 
   Future<void> _applySubtitle() async {
-    if (mediaPlayer == null) return;
     if (!openCaptions.value || selectedCaption.value == null || selectedCaption.value!.s3Address.isEmptyString()) {
-      await mediaPlayer!.setSubtitleTrack(SubtitleTrack.no());
+      await mediaPlayer.setSubtitleTrack(SubtitleTrack.no());
       return;
     }
 
     final url = selectedCaption.value!.s3Address!;
     try {
-      await mediaPlayer!.setSubtitleTrack(SubtitleTrack.uri(url));
+      await mediaPlayer.setSubtitleTrack(SubtitleTrack.uri(url));
     } catch (e) {
       commonDebugPrint('MediaPlayer setSubtitleTrack error: $e');
     }
@@ -666,7 +616,7 @@ class MediaPlayerController {
   // 记录播放信息
   Future recordPlayerInfo({int progress = 0, bool playStatusChanged = false}) async {
     if (!openRecord) {
-      return false;
+      return;
     }
     // 播放状态变化时，更新
     if (playStatusChanged) {
@@ -691,9 +641,9 @@ class MediaPlayerController {
   void addListeners() {
     subscriptions.addAll([
       /// 进度监听
-      mediaPlayer!.stream.position.listen((event) {
+      mediaPlayer.stream.position.listen((event) {
         currentPosition.value = event >= Duration.zero ? event : Duration.zero;
-        
+
         // 只要进度开始推进，说明已经开始播放，取消缓冲状态
         if (isBuffering.value && event.inMilliseconds > 0) {
           isBuffering.value = false;
@@ -721,7 +671,7 @@ class MediaPlayerController {
       }),
 
       /// 播放/暂停监听
-      mediaPlayer!.stream.playing.listen((event) {
+      mediaPlayer.stream.playing.listen((event) {
         commonDebugPrint('MediaPlayerController playing: $event');
         mediaPlayerStatus.status.value = event ? MediaPlayerStatusType.playing : MediaPlayerStatusType.paused;
 
@@ -734,7 +684,7 @@ class MediaPlayerController {
       }),
 
       /// 播放完成监听
-      mediaPlayer!.stream.completed.listen((event) {
+      mediaPlayer.stream.completed.listen((event) {
         commonDebugPrint('MediaPlayerController completed: $event');
         if (event) {
           mediaPlayerStatus.status.value = MediaPlayerStatusType.completed;
@@ -748,21 +698,21 @@ class MediaPlayerController {
       }),
 
       /// 总时长监听
-      mediaPlayer!.stream.duration.listen((event) => totalDuration.value = event),
+      mediaPlayer.stream.duration.listen((event) => totalDuration.value = event),
 
       /// 缓冲进度监听
-      mediaPlayer!.stream.buffer.listen((event) {
+      mediaPlayer.stream.buffer.listen((event) {
         bufferedDuration.value = event;
       }),
 
       /// 缓冲状态
-      mediaPlayer!.stream.buffering.listen((event) {
+      mediaPlayer.stream.buffering.listen((event) {
         commonDebugPrint('MediaPlayerController buffering: $event');
         isBuffering.value = event;
       }),
 
       /// 音视频轨道监听，确保在轨道加载完成后再应用字幕，防止被内部默认轨道覆盖
-      mediaPlayer!.stream.tracks.listen((event) {
+      mediaPlayer.stream.tracks.listen((event) {
         if (!_isSubtitleInitializedForCurrentMedia && (event.video.isNotEmpty || event.audio.isNotEmpty)) {
           _isSubtitleInitializedForCurrentMedia = true;
           Future.delayed(const Duration(milliseconds: 250), () {
@@ -770,6 +720,11 @@ class MediaPlayerController {
           });
         }
       }),
+
+      // mediaPlayer.stream.error.listen((error) {
+      //   commonDebugPrint('MediaPlayerController error: $error');
+      //   mediaDataStatus.status.value = MediaDataStatusType.error;
+      // }),
     ]);
   }
 
@@ -825,6 +780,22 @@ class MediaPlayerController {
     _statusChangedListeners.remove(listener);
   }
 
+  void resetConfig() {
+    // 是否已初始化字幕
+    _isSubtitleInitializedForCurrentMedia = false;
+    // 是否已提交视频信息
+    _hasSubmittedVideo = false;
+    // 缓存状态，初始化为true，避免开始播放前的灰色等待时间
+    isBuffering.value = true;
+    // 缓存进度
+    bufferedDuration.value = Duration.zero;
+    // 当前进度
+    currentPosition.value = Duration.zero;
+    // 上一次的播放时间
+    _lastPositionSeconds = 0;
+    _needRecordImmediately = true;
+  }
+
   Future<void> dispose() async {
     playerCount.value = 0;
     try {
@@ -835,16 +806,14 @@ class MediaPlayerController {
       // 缓存本次弹幕选项
       // cacheDanmakuOption();
       if (mediaPlayer != null) {
-        var pp = mediaPlayer!.platform as NativePlayer;
+        var pp = mediaPlayer.platform as NativePlayer;
         await pp.setProperty('audio-files', '');
         recordAction = null;
         removeListeners();
-        await mediaPlayer?.dispose();
-        mediaPlayer = null;
+        await mediaPlayer.dispose();
       }
       if (previewPlayer != null) {
         await previewPlayer?.dispose();
-        previewPlayer = null;
       }
       // 关闭所有视频页面恢复亮度
       // resetBrightness();

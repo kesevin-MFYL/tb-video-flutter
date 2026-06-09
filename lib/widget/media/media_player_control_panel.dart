@@ -245,18 +245,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
 
         /// 数据加载错误或缓存中
         Obx(() {
-          if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController.isBuffering.value) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  loadingIndicator(size: 30, strokeWidth: 2),
-                  SizedBox(height: 6),
-                  CommonText.instance('loading....', 12),
-                ],
-              ),
-            );
-          } else if (mediaPlayerController.mediaDataStatus.error) {
+          if (mediaPlayerController.mediaDataStatus.error) {
             return Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -291,6 +280,17 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
                       fontWeight: CommonFontWeight.semiBold,
                     ),
                   ),
+                ],
+              ),
+            );
+          } else if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController.isBuffering.value) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  loadingIndicator(size: 30, strokeWidth: 2),
+                  SizedBox(height: 6),
+                  CommonText.instance('loading....', 12),
                 ],
               ),
             );
@@ -693,10 +693,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
                     width: isFullScreen ? 130 : 90,
                     height: isFullScreen ? 73 : 51,
                     margin: const EdgeInsets.only(bottom: 8),
-                    decoration: BoxDecoration(
-                      color: CommonColors.color333333,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    decoration: BoxDecoration(color: CommonColors.color333333, borderRadius: BorderRadius.circular(12)),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: Video(

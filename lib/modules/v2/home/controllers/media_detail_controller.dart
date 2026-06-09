@@ -179,7 +179,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
 
   /// 重置播放器和修改标题
   void changeFutureAndTitle() {
-    mediaPlayerFuture = initMediaPlayer();
+    mediaPlayerFuture = openMediaData();
     changeTitle();
     update();
   }
@@ -558,7 +558,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
     }
   }
 
-  Future<bool> initMediaPlayer() async {
+  Future<bool> openMediaData() async {
     try {
       videoUrl = videoType == VideoType.video ? mediaDetailEntity?.video ?? '' : selectEpisode.value?.video ?? '';
       /// 注册播放器记录事件

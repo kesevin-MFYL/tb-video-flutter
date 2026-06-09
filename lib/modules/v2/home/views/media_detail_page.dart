@@ -1,12 +1,11 @@
 import 'package:editvideo/config/color/colors.dart';
-import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/modules/v2/home/controllers/media_detail_controller.dart';
 import 'package:editvideo/modules/v2/home/widget/auto_scroll_episode_wrapper.dart';
 import 'package:editvideo/modules/v2/home/widget/episode_horizontal_cell.dart';
 import 'package:editvideo/modules/v2/home/widget/episode_vertical_cell.dart';
-import 'package:editvideo/modules/v2/home/widget/media_player_view.dart';
+import 'package:editvideo/widget/media/media_player_view.dart';
 import 'package:editvideo/modules/v2/home/widget/media_scroller_view.dart';
 import 'package:editvideo/modules/v2/home/widget/tab_page_view.dart';
 import 'package:editvideo/modules/v2/home/widget/tv_season_view.dart';
@@ -183,7 +182,7 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
       mediaPlayerController: controller.mediaPlayerController,
       mediaPlayerFuture: controller.mediaPlayerFuture,
       onReload: () {
-        controller.mediaPlayerFuture = controller.initMediaPlayer();
+        controller.mediaPlayerFuture = controller.openMediaData();
         controller.update();
       },
       onChooseEpisode: controller.showRightTvSeasonsDialog,
