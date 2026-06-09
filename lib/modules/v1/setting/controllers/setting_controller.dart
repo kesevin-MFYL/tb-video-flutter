@@ -1,10 +1,7 @@
 import 'dart:io';
 import 'package:editvideo/base/base_controller.dart';
 import 'package:editvideo/config/log/logger.dart';
-import 'package:editvideo/config/network/api/common_api.dart';
-import 'package:editvideo/config/network/http_utils.dart';
 import 'package:editvideo/generated/assets.dart';
-import 'package:editvideo/manager/admob/consent_manager.dart';
 import 'package:editvideo/widget/bottom_sheet/delete_bottom_sheet.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_video_caching/flutter_video_caching.dart';
@@ -49,6 +46,7 @@ class SettingController extends BaseController {
 
       // 1. 获取视频缓存大小
       totalSize += await LruCacheSingleton().storageSizeInBytes();
+      commonDebugPrint('视频缓存大小为：$totalSize bytes');
 
       // 2. 获取图片缓存大小 (DefaultCacheManager 默认使用的 key 是 libCachedImageData)
       final cacheDir = await getTemporaryDirectory();
@@ -86,6 +84,7 @@ class SettingController extends BaseController {
         try {
           // 1. 清除视频缓存
           await LruCacheSingleton().storageClear();
+          await LruCacheSingleton().memoryClear();
 
           // 2. 清除图片缓存
           await DefaultCacheManager().emptyCache();

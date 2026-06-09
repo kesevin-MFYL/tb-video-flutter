@@ -354,8 +354,9 @@ class MediaPlayerControllerTwo {
           : "asset://${dataSource.videoSource!}";
       await player.open(Media(assetUrl, httpHeaders: dataSource.httpHeaders), play: autoPlay);
     } else {
+      final mediaStart = initVideoPosition == Duration.zero ? null : initVideoPosition;
       await player.open(
-        Media(dataSource.videoSource!, httpHeaders: dataSource.httpHeaders, start: initVideoPosition),
+        Media(dataSource.videoSource!, httpHeaders: dataSource.httpHeaders, start: mediaStart),
         play: autoPlay,
       );
     }

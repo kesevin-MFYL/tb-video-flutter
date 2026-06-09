@@ -21,7 +21,7 @@ class SettingPage extends StatelessWidget {
       init: SettingController(),
       builder: (controller) {
         return VisibilityDetector(
-          key: const Key('home_b'),
+          key: const Key('setting_page'),
           onVisibilityChanged: (info) async {
             if (info.visibleFraction > 0.0) {
               controller.getCacheSize();

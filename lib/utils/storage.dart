@@ -155,6 +155,14 @@ class Storage {
     List<MediaHistoryEntity> list = getViewedMedia();
     final index = list.indexWhere((e) => e.id == media.id);
     if (index != -1) {
+      final oldMedia = list[index];
+      if (oldMedia.videoUrl != null && oldMedia.videoUrl != media.videoUrl) {
+        try {
+          await LruCacheSingleton().removeCacheByUrl(oldMedia.videoUrl!);
+        } catch (e) {
+          // ignore
+        }
+      }
       list[index] = media;
       // 存在则更新，并放到第一个位置
       final item = list.removeAt(index);
@@ -164,7 +172,17 @@ class Storage {
     }
     // 限制长度，比如最多存50条
     if (list.length > 100) {
+      final removedItems = list.sublist(100);
       list = list.sublist(0, 100);
+      for (var item in removedItems) {
+        if (item.videoUrl != null && item.videoUrl!.isNotEmpty) {
+          try {
+            await LruCacheSingleton().removeCacheByUrl(item.videoUrl!);
+          } catch (e) {
+            // ignore
+          }
+        }
+      }
     }
     final jsonList = list.map((e) => e.toJson()).toList();
     await _getStorage!.write(_kViewedMedia, jsonEncode(jsonList));
@@ -174,10 +192,14 @@ class Storage {
     List<MediaHistoryEntity> list = getViewedMedia();
     for (var item in itemsToRemove) {
       if (item.videoUrl != null && item.videoUrl!.isNotEmpty) {
-        LruCacheSingleton().removeCacheByUrl(item.videoUrl!);
+        await LruCacheSingleton().removeCacheByUrl(item.videoUrl!);
       }
     }
     list.removeWhere((e) => itemsToRemove.contains(e));
+    if (list.isEmpty) {
+      await LruCacheSingleton().storageClear();
+      await LruCacheSingleton().memoryClear();
+    }
     final jsonList = list.map((e) => e.toJson()).toList();
     await _getStorage!.write(_kViewedMedia, jsonEncode(jsonList));
   }
@@ -187,12 +209,16 @@ class Storage {
     try {
       final itemToRemove = list.firstWhere((e) => e.id == id);
       if (itemToRemove.videoUrl != null && itemToRemove.videoUrl!.isNotEmpty) {
-        LruCacheSingleton().removeCacheByUrl(itemToRemove.videoUrl!);
+        await LruCacheSingleton().removeCacheByUrl(itemToRemove.videoUrl!);
       }
     } catch (e) {
       // ignore
     }
     list.removeWhere((e) => e.id == id);
+    if (list.isEmpty) {
+      await LruCacheSingleton().storageClear();
+      await LruCacheSingleton().memoryClear();
+    }
     final jsonList = list.map((e) => e.toJson()).toList();
     await _getStorage!.write(_kViewedMedia, jsonEncode(jsonList));
   }
