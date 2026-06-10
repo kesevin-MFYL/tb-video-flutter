@@ -379,6 +379,9 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
     if (showBottomOtherInfo.value) {
       showBottomOtherInfo.value = false;
     }
+    if (showBottomSubtitleSettings.value) {
+      showBottomSubtitleSettings.value = false;
+    }
   }
 
   /// 剧集右侧弹窗(横屏)

@@ -18,6 +18,42 @@ class SubtitleSettingsDialog extends StatefulWidget {
 
 class _SubtitleSettingsDialogState extends State<SubtitleSettingsDialog> {
   final PageController _pageController = PageController();
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToSelected() {
+    final list = widget.controller.captionList;
+    final selected = widget.controller.selectedCaption.value;
+    if (selected != null) {
+      final index = list.indexOf(selected);
+      if (index != -1) {
+        Future.delayed(const Duration(milliseconds: 50), () {
+          if (_scrollController.hasClients) {
+            final viewportDimension = _scrollController.position.viewportDimension;
+            final itemHeight = 50.0;
+            final spacing = 16.0;
+            final padding = 16.0;
+            final itemCenter = padding + index * (itemHeight + spacing) + itemHeight / 2;
+            double offset = itemCenter - viewportDimension / 2;
+            
+            if (offset < 0) offset = 0;
+            
+            _scrollController.animateTo(
+              offset,
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOutCubic,
+            );
+          }
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -110,6 +146,7 @@ class _SubtitleSettingsDialogState extends State<SubtitleSettingsDialog> {
           behavior: HitTestBehavior.translucent,
           onTap: () {
             _pageController.animateToPage(1, duration: const Duration(milliseconds: 250), curve: Curves.easeOutCubic);
+            _scrollToSelected();
           },
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -167,6 +204,7 @@ class _SubtitleSettingsDialogState extends State<SubtitleSettingsDialog> {
             final list = widget.controller.captionList;
             final selected = widget.controller.selectedCaption.value;
             return ListView.separated(
+              controller: _scrollController,
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               itemCount: list.length,
               separatorBuilder: (context, index) => SizedBox(height: 16),

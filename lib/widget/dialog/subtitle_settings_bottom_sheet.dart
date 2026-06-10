@@ -20,6 +20,43 @@ class SubtitleSettingsView extends StatefulWidget {
 
 class _SubtitleSettingsViewState extends State<SubtitleSettingsView> {
   final PageController _pageController = PageController();
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToSelected() {
+    final list = widget.controller.captionList;
+    final selected = widget.controller.selectedCaption.value;
+    if (selected != null) {
+      final index = list.indexOf(selected);
+      if (index != -1) {
+        Future.delayed(const Duration(milliseconds: 50), () {
+          if (_scrollController.hasClients) {
+            final viewportDimension = _scrollController.position.viewportDimension;
+            final itemHeight = 50.w;
+            final spacing = 16.w;
+            final padding = 16.w;
+            final itemCenter = padding + index * (itemHeight + spacing) + itemHeight / 2;
+            double offset = itemCenter - viewportDimension / 2;
+            
+            // Do not clamp to maxScrollExtent because ListView might not have laid out all items yet
+            if (offset < 0) offset = 0;
+            
+            _scrollController.animateTo(
+              offset,
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOutCubic,
+            );
+          }
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -97,6 +134,7 @@ class _SubtitleSettingsViewState extends State<SubtitleSettingsView> {
           behavior: HitTestBehavior.opaque,
           onTap: () {
             _pageController.animateToPage(1, duration: const Duration(milliseconds: 250), curve: Curves.easeOutCubic);
+            _scrollToSelected();
           },
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.w),
@@ -154,6 +192,7 @@ class _SubtitleSettingsViewState extends State<SubtitleSettingsView> {
             final list = widget.controller.captionList;
             final selected = widget.controller.selectedCaption.value;
             return ListView.separated(
+              controller: _scrollController,
               padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.w),
               itemCount: list.length,
               separatorBuilder: (context, index) => SizedBox(height: 16.w),
