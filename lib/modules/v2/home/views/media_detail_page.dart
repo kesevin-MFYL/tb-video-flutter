@@ -49,6 +49,7 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
 
     controller = Get.put(MediaDetailController(), tag: '${widget.mediaId}');
 
+    fullScreenStatusListener();
     lifecycleListener();
     initPlayerStatusListener();
   }
@@ -646,6 +647,20 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
         fontWeight: CommonFontWeight.medium,
       ),
     );
+  }
+
+  void fullScreenStatusListener() {
+    controller.mediaPlayerController.isFullScreen.listen((bool isFullScreen) {
+      if (!isFullScreen) {
+        if (controller.showBottomSeasons.value) {
+          controller.showBottomSeasons.value = false;
+        }
+
+        if (controller.showBottomOtherInfo.value) {
+          controller.showBottomOtherInfo.value = false;
+        }
+      }
+    });
   }
 
   // 播放器状态监听

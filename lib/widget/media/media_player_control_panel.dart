@@ -562,8 +562,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
                             // 横屏、竖屏
                             GestureDetector(
                               onTap: () {
-                                mediaPlayerController.triggerFullScreen(status: !isFullScreen);
-                                widget.onToggleFullScreen.call(mediaPlayerController.isFullScreen.value);
+                                mediaPlayerController.triggerFullScreen(status: !isFullScreen, onToggleFullScreen: widget.onToggleFullScreen);
                               },
                               child: Image.asset(
                                 isFullScreen ? Assets.commonIconPortrait : Assets.commonIconLandscape,

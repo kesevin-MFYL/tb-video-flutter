@@ -6,13 +6,12 @@ import 'package:editvideo/widget/media/model/media_data_status.dart';
 import 'package:editvideo/models/caption_entity.dart';
 import 'package:editvideo/widget/media/model/media_player_status.dart';
 import 'package:editvideo/widget/media/utils/fullscreen.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_video_caching/flutter_video_caching.dart';
 import 'package:media_kit/media_kit.dart';
 import 'dart:async';
 import 'dart:io';
-
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:media_kit_video/media_kit_video_controls/src/controls/extensions/duration.dart';
@@ -167,7 +166,7 @@ class MediaPlayerController {
   bool _hasSubmittedVideo = false;
 
   /// 是否有网
-  bool isOnline = false;
+  bool isOnline = true;
 
   /// 事件流
   var subscriptions = <StreamSubscription>[];
@@ -180,6 +179,9 @@ class MediaPlayerController {
 
   /// 播放进度监听
   Stream<Duration> get onPositionChanged => currentPosition.stream;
+
+  /// 网络状态监听
+  StreamSubscription<List<ConnectivityResult>>? connectivityChanged;
 
   /// 播放状态监听集合
   final List<Function(MediaPlayerStatusType status)> _statusChangedListeners = [];
@@ -208,6 +210,12 @@ class MediaPlayerController {
     _createVideoController(hardware);
 
     _createPreviewController(hardware);
+
+    /// 网络状态监听
+    connectivityChanged = Connectivity().onConnectivityChanged.listen((result) {
+      commonDebugPrint('MediaPlayerController connectivity: $result');
+      isOnline = result.contains(ConnectivityResult.mobile) || result.contains(ConnectivityResult.wifi);
+    });
   }
 
   /// 配置播放器
@@ -281,6 +289,11 @@ class MediaPlayerController {
         return;
       }
 
+      if (!isOnline) {
+        mediaDataStatus.status.value = MediaDataStatusType.error;
+        return;
+      }
+
       if (currentVideoUrl != null && currentVideoUrl != dataSource.videoSource) {
         // 如果需要，可以在切换视频时清除上一个视频的缓存
         // LruCacheSingleton().removeCacheByUrl(currentVideoUrl!);
@@ -308,11 +321,6 @@ class MediaPlayerController {
       resetConfig();
       // 添加监听
       addListeners();
-
-      if (!isOnline) {
-        mediaDataStatus.status.value = MediaDataStatusType.error;
-        return;
-      }
 
       // 配置Player
       var pp = mediaPlayer.platform as NativePlayer;
@@ -512,11 +520,10 @@ class MediaPlayerController {
   }
 
   /// 全屏
-  Future<void> triggerFullScreen({bool status = true}) async {
+  Future<void> triggerFullScreen({bool status = true, ValueChanged<bool>? onToggleFullScreen}) async {
     await StatusBarControlPlus.setHidden(true, animation: StatusBarAnimation.FADE);
     if (!isFullScreen.value && status) {
       isFullScreen.value = true;
-
       /// 进入全屏
       await enterFullScreen();
       await landScape();
@@ -527,6 +534,7 @@ class MediaPlayerController {
 
       isFullScreen.value = false;
     }
+    onToggleFullScreen?.call(isFullScreen.value);
   }
 
   Future<void> _initSubtitles() async {
@@ -786,11 +794,6 @@ class MediaPlayerController {
         commonDebugPrint('MediaPlayerController error: $error');
         _errorChanged();
       }),
-
-      /// 网络状态监听
-      Connectivity().onConnectivityChanged.listen((result) {
-        isOnline = result.contains(ConnectivityResult.mobile) || result.contains(ConnectivityResult.wifi);
-      }),
     ]);
   }
 
@@ -878,6 +881,7 @@ class MediaPlayerController {
       _hideTimer?.cancel();
       _rewindTimer?.cancel();
       _forwardTimer?.cancel();
+      connectivityChanged?.cancel();
 
       // 缓存本次弹幕选项
       // cacheDanmakuOption();
