@@ -6,6 +6,7 @@ import 'package:editvideo/widget/button/common_button.dart';
 import 'package:editvideo/widget/custom_bottom_navigation_bar.dart';
 import 'package:editvideo/widget/page_base.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
@@ -22,9 +23,17 @@ class MainBPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<MainBController>(
-      init: MainBController(),
-      builder: (controller) {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (GetPlatform.isAndroid) {
+          const MethodChannel('tbvideo/app_retain').invokeMethod('sendToBackground');
+        }
+      },
+      child: GetBuilder<MainBController>(
+        init: MainBController(),
+        builder: (controller) {
         return Stack(
           children: [
             PageBase(
@@ -110,6 +119,6 @@ class MainBPage extends StatelessWidget {
           ],
         );
       },
-    );
+    ));
   }
 }
