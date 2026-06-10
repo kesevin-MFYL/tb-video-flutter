@@ -185,7 +185,7 @@ class _SubtitleSettingsViewState extends State<SubtitleSettingsView> {
                         SizedBox(width: 16.w),
                         Expanded(
                           child: CommonText.instance(
-                            item.displayName ?? item.name ?? '',
+                            item.displayName ?? '',
                             14.sp,
                             color: isSelected ? CommonColors.primaryColor : Colors.white,
                             maxLines: 1,

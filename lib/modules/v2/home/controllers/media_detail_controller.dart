@@ -329,7 +329,10 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
     if (currentSeason != null && currentEpisode != null) {
       final episodeIndex = episodeList.indexOf(currentEpisode);
       final seasonIndex = seasonList.indexOf(currentSeason);
-      if (seasonIndex != -1 && seasonIndex == seasonList.length - 1 && episodeIndex != -1 && episodeIndex == episodeList.length - 1) {
+      if (seasonIndex != -1 &&
+          seasonIndex == seasonList.length - 1 &&
+          episodeIndex != -1 &&
+          episodeIndex == episodeList.length - 1) {
         mediaPlayerController.hasNextEpisode.value = false;
       } else {
         mediaPlayerController.hasNextEpisode.value = true;
@@ -556,9 +559,10 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
     }
   }
 
-  void openMediaData() async {
+  void openMediaData({bool isReload = false}) async {
     try {
       videoUrl = videoType == VideoType.video ? mediaDetailEntity?.video ?? '' : selectEpisode.value?.video ?? '';
+
       /// 注册播放器记录事件
       mediaPlayerController.setRecrodAction(saveMedia);
 
@@ -569,8 +573,10 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
             videoType: videoType,
             type: MediaDataSourceType.network,
           ),
-          initVideoPosition: firstLoad && mediaHistoryEntity != null && mediaHistoryEntity!.currentDuration != null
+          initVideoPosition: mediaPlayerController.firstLoad && mediaHistoryEntity != null && mediaHistoryEntity!.currentDuration != null
               ? Duration(seconds: mediaHistoryEntity!.currentDuration!)
+              : isReload && mediaPlayerController.currentPosition.value.inSeconds > 0
+              ? mediaPlayerController.currentPosition.value
               : Duration.zero,
           captionList: captionList,
         );
@@ -582,8 +588,10 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
               videoType: videoType,
               type: MediaDataSourceType.network,
             ),
-            initVideoPosition: firstLoad && mediaHistoryEntity != null && mediaHistoryEntity!.currentDuration != null
+            initVideoPosition: mediaPlayerController.firstLoad && mediaHistoryEntity != null && mediaHistoryEntity!.currentDuration != null
                 ? Duration(seconds: mediaHistoryEntity!.currentDuration!)
+                : isReload && mediaPlayerController.currentPosition.value.inSeconds > 0
+                ? mediaPlayerController.currentPosition.value
                 : Duration.zero,
             captionList: captionList,
           );

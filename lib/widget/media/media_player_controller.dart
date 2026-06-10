@@ -11,6 +11,8 @@ import 'package:media_kit/media_kit.dart';
 import 'dart:async';
 import 'dart:io';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:media_kit_video/media_kit_video_controls/src/controls/extensions/duration.dart';
@@ -67,6 +69,9 @@ class MediaPlayerController {
 
   /// 记录开关 默认开启
   var openRecord = true;
+
+  /// 是否首次加载
+  var firstLoad = true;
 
   /// 控制面板相关
   /// 显示控制面板 默认开启
@@ -161,6 +166,9 @@ class MediaPlayerController {
   /// 是否已经提交过当前视频
   bool _hasSubmittedVideo = false;
 
+  /// 是否有网
+  bool isOnline = false;
+
   /// 事件流
   var subscriptions = <StreamSubscription>[];
 
@@ -216,10 +224,10 @@ class MediaPlayerController {
       // 创建视频控制器
       videoController = VideoController(
         mediaPlayer,
-        configuration: VideoControllerConfiguration(
-          enableHardwareAcceleration: hardware,
-          androidAttachSurfaceAfterVideoParameters: false,
-        ),
+        // configuration: VideoControllerConfiguration(
+        //   enableHardwareAcceleration: hardware,
+        //   androidAttachSurfaceAfterVideoParameters: false,
+        // ),
       );
     } catch (e) {
       commonDebugPrint('MediaPlayerController _createVideoController error: $e');
@@ -233,10 +241,10 @@ class MediaPlayerController {
 
       previewVideoController = VideoController(
         previewPlayer,
-        configuration: VideoControllerConfiguration(
-          enableHardwareAcceleration: hardware,
-          androidAttachSurfaceAfterVideoParameters: false,
-        ),
+        // configuration: VideoControllerConfiguration(
+        //   enableHardwareAcceleration: hardware,
+        //   androidAttachSurfaceAfterVideoParameters: false,
+        // ),
       );
     } catch (e) {
       commonDebugPrint('MediaPlayerController _createPreviewController error: $e');
@@ -280,6 +288,7 @@ class MediaPlayerController {
 
       if (dataSource.type == MediaDataSourceType.network) {
         final videoUrl = dataSource.videoSource!;
+        commonDebugPrint('MediaPlayerController: 原始视频地址$videoUrl');
         currentVideoUrl = videoUrl;
 
         dataSource.videoSource = videoUrl.toLocalUrl();
@@ -300,7 +309,12 @@ class MediaPlayerController {
       // 添加监听
       addListeners();
 
-      // 配置Player 音轨、字幕等等
+      if (!isOnline) {
+        mediaDataStatus.status.value = MediaDataStatusType.error;
+        return;
+      }
+
+      // 配置Player
       var pp = mediaPlayer.platform as NativePlayer;
       // 解除倍速限制
       await pp.setProperty("af", "scaletempo2=max-speed=8");
@@ -310,29 +324,26 @@ class MediaPlayerController {
       //   String defaultAoOutput = setting.get(SettingBoxKey.defaultAoOutput, defaultValue: '0');
       //   await pp.setProperty("ao", aoOutputList.where((e) => e['value'] == defaultAoOutput).first['title']);
       // }
-
-      await mediaPlayer.setAudioTrack(AudioTrack.auto());
-
-      // 音轨
-      if (dataSource.audioSource != '' && dataSource.audioSource != null) {
-        // await pp.setProperty(
-        //   'audio-files',
-        //   UniversalPlatform.isWindows
-        //       ? dataSource.audioSource!.replaceAll(';', '\\;')
-        //       : dataSource.audioSource!.replaceAll(':', '\\:'),
-        // );
-      } else {
-        await pp.setProperty('audio-files', '');
-      }
+      //
+      // await mediaPlayer.setAudioTrack(AudioTrack.auto());
+      //
+      // // 音轨
+      // if (dataSource.audioSource != '' && dataSource.audioSource != null) {
+      //   // await pp.setProperty(
+      //   //   'audio-files',
+      //   //   UniversalPlatform.isWindows
+      //   //       ? dataSource.audioSource!.replaceAll(';', '\\;')
+      //   //       : dataSource.audioSource!.replaceAll(':', '\\:'),
+      //   // );
+      // } else {
+      //   await pp.setProperty('audio-files', '');
+      // }
 
       // 配置预览Player
       var previewPP = previewPlayer.platform as NativePlayer;
       await previewPP.setProperty('vid', '1'); // Enable video
       await previewPP.setProperty('aid', 'no'); // Disable audio
       await previewPP.setProperty('sid', 'no'); // Disable subtitles
-
-      // 初始化字幕
-      await _initSubtitles();
 
       if (dataSource.type == MediaDataSourceType.asset) {
         final assetUrl = dataSource.videoSource!.startsWith("asset://")
@@ -347,6 +358,9 @@ class MediaPlayerController {
         );
         await previewPlayer!.open(Media(dataSource.videoSource!, httpHeaders: dataSource.httpHeaders), play: false);
       }
+
+      // 配置字幕
+      await _initSubtitles();
 
       /// 设置倍速
       // await setPlaybackSpeed(defaultSpeed);
@@ -519,6 +533,7 @@ class MediaPlayerController {
     if (captionList.isEmpty) {
       openCaptions.value = false;
       selectedCaption.value = null;
+      commonDebugPrint('MediaPlayerController: 没有字幕');
       await mediaPlayer.setSubtitleTrack(SubtitleTrack.no());
       return;
     }
@@ -527,18 +542,26 @@ class MediaPlayerController {
 
     // 1. Match system language
     final String? sysLangCode = Get.deviceLocale?.languageCode;
+    commonDebugPrint('MediaPlayerController: 当前系统语言$sysLangCode');
     if (sysLangCode != null) {
       targetCaption = captionList.firstWhereOrNull(
-        (c) =>
-            c.shortName?.toLowerCase().startsWith(sysLangCode.toLowerCase()) == true ||
-            c.name?.toLowerCase().contains(sysLangCode.toLowerCase()) == true,
+        (c) => c.shortName?.toLowerCase().startsWith(sysLangCode.toLowerCase()) == true,
       );
+    }
+    if (targetCaption != null) {
+      commonDebugPrint('MediaPlayerController: 匹配到系统语言字幕: ${targetCaption.name}');
+    } else {
+      commonDebugPrint('MediaPlayerController: 没有匹配到系统语言字幕');
     }
 
     // 2. Fallback to English
-    targetCaption ??= captionList.firstWhereOrNull(
-      (c) => c.shortName?.toLowerCase().startsWith('en') == true || c.name?.toLowerCase().contains('en') == true,
-    );
+    targetCaption ??= captionList.firstWhereOrNull((c) => c.shortName?.toLowerCase().startsWith('en') == true);
+
+    if (targetCaption != null) {
+      commonDebugPrint('MediaPlayerController: 匹配到英文字幕: ${targetCaption.name}');
+    } else {
+      commonDebugPrint('MediaPlayerController: 没有匹配到英文字幕');
+    }
 
     // 3. Fallback to first
     targetCaption ??= captionList.first;
@@ -547,7 +570,7 @@ class MediaPlayerController {
     // 默认展示
     openCaptions.value = true;
 
-    await _applySubtitle();
+    _applySubtitle();
   }
 
   Future<void> _applySubtitle() async {
@@ -557,11 +580,39 @@ class MediaPlayerController {
     }
 
     final url = selectedCaption.value!.s3Address!;
-    try {
-      await mediaPlayer.setSubtitleTrack(SubtitleTrack.uri(url));
-    } catch (e) {
-      commonDebugPrint('MediaPlayer setSubtitleTrack error: $e');
+    int retryCount = 0;
+    const maxRetries = 5;
+
+    while (retryCount < maxRetries) {
+      // 如果在重试期间切换了字幕，则终止当前任务
+      if (selectedCaption.value?.s3Address != url) {
+        commonDebugPrint('MediaPlayer setSubtitleTrack aborted: subtitle changed');
+        return;
+      }
+
+      try {
+        final dio = Dio();
+        final response = await dio.get(url);
+        if (response.data != null && response.data.toString().isNotEmpty) {
+          // 再次检查是否被切换
+          if (selectedCaption.value?.s3Address != url) return;
+
+          final subtitleData = response.data.toString();
+          await mediaPlayer.setSubtitleTrack(SubtitleTrack.data(subtitleData));
+          commonDebugPrint('MediaPlayerController: 设置字幕成功: ${selectedCaption.value!.name}');
+          return;
+        }
+      } catch (e) {
+        commonDebugPrint('MediaPlayerController: 设置字幕失败: $e');
+      }
+
+      retryCount++;
+      if (retryCount < maxRetries) {
+        await Future.delayed(const Duration(seconds: 2));
+      }
     }
+
+    commonDebugPrint('MediaPlayer setSubtitleTrack failed after $maxRetries retries');
   }
 
   /// 手动设置字幕
@@ -589,7 +640,7 @@ class MediaPlayerController {
     _cancelHideTimer();
 
     _hideTimer = Timer(const Duration(seconds: 5), () {
-      if (/*mediaPlayerStatus.playing && */!isSliderMoving.value) {
+      if ( /*mediaPlayerStatus.playing && */ !isSliderMoving.value) {
         showControls.value = false;
       }
     });
@@ -646,9 +697,12 @@ class MediaPlayerController {
       mediaPlayer.stream.position.listen((event) {
         currentPosition.value = event >= Duration.zero ? event : Duration.zero;
 
-        // 只要进度开始推进，说明已经开始播放，取消缓冲状态
-        if (isBuffering.value && event.inMilliseconds > 0) {
-          isBuffering.value = false;
+        if (event.inMilliseconds > 0) {
+          firstLoad = false;
+          // 只要进度开始推进，说明已经开始播放，取消缓冲状态
+          if (isBuffering.value) {
+            isBuffering.value = false;
+          }
         }
 
         // 拖动进度条时，不更新进度
@@ -711,6 +765,11 @@ class MediaPlayerController {
       mediaPlayer.stream.buffering.listen((event) {
         commonDebugPrint('MediaPlayerController buffering: $event');
         isBuffering.value = event;
+
+        /// 网络异常时，显示错误信息
+        if (isBuffering.value && !isOnline) {
+          _errorChanged();
+        }
       }),
 
       /// 音视频轨道监听，确保在轨道加载完成后再应用字幕，防止被内部默认轨道覆盖
@@ -723,11 +782,26 @@ class MediaPlayerController {
         }
       }),
 
-      // mediaPlayer.stream.error.listen((error) {
-      //   commonDebugPrint('MediaPlayerController error: $error');
-      //   mediaDataStatus.status.value = MediaDataStatusType.error;
-      // }),
+      mediaPlayer.stream.error.listen((dynamic error) {
+        commonDebugPrint('MediaPlayerController error: $error');
+        _errorChanged();
+      }),
+
+      /// 网络状态监听
+      Connectivity().onConnectivityChanged.listen((result) {
+        isOnline = result.contains(ConnectivityResult.mobile) || result.contains(ConnectivityResult.wifi);
+      }),
     ]);
+  }
+
+  void _errorChanged() async {
+    if (showControls.value) {
+      showControls.value = false;
+    }
+    mediaDataStatus.status.value = MediaDataStatusType.error;
+    if (mediaPlayerStatus.playing) {
+      await pause();
+    }
   }
 
   /// 移除播放器事件监听

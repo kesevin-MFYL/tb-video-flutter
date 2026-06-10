@@ -198,7 +198,7 @@ class _SubtitleSettingsDialogState extends State<SubtitleSettingsDialog> {
                         SizedBox(width: 16),
                         Expanded(
                           child: CommonText.instance(
-                            item.displayName ?? item.name ?? '',
+                            item.displayName ?? '',
                             14,
                             color: isSelected ? CommonColors.primaryColor : Colors.white,
                             maxLines: 1,

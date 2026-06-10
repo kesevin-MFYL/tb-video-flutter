@@ -11,6 +11,7 @@ import 'package:media_kit/media_kit.dart';
 import 'dart:async';
 import 'dart:io';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:get/get.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:media_kit_video/media_kit_video_controls/src/controls/extensions/duration.dart';
@@ -26,7 +27,7 @@ class MediaPlayerControllerTwo {
 
   /// 预览播放器 (用于进度条滑动时显示缩略图)
   Player? previewPlayer;
-  
+
   /// 预览视频控制器
   VideoController? previewVideoController;
 
@@ -223,8 +224,7 @@ class MediaPlayerControllerTwo {
         return false;
       }
 
-      if (currentVideoUrl != null && 
-          currentVideoUrl != dataSource.videoSource) {
+      if (currentVideoUrl != null && currentVideoUrl != dataSource.videoSource) {
         // 如果需要，可以在切换视频时清除上一个视频的缓存
         // LruCacheSingleton().removeCacheByUrl(currentVideoUrl!);
       }
@@ -232,9 +232,9 @@ class MediaPlayerControllerTwo {
       if (dataSource.type == MediaDataSourceType.network) {
         final videoUrl = dataSource.videoSource!;
         currentVideoUrl = videoUrl;
-        
+
         dataSource.videoSource = videoUrl.toLocalUrl();
-        
+
         // 预缓存下一个视频
         _startVideoCacheNext();
       } else {
@@ -365,11 +365,7 @@ class MediaPlayerControllerTwo {
 
   Future<void> _createPreviewController(MediaDataSource dataSource, bool hardware) async {
     try {
-      previewPlayer ??= Player(
-        configuration: const PlayerConfiguration(
-          bufferSize: 2 * 1024 * 1024,
-        ),
-      );
+      previewPlayer ??= Player(configuration: const PlayerConfiguration(bufferSize: 2 * 1024 * 1024));
 
       var pp = previewPlayer!.platform as NativePlayer;
       await pp.setProperty('vid', '1'); // Enable video
@@ -390,10 +386,7 @@ class MediaPlayerControllerTwo {
             : "asset://${dataSource.videoSource!}";
         await previewPlayer!.open(Media(assetUrl, httpHeaders: dataSource.httpHeaders), play: false);
       } else {
-        await previewPlayer!.open(
-          Media(dataSource.videoSource!, httpHeaders: dataSource.httpHeaders),
-          play: false,
-        );
+        await previewPlayer!.open(Media(dataSource.videoSource!, httpHeaders: dataSource.httpHeaders), play: false);
       }
     } catch (e) {
       commonDebugPrint('MediaPlayer _createPreviewController error: $e');
@@ -558,16 +551,12 @@ class MediaPlayerControllerTwo {
     final String? sysLangCode = Get.deviceLocale?.languageCode;
     if (sysLangCode != null) {
       targetCaption = captionList.firstWhereOrNull(
-        (c) =>
-            c.shortName?.toLowerCase().startsWith(sysLangCode.toLowerCase()) == true ||
-            c.name?.toLowerCase().contains(sysLangCode.toLowerCase()) == true,
+        (c) => c.shortName?.toLowerCase().startsWith(sysLangCode.toLowerCase()) == true,
       );
     }
 
     // 2. Fallback to English
-    targetCaption ??= captionList.firstWhereOrNull(
-      (c) => c.shortName?.toLowerCase().startsWith('en') == true || c.name?.toLowerCase().contains('en') == true,
-    );
+    targetCaption ??= captionList.firstWhereOrNull((c) => c.shortName?.toLowerCase().startsWith('en') == true);
 
     // 3. Fallback to first
     targetCaption ??= captionList.first;
@@ -662,7 +651,7 @@ class MediaPlayerControllerTwo {
       /// 进度监听
       mediaPlayer!.stream.position.listen((event) {
         currentPosition.value = event >= Duration.zero ? event : Duration.zero;
-        
+
         // 只要进度开始推进，说明已经开始播放，取消缓冲状态
         if (isBuffering.value && event.inMilliseconds > 0) {
           isBuffering.value = false;
@@ -732,7 +721,43 @@ class MediaPlayerControllerTwo {
           });
         }
       }),
+
+      mediaPlayer!.stream.error.listen((error) {
+        commonDebugPrint('MediaPlayer error: $error');
+        mediaDataStatus.status.value = MediaDataStatusType.error;
+        _errorChanged();
+      }),
+
+      /// 网络状态监听
+      Connectivity().onConnectivityChanged.listen((dynamic result) {
+        bool isOffline = false;
+        if (result is List<ConnectivityResult>) {
+          isOffline = result.isNotEmpty && result.every((element) => element == ConnectivityResult.none);
+        } else if (result is ConnectivityResult) {
+          isOffline = result == ConnectivityResult.none;
+        } else if (result is List) {
+          isOffline = result.isNotEmpty && result.every((element) => element == ConnectivityResult.none);
+        }
+
+        if (isOffline) {
+          commonDebugPrint('MediaPlayerControllerTwo network error: disconnected');
+          // 仅在网络视频时显示错误
+          if (currentVideoUrl != null && currentVideoUrl!.isNotEmpty) {
+            _errorChanged();
+          }
+        }
+      }),
     ]);
+  }
+
+  void _errorChanged() {
+    showControls.value = false;
+    mediaDataStatus.status.value = MediaDataStatusType.error;
+    try {
+      pause();
+    } catch (e) {
+      commonDebugPrint('MediaPlayerControllerTwo pause error: $e');
+    }
   }
 
   /// 移除播放器事件监听

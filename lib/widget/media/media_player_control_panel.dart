@@ -246,41 +246,44 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
         /// 数据加载错误或缓存中
         Obx(() {
           if (mediaPlayerController.mediaDataStatus.error) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (mediaPlayerController.isFullScreen.value)
-                    Image.asset(Assets.commonIconFullscreenEmpty, width: 160, height: 160),
+            return Container(
+              color: CommonColors.color333333,
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (mediaPlayerController.isFullScreen.value)
+                      Image.asset(Assets.commonIconFullscreenEmpty, width: 160, height: 160),
 
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 32),
-                    child: CommonText.instance(
-                      'Sorry, the video cannot be played.Hopeyou can tell us, thank you!',
-                      14,
-                      color: CommonColors.white.withOpacity(0.5),
-                      textAlign: TextAlign.center,
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 32),
+                      child: CommonText.instance(
+                        'Sorry, the video cannot be played.Hopeyou can tell us, thank you!',
+                        14,
+                        color: CommonColors.white.withOpacity(0.5),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                  ),
 
-                  SizedBox(height: 16),
+                    SizedBox(height: 16),
 
-                  CommonButton(
-                    minSize: 32,
-                    padding: EdgeInsets.symmetric(horizontal: 24),
-                    borderRadius: BorderRadius.circular(20.r),
-                    color: CommonColors.primaryColor,
-                    onPressed: () {
-                      widget.onReload?.call();
-                    },
-                    child: CommonText.instance(
-                      'Reload',
-                      14,
-                      color: CommonColors.color060600,
-                      fontWeight: CommonFontWeight.semiBold,
+                    CommonButton(
+                      minSize: 32,
+                      padding: EdgeInsets.symmetric(horizontal: 24),
+                      borderRadius: BorderRadius.circular(20.r),
+                      color: CommonColors.primaryColor,
+                      onPressed: () {
+                        widget.onReload?.call();
+                      },
+                      child: CommonText.instance(
+                        'Reload',
+                        14,
+                        color: CommonColors.color060600,
+                        fontWeight: CommonFontWeight.semiBold,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             );
           } else if (mediaPlayerController.mediaDataStatus.loading || mediaPlayerController.isBuffering.value) {
