@@ -369,7 +369,7 @@ class MediaPlayerController {
       }
 
       // 配置字幕
-      await _initSubtitles();
+      await initSubtitles();
 
       /// 设置倍速
       // await setPlaybackSpeed(defaultSpeed);
@@ -538,7 +538,7 @@ class MediaPlayerController {
     onToggleFullScreen?.call(isFullScreen.value);
   }
 
-  Future<void> _initSubtitles() async {
+  Future<void> initSubtitles() async {
     if (captionList.isEmpty) {
       openCaptions.value = false;
       selectedCaption.value = null;

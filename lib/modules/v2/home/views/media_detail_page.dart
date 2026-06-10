@@ -737,6 +737,12 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
   }
 
   @override
+  void didChangeLocales(List<Locale>? locales) {
+    super.didChangeLocales(locales);
+    controller.mediaPlayerController.initSubtitles();
+  }
+
+  @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
