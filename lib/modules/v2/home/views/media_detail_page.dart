@@ -64,16 +64,20 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
       tag: '${widget.mediaId}',
       builder: (controller) {
         return Obx(() {
-          final isFullscreen = controller.mediaPlayerController.isFullScreen.value;
+          final isFullscreen = controller.isFullscreen;
+          if (isFullscreen) {
+            enterFullScreen();
+          } else {
+            exitFullScreen();
+            // controller.closeBottomSheet();
+          }
           return PopScope(
             canPop: !isFullscreen,
             onPopInvokedWithResult: (didPop, _) {
               if (!didPop) {
-                controller.mediaPlayerController.triggerFullScreen(status: false);
-                if (MediaQuery.of(context).orientation == Orientation.landscape) {
-                  verticalScreen();
+                if (isFullscreen) {
+                  controller.mediaPlayerController.triggerFullScreen(status: false);
                 }
-
                 // 重置锁屏状态
                 if (controller.mediaPlayerController.controlsLock.value) {
                   controller.mediaPlayerController.controlsLock.value = false;
@@ -652,13 +656,7 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
   void fullScreenStatusListener() {
     controller.mediaPlayerController.isFullScreen.listen((bool isFullScreen) {
       if (!isFullScreen) {
-        if (controller.showBottomSeasons.value) {
-          controller.showBottomSeasons.value = false;
-        }
-
-        if (controller.showBottomOtherInfo.value) {
-          controller.showBottomOtherInfo.value = false;
-        }
+        controller.closeBottomSheet();
       }
     });
   }
@@ -667,7 +665,7 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
   void playerListener(MediaPlayerStatusType status) async {
     if (status == MediaPlayerStatusType.completed) {
       // 全屏的情况下，结束播放退出全屏
-      if (controller.mediaPlayerController.isFullScreen.value) {
+      if (controller.isFullscreen) {
         // 非锁定的情况下，退出全屏
         if (!controller.mediaPlayerController.controlsLock.value) {
           if (controller.isSideSeasonsDialogOpen || controller.isSubtitleSettingsDialogOpen) {
@@ -711,6 +709,18 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
     MediaDetailPage.routeObserver.subscribe(this, ModalRoute.of(context)! as PageRoute);
   }
 
+  @override
+  void didChangeMetrics() {
+    final orientation = MediaQuery.of(context).orientation;
+    print('屏幕旋转了，当前方向是: $orientation');
+    if (orientation == Orientation.portrait) {
+      if (controller.isSideSeasonsDialogOpen || controller.isSubtitleSettingsDialogOpen) {
+        Get.back();
+      }
+      controller.closeBottomSheet();
+    }
+  }
+
   // 生命周期监听
   void lifecycleListener() {
     // _lifecycleListener = AppLifecycleListener(
@@ -724,5 +734,11 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
     //   onRestart: () => _handleTransition('restart'),
     //   onDetach: () => _handleTransition('detach'),
     // );
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 }

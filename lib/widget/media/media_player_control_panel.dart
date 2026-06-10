@@ -61,6 +61,8 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
   late double tempSpeed;
   Duration? tempSliderPosition;
 
+  bool get isFullscreen => mediaPlayerController.isFullScreen.value || MediaQuery.of(Get.context!).orientation == Orientation.landscape;
+
   @override
   void initState() {
     super.initState();
@@ -229,12 +231,12 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
             if (tapPosition < sectionWidth) {
               // 左边区域 👈
               final double level =
-                  (mediaPlayerController.isFullScreen.value ? Get.size.height : screenWidth * 9 / 16) * 3;
+                  (isFullscreen ? Get.size.height : screenWidth * 9 / 16) * 3;
               final double brightness = _brightnessValue.value - delta / level;
               final double result = brightness.clamp(0.0, 1.0);
               setBrightness(result);
             } else {
-              final double level = (mediaPlayerController.isFullScreen.value ? Get.size.height : screenWidth * 9 / 16);
+              final double level = (isFullscreen ? Get.size.height : screenWidth * 9 / 16);
               final double volume = _volumeValue.value - double.parse(delta.toStringAsFixed(1)) / level;
               final double result = volume.clamp(0.0, 1.0);
               setVolume(result);
@@ -252,7 +254,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (mediaPlayerController.isFullScreen.value)
+                    if (isFullscreen)
                       Image.asset(Assets.commonIconFullscreenEmpty, width: 160, height: 160),
 
                     Padding(
@@ -305,7 +307,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
         // 操作面板
         Obx(() {
           final showControls = mediaPlayerController.showControls.value;
-          final isFullScreen = mediaPlayerController.isFullScreen.value;
+          final isFullScreen = isFullscreen;
           final isSliderMoving = mediaPlayerController.isSliderMoving.value;
           final isPlaying = mediaPlayerController.mediaPlayerStatus.playing;
           final currentPostion = mediaPlayerController.currentPosition.value;
@@ -361,9 +363,6 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
                                 if (isFullScreen) {
                                   mediaPlayerController.triggerFullScreen(status: false);
                                 } else {
-                                  if (MediaQuery.of(context).orientation == Orientation.landscape) {
-                                    verticalScreen();
-                                  }
                                   Get.back();
                                 }
                               },
@@ -612,7 +611,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
             ignoring: !mediaPlayerController.longPressStatus.value,
             child: Container(
               height: 40,
-              margin: EdgeInsets.only(top: mediaPlayerController.isFullScreen.value ? 24.0 : 6.0),
+              margin: EdgeInsets.only(top: isFullscreen ? 24.0 : 6.0),
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
                 color: CommonColors.black.withOpacity(0.5),
@@ -644,7 +643,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
             ignoring: !(fastRewindStatus || fastForwardStatus),
             child: Container(
               height: 40,
-              margin: EdgeInsets.only(top: mediaPlayerController.isFullScreen.value ? 24.0 : 6.0),
+              margin: EdgeInsets.only(top: isFullscreen ? 24.0 : 6.0),
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
                 color: CommonColors.black.withOpacity(0.5),
@@ -674,7 +673,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
   /// 时间进度条提示
   Widget _buildTimeProgressTips() {
     return Obx(() {
-      final isFullScreen = mediaPlayerController.isFullScreen.value;
+      final isFullScreen = isFullscreen;
       final sliderDuration = mediaPlayerController.sliderPosition.value;
       final totalDur = mediaPlayerController.totalDuration.value;
       final isForward = sliderDuration >= (tempSliderPosition ?? sliderDuration);
@@ -759,7 +758,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
   Widget _buildControlTips(RxBool popShow, RxDouble value, String asset) {
     return Obx(() {
       return Align(
-        alignment: mediaPlayerController.isFullScreen.value ? Alignment.topCenter : Alignment.center,
+        alignment: isFullscreen ? Alignment.topCenter : Alignment.center,
         child: AnimatedOpacity(
           curve: Curves.easeInOut,
           opacity: popShow.value ? 1.0 : 0.0,
@@ -768,7 +767,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
             ignoring: !popShow.value,
             child: Container(
               height: 40,
-              margin: EdgeInsets.only(top: mediaPlayerController.isFullScreen.value ? 24.0 : 0),
+              margin: EdgeInsets.only(top: isFullscreen ? 24.0 : 0),
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
                 color: CommonColors.black.withOpacity(0.5),

@@ -116,6 +116,7 @@ class MediaPlayerController {
 
   /// 是否正在全屏
   final isFullScreen = false.obs;
+  bool get isFullscreen => isFullScreen.value || MediaQuery.of(Get.context!).orientation == Orientation.landscape;
 
   /// 是否有下一集
   final hasNextEpisode = true.obs;
@@ -522,12 +523,12 @@ class MediaPlayerController {
   /// 全屏
   Future<void> triggerFullScreen({bool status = true, ValueChanged<bool>? onToggleFullScreen}) async {
     await StatusBarControlPlus.setHidden(true, animation: StatusBarAnimation.FADE);
-    if (!isFullScreen.value && status) {
+    if (!isFullscreen && status) {
       isFullScreen.value = true;
       /// 进入全屏
       await enterFullScreen();
       await landScape();
-    } else if (isFullScreen.value && !status) {
+    } else if (isFullscreen && !status) {
       StatusBarControlPlus.setHidden(false, animation: StatusBarAnimation.FADE);
       exitFullScreen();
       await verticalScreen();

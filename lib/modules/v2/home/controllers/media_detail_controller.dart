@@ -84,6 +84,8 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
 
   double get videoHeight => Get.width * 9 / 16;
 
+  bool get isFullscreen => mediaPlayerController.isFullScreen.value || MediaQuery.of(Get.context!).orientation == Orientation.landscape;
+
   MediaPlayerController mediaPlayerController = MediaPlayerController();
 
   void reload() {
@@ -370,6 +372,15 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
     showBottomSubtitleSettings.value = !showBottomSubtitleSettings.value;
   }
 
+  void closeBottomSheet() {
+    if (showBottomSeasons.value) {
+      showBottomSeasons.value = false;
+    }
+    if (showBottomOtherInfo.value) {
+      showBottomOtherInfo.value = false;
+    }
+  }
+
   /// 剧集右侧弹窗(横屏)
   void showRightTvSeasonsDialog() {
     if (videoType != VideoType.tv) return;
@@ -400,7 +411,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
 
   /// 字幕右侧弹窗(横屏)/底部弹窗(竖屏)
   void showSubtitleSettingsDialog() {
-    if (mediaPlayerController.isFullScreen.value) {
+    if (isFullscreen) {
       isSubtitleSettingsDialogOpen = true;
       showGeneralDialog(
         context: Get.context!,
