@@ -9,6 +9,7 @@ import 'package:editvideo/modules/v2/home/views/interest_detail_page.dart';
 import 'package:editvideo/modules/v2/home/views/interest_sub_page.dart';
 import 'package:editvideo/modules/v2/home/views/multi/media_detail_multi_page.dart';
 import 'package:editvideo/modules/v2/home/views/media_list_sub_page.dart';
+import 'package:editvideo/modules/v2/home/views/single/media_detail_single_page.dart';
 import 'package:editvideo/modules/v2/main/views/main_b_page.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:get/get.dart';
@@ -89,10 +90,10 @@ class MediaPages {
       page: () => MediaDetailMultiPage(mediaId: Get.arguments['mediaId'] ?? 0),
     ),
 
-    // GetPage(
-    //   name: Routes.mediaDetailSinglePage,
-    //   page: () => MediaDetailMultiPage(mediaId: Get.arguments['mediaId'] ?? 0),
-    // ),
+    GetPage(
+      name: Routes.mediaDetailSinglePage,
+      page: () => MediaDetailSinglePage(),
+    ),
   ];
 }
 

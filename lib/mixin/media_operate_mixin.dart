@@ -1,4 +1,4 @@
-import 'package:editvideo/modules/v2/home/controllers/multi/media_detail_multi_controller.dart';
+import 'package:editvideo/modules/v2/home/controllers/single/media_detail_single_controller.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:get/get.dart';
 
@@ -15,23 +15,21 @@ mixin MediaOperateMixin {
 
   /// 跳转媒体播放详情页 单开
   void toMediaDetailSinglePage({int? mediaId, int? mediaType}) {
-    if (Get.isRegistered<MediaDetailMultiController>(tag: '$mediaId')) {
+    if (mediaId == null || mediaType == null) return;
+
+    if (Get.isRegistered<MediaDetailSingleController>()) {
       // 已存在播放详情
-      final controller = Get.find<MediaDetailMultiController>();
+      final controller = Get.find<MediaDetailSingleController>();
       if (controller.mediaId != mediaId) {
         // 当前播放的视频和要打开的视频不一致
-        Get.toNamed(
-          Routes.mediaDetailMultiPage,
-          arguments: {'mediaId': mediaId, 'mediaType': mediaType},
-          preventDuplicates: false,
-        );
+        controller.changePlay(mediaId: mediaId, mediaType: mediaType);
         return;
       }
       // 如果播放的视频相同，则直接返回
-      Get.until((route) => Get.currentRoute == Routes.mediaDetailMultiPage);
+      Get.until((route) => Get.currentRoute == Routes.mediaDetailSinglePage);
     } else {
       // 不存在会话
-      Get.toNamed(Routes.mediaDetailMultiPage, arguments: {'mediaId': mediaId, 'mediaType': mediaType});
+      Get.toNamed(Routes.mediaDetailSinglePage, arguments: {'mediaId': mediaId, 'mediaType': mediaType});
     }
   }
 }

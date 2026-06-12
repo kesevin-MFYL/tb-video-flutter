@@ -148,7 +148,7 @@ class InterestDetailPage extends GetView<InterestDetailController> {
                                     mediaList: homeSectionEntity.dataList!,
                                     sectionType: SectionType.mediaList,
                                     action: (media, sectionType) {
-                                      controller.toMediaDetailMultiPage(mediaId: media.id, mediaType: media.type);
+                                      controller.toMediaDetailSinglePage(mediaId: media.id, mediaType: media.type);
                                     },
                                   ),
                               ],

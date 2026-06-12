@@ -100,7 +100,7 @@ class HomeBController extends BaseController with MediaOperateMixin {
   void mediaTap(MediaItemEntity mediaItem, SectionType sectionType) {
     if (sectionType == SectionType.mediaList || sectionType == SectionType.topPicks) {
       // 单片，进入视频播放页
-      toMediaDetailMultiPage(mediaId: mediaItem.id, mediaType: mediaItem.type);
+      toMediaDetailSinglePage(mediaId: mediaItem.id, mediaType: mediaItem.type);
     } else if (sectionType == SectionType.imdbList) {
       // 合集，进入合集二级页
       Get.toNamed(Routes.imdbListSubPage, arguments: mediaItem);
@@ -109,7 +109,7 @@ class HomeBController extends BaseController with MediaOperateMixin {
       Get.toNamed(Routes.interestDetailPage, arguments: mediaItem);
     } else if (sectionType == SectionType.streamingMedia) {
       // 渠道，进入视频播放页
-      toMediaDetailMultiPage(mediaId: mediaItem.id, mediaType: mediaItem.type);
+      toMediaDetailSinglePage(mediaId: mediaItem.id, mediaType: mediaItem.type);
     }
   }
 
