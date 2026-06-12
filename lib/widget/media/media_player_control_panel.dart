@@ -482,7 +482,9 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
                                 child: Obx(() {
                                   final hasNext = mediaPlayerController.hasNextEpisode.value;
                                   return GestureDetector(
-                                    onTap: hasNext ? () {} : null,
+                                    onTap: hasNext ? () {
+                                      widget.onNextPlay?.call();
+                                    } : null,
                                     child: Opacity(
                                       opacity: hasNext ? 1.0 : 0.5,
                                       child: Image.asset(Assets.commonIconVideoPlayNext, width: 32, height: 32),
