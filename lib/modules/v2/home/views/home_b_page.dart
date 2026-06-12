@@ -185,7 +185,7 @@ class HomeBPage extends GetView<HomeBController> {
             MediaContinueWatchingScrollerView(
               mediaList: controller.continueWatchingList,
               action: (item) {
-                Get.toNamed(Routes.mediaDetailPage, arguments: {'mediaId': item.id, 'mediaType': item.type});
+                controller.toMediaDetailMultiPage(mediaId: item.id, mediaType: item.type);
               },
             )
           ],

@@ -1,7 +1,7 @@
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/models/episode_entity.dart';
 import 'package:editvideo/models/season_entity.dart';
-import 'package:editvideo/modules/v2/home/controllers/episode_index_controller.dart';
+import 'package:editvideo/modules/v2/home/controllers/multi/episode_index_controller.dart';
 import 'package:editvideo/utils/common_ui.dart';
 import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';

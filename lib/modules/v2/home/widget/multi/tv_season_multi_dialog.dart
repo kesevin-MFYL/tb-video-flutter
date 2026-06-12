@@ -1,22 +1,22 @@
 import 'package:editvideo/config/color/colors.dart';
-import 'package:editvideo/modules/v2/home/controllers/media_detail_controller.dart';
-import 'package:editvideo/modules/v2/home/widget/auto_scroll_episode_wrapper.dart';
+import 'package:editvideo/modules/v2/home/controllers/multi/media_detail_multi_controller.dart';
+import 'package:editvideo/modules/v2/home/widget/multi/auto_scroll_episode_multi_wrapper.dart';
 import 'package:editvideo/modules/v2/home/widget/episode_horizontal_cell.dart';
-import 'package:editvideo/modules/v2/home/widget/tv_season_view.dart';
+import 'package:editvideo/modules/v2/home/widget/multi/tv_season_multi_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 /// 剧集弹窗(横屏)
-class TvSeasonDialog extends StatefulWidget {
-  final MediaDetailController controller;
+class TvSeasonMultiDialog extends StatefulWidget {
+  final MediaDetailMultiController controller;
 
-  const TvSeasonDialog({super.key, required this.controller});
+  const TvSeasonMultiDialog({super.key, required this.controller});
 
   @override
-  State<TvSeasonDialog> createState() => _TvSeasonDialogState();
+  State<TvSeasonMultiDialog> createState() => _TvSeasonMultiDialogState();
 }
 
-class _TvSeasonDialogState extends State<TvSeasonDialog> {
+class _TvSeasonMultiDialogState extends State<TvSeasonMultiDialog> {
   @override
   Widget build(BuildContext context) {
     return Align(
@@ -31,12 +31,12 @@ class _TvSeasonDialogState extends State<TvSeasonDialog> {
             color: CommonColors.color1B1B18.withOpacity(0.9),
             borderRadius: BorderRadius.circular(32),
           ),
-          child: TvSeasonView(
+          child: TvSeasonMultiView(
             controller: widget.controller,
             isDialog: true,
             needAdapted: false,
             contentBuilder: (context, episodeList) {
-              return AutoScrollEpisodeWrapper(
+              return AutoScrollEpisodeMultiWrapper(
                 controller: widget.controller,
                 episodeList: episodeList,
                 calculateOffset: (index, viewportDimension) {

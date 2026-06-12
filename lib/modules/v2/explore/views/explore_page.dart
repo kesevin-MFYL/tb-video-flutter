@@ -122,7 +122,9 @@ class ExplorePage extends GetView<ExploreController> {
                                         mediaItem: mediaItem,
                                         itemWidth: double.infinity,
                                         imageHeight: 165.w,
-                                        action: (mediaItem) => controller.toMediaDetail(mediaItem),
+                                        action: (mediaItem) {
+                                          controller.toMediaDetailMultiPage(mediaId: mediaItem.id, mediaType: mediaItem.type);
+                                        },
                                       );
                                     },
                                   ),

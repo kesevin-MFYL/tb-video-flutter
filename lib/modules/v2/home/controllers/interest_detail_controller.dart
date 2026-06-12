@@ -2,6 +2,7 @@ import 'package:editvideo/base/base_controller.dart';
 import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
+import 'package:editvideo/mixin/media_operate_mixin.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/models/interest_detail_entity.dart';
 import 'package:editvideo/routes/app_routes.dart';
@@ -9,7 +10,7 @@ import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class InterestDetailController extends BaseController {
+class InterestDetailController extends BaseController with MediaOperateMixin {
   var multiStatusType = MultiStatusType.statusLoading;
 
   final scrollController = ScrollController();
@@ -56,9 +57,5 @@ class InterestDetailController extends BaseController {
   void viewAll(HomeSectionEntity section) {
     // 单片，进入单片二级页查看所有
     Get.toNamed(Routes.mediaListSubPage, arguments: section);
-  }
-
-  void toMediaDetail(MediaItemEntity mediaItemEntity) {
-    Get.toNamed(Routes.mediaDetailPage, arguments: {'mediaId': mediaItemEntity.id, 'mediaType': mediaItemEntity.type});
   }
 }

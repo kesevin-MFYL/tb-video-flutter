@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:editvideo/base/base_controller.dart';
 import 'package:editvideo/manager/event_manager.dart';
+import 'package:editvideo/mixin/media_operate_mixin.dart';
 import 'package:editvideo/models/media_history_entity.dart';
 import 'package:editvideo/modules/v2/main/controllers/main_b_controller.dart';
 import 'package:editvideo/routes/app_routes.dart';
@@ -9,7 +10,7 @@ import 'package:editvideo/utils/storage.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:get/get.dart';
 
-class HistoryController extends BaseController {
+class HistoryController extends BaseController with MediaOperateMixin {
   MainBController get mainBController => Get.find<MainBController>();
 
   var multiStatusType = MultiStatusType.statusLoading;
@@ -108,10 +109,6 @@ class HistoryController extends BaseController {
     await Storage.deleteViewedMedia([item]);
     chooseList.remove(item);
     loadHistory();
-  }
-
-  void toMediaDetail(MediaHistoryEntity mediaItemEntity) {
-    Get.toNamed(Routes.mediaDetailPage, arguments: {'mediaId': mediaItemEntity.id, 'mediaType': mediaItemEntity.type});
   }
 
   @override

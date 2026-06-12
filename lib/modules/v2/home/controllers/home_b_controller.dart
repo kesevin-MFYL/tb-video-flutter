@@ -3,6 +3,7 @@ import 'package:editvideo/base/base_controller.dart';
 import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
+import 'package:editvideo/mixin/media_operate_mixin.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/models/media_history_entity.dart';
 import 'package:editvideo/modules/v2/main/controllers/main_b_controller.dart';
@@ -11,7 +12,7 @@ import 'package:editvideo/utils/storage.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:get/get.dart';
 
-class HomeBController extends BaseController {
+class HomeBController extends BaseController with MediaOperateMixin {
   MainBController get mainBController => Get.find<MainBController>();
 
   var multiStatusType = MultiStatusType.statusLoading;
@@ -99,7 +100,7 @@ class HomeBController extends BaseController {
   void mediaTap(MediaItemEntity mediaItem, SectionType sectionType) {
     if (sectionType == SectionType.mediaList || sectionType == SectionType.topPicks) {
       // 单片，进入视频播放页
-      toMediaDetail(mediaItem);
+      toMediaDetailMultiPage(mediaId: mediaItem.id, mediaType: mediaItem.type);
     } else if (sectionType == SectionType.imdbList) {
       // 合集，进入合集二级页
       Get.toNamed(Routes.imdbListSubPage, arguments: mediaItem);
@@ -108,16 +109,12 @@ class HomeBController extends BaseController {
       Get.toNamed(Routes.interestDetailPage, arguments: mediaItem);
     } else if (sectionType == SectionType.streamingMedia) {
       // 渠道，进入视频播放页
-      toMediaDetail(mediaItem);
+      toMediaDetailMultiPage(mediaId: mediaItem.id, mediaType: mediaItem.type);
     }
   }
 
   ///跳转搜索
   void toSearch() {
     Get.toNamed(Routes.searchPage);
-  }
-
-  void toMediaDetail(MediaItemEntity mediaItemEntity) {
-    Get.toNamed(Routes.mediaDetailPage, arguments: {'mediaId': mediaItemEntity.id, 'mediaType': mediaItemEntity.type});
   }
 }

@@ -147,7 +147,9 @@ class InterestDetailPage extends GetView<InterestDetailController> {
                                   MediaScrollerView(
                                     mediaList: homeSectionEntity.dataList!,
                                     sectionType: SectionType.mediaList,
-                                    action: (media, sectionType) => controller.toMediaDetail(media),
+                                    action: (media, sectionType) {
+                                      controller.toMediaDetailMultiPage(mediaId: media.id, mediaType: media.type);
+                                    },
                                   ),
                               ],
                             );

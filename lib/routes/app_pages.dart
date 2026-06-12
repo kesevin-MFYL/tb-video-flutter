@@ -7,7 +7,7 @@ import 'package:editvideo/modules/v2/home/views/imdb_list_sub_page.dart';
 import 'package:editvideo/modules/v2/home/views/interest_all_page.dart';
 import 'package:editvideo/modules/v2/home/views/interest_detail_page.dart';
 import 'package:editvideo/modules/v2/home/views/interest_sub_page.dart';
-import 'package:editvideo/modules/v2/home/views/media_detail_page.dart';
+import 'package:editvideo/modules/v2/home/views/multi/media_detail_multi_page.dart';
 import 'package:editvideo/modules/v2/home/views/media_list_sub_page.dart';
 import 'package:editvideo/modules/v2/main/views/main_b_page.dart';
 import 'package:editvideo/routes/app_routes.dart';
@@ -85,9 +85,14 @@ class MediaPages {
     ),
 
     GetPage(
-      name: Routes.mediaDetailPage,
-      page: () => MediaDetailPage(mediaId: Get.arguments['mediaId'] ?? 0),
+      name: Routes.mediaDetailMultiPage,
+      page: () => MediaDetailMultiPage(mediaId: Get.arguments['mediaId'] ?? 0),
     ),
+
+    // GetPage(
+    //   name: Routes.mediaDetailSinglePage,
+    //   page: () => MediaDetailMultiPage(mediaId: Get.arguments['mediaId'] ?? 0),
+    // ),
   ];
 }
 

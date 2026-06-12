@@ -1,15 +1,15 @@
 import 'package:editvideo/models/episode_entity.dart';
-import 'package:editvideo/modules/v2/home/controllers/media_detail_controller.dart';
+import 'package:editvideo/modules/v2/home/controllers/multi/media_detail_multi_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class AutoScrollEpisodeWrapper extends StatefulWidget {
-  final MediaDetailController controller;
+class AutoScrollEpisodeMultiWrapper extends StatefulWidget {
+  final MediaDetailMultiController controller;
   final List<dynamic> episodeList;
   final Widget Function(BuildContext context, ScrollController scrollController) builder;
   final double Function(int index, double viewportDimension) calculateOffset;
 
-  const AutoScrollEpisodeWrapper({
+  const AutoScrollEpisodeMultiWrapper({
     super.key,
     required this.controller,
     required this.episodeList,
@@ -18,10 +18,10 @@ class AutoScrollEpisodeWrapper extends StatefulWidget {
   });
 
   @override
-  State<AutoScrollEpisodeWrapper> createState() => _AutoScrollEpisodeWrapperState();
+  State<AutoScrollEpisodeMultiWrapper> createState() => _AutoScrollEpisodeMultiWrapperState();
 }
 
-class _AutoScrollEpisodeWrapperState extends State<AutoScrollEpisodeWrapper> {
+class _AutoScrollEpisodeMultiWrapperState extends State<AutoScrollEpisodeMultiWrapper> {
   late ScrollController _scrollController;
   Worker? _worker;
 
@@ -73,7 +73,7 @@ class _AutoScrollEpisodeWrapperState extends State<AutoScrollEpisodeWrapper> {
   }
 
   @override
-  void didUpdateWidget(AutoScrollEpisodeWrapper oldWidget) {
+  void didUpdateWidget(AutoScrollEpisodeMultiWrapper oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.episodeList != widget.episodeList) {
       WidgetsBinding.instance.addPostFrameCallback((_) {

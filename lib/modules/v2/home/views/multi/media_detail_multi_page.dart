@@ -1,14 +1,14 @@
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/models/home_section_entity.dart';
-import 'package:editvideo/modules/v2/home/controllers/media_detail_controller.dart';
-import 'package:editvideo/modules/v2/home/widget/auto_scroll_episode_wrapper.dart';
+import 'package:editvideo/modules/v2/home/controllers/multi/media_detail_multi_controller.dart';
+import 'package:editvideo/modules/v2/home/widget/multi/auto_scroll_episode_multi_wrapper.dart';
 import 'package:editvideo/modules/v2/home/widget/episode_horizontal_cell.dart';
 import 'package:editvideo/modules/v2/home/widget/episode_vertical_cell.dart';
+import 'package:editvideo/modules/v2/home/widget/multi/tv_season_multi_view.dart';
 import 'package:editvideo/widget/media/media_player_control_panel.dart';
 import 'package:editvideo/modules/v2/home/widget/media_scroller_view.dart';
 import 'package:editvideo/modules/v2/home/widget/tab_page_view.dart';
-import 'package:editvideo/modules/v2/home/widget/tv_season_view.dart';
 import 'package:editvideo/utils/common_ui.dart';
 import 'package:editvideo/utils/common_values.dart';
 import 'package:editvideo/utils/extension.dart';
@@ -27,27 +27,27 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
-/// 影片详情
-class MediaDetailPage extends StatefulWidget {
-  const MediaDetailPage({super.key, required this.mediaId});
+/// 影片详情 多窗口播放视频
+class MediaDetailMultiPage extends StatefulWidget {
+  const MediaDetailMultiPage({super.key, required this.mediaId});
 
   final int mediaId;
 
   static final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
   @override
-  State<MediaDetailPage> createState() => _MediaDetailPageState();
+  State<MediaDetailMultiPage> createState() => _MediaDetailMultiPageState();
 }
 
-class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, WidgetsBindingObserver {
-  late MediaDetailController controller;
+class _MediaDetailMultiPageState extends State<MediaDetailMultiPage> with RouteAware, WidgetsBindingObserver {
+  late MediaDetailMultiController controller;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    controller = Get.put(MediaDetailController(), tag: '${widget.mediaId}');
+    controller = Get.put(MediaDetailMultiController(), tag: '${widget.mediaId}');
 
     fullScreenStatusListener();
     lifecycleListener();
@@ -60,7 +60,7 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<MediaDetailController>(
+    return GetBuilder<MediaDetailMultiController>(
       tag: '${widget.mediaId}',
       builder: (controller) {
         return Obx(() {
@@ -429,10 +429,10 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
 
     return Padding(
       padding: EdgeInsetsGeometry.symmetric(vertical: 16.w),
-      child: TvSeasonView(
+      child: TvSeasonMultiView(
         controller: controller,
         contentBuilder: (context, episodeList) {
-          return AutoScrollEpisodeWrapper(
+          return AutoScrollEpisodeMultiWrapper(
             controller: controller,
             episodeList: episodeList,
             calculateOffset: (index, viewportDimension) {
@@ -494,11 +494,11 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
                 color: CommonColors.color1B1B18,
                 borderRadius: BorderRadius.only(topLeft: Radius.circular(32.h), topRight: Radius.circular(32.h)),
               ),
-              child: TvSeasonView(
+              child: TvSeasonMultiView(
                 controller: controller,
                 isDialog: true,
                 contentBuilder: (context, episodeList) {
-                  return AutoScrollEpisodeWrapper(
+                  return AutoScrollEpisodeMultiWrapper(
                     controller: controller,
                     episodeList: episodeList,
                     calculateOffset: (index, viewportDimension) {
@@ -706,7 +706,7 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    MediaDetailPage.routeObserver.subscribe(this, ModalRoute.of(context)! as PageRoute);
+    MediaDetailMultiPage.routeObserver.subscribe(this, ModalRoute.of(context)! as PageRoute);
   }
 
   @override

@@ -3,6 +3,7 @@ import 'package:editvideo/base/base_controller.dart';
 import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
+import 'package:editvideo/mixin/media_operate_mixin.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/models/page_model.dart';
 import 'package:editvideo/routes/app_routes.dart';
@@ -12,7 +13,7 @@ import 'package:get/get.dart';
 
 enum MediaFilterType { mediaType, genres, year, country }
 
-class ExploreController extends BaseController {
+class ExploreController extends BaseController with MediaOperateMixin {
   final refreshController = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: true);
 
   final scrollController = ScrollController();
@@ -220,9 +221,5 @@ class ExploreController extends BaseController {
   ///跳转搜索
   void toSearch() {
     Get.toNamed(Routes.searchPage);
-  }
-
-  void toMediaDetail(MediaItemEntity mediaItemEntity) {
-    Get.toNamed(Routes.mediaDetailPage, arguments: {'mediaId': mediaItemEntity.id, 'mediaType': mediaItemEntity.type});
   }
 }

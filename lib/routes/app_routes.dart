@@ -26,6 +26,8 @@ class Routes {
   /// 分类详情
   static const interestDetailPage = '/interestDetailPage';
 
-  /// 媒体详情
-  static const mediaDetailPage = '/mediaDetailPage';
+  /// 媒体详情 多开
+  static const mediaDetailMultiPage = '/mediaDetailMultiPage';
+  /// 媒体详情 单开
+  static const mediaDetailSinglePage = '/mediaDetailSinglePage';
 }

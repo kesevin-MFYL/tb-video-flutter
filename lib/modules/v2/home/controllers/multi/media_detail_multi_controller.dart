@@ -4,19 +4,20 @@ import 'package:editvideo/config/network/api/common_api.dart';
 import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
 import 'package:editvideo/manager/event_manager.dart';
+import 'package:editvideo/mixin/media_operate_mixin.dart';
 import 'package:editvideo/models/caption_entity.dart';
 import 'package:editvideo/models/episode_entity.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/models/media_detail_entity.dart';
 import 'package:editvideo/models/media_history_entity.dart';
 import 'package:editvideo/models/season_entity.dart';
+import 'package:editvideo/modules/v2/home/widget/multi/tv_season_multi_dialog.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/utils/common_values.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/storage.dart';
 import 'package:editvideo/utils/video_cache_utils.dart';
 import 'package:editvideo/widget/dialog/subtitle_setting_dialog.dart';
-import 'package:editvideo/widget/dialog/tv_season_dialog.dart';
 import 'package:editvideo/widget/media/media_player_controller.dart';
 import 'package:editvideo/widget/media/model/media_data_source.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
@@ -24,7 +25,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 
-class MediaDetailController extends BaseController with GetSingleTickerProviderStateMixin {
+/// 影片详情 多窗口播放视频
+class MediaDetailMultiController extends BaseController with GetSingleTickerProviderStateMixin, MediaOperateMixin {
   /// 详情状态
   var multiStatusType = MultiStatusType.statusLoading;
 
@@ -397,7 +399,7 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
       barrierColor: Colors.transparent,
       transitionDuration: const Duration(milliseconds: 250),
       pageBuilder: (context, animation, secondaryAnimation) {
-        return TvSeasonDialog(controller: this);
+        return TvSeasonMultiDialog(controller: this);
       },
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         return SlideTransition(
@@ -514,7 +516,8 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
   void mediaTap(MediaItemEntity mediaItem, SectionType sectionType) {
     if (sectionType == SectionType.mediaList || sectionType == SectionType.topPicks) {
       // 单片，进入视频播放页
-      toMediaDetail(mediaItem);
+      // toMediaDetail(mediaItem);
+      toMediaDetailMultiPage(mediaId: mediaItem.id, mediaType: mediaItem.type);
     } else if (sectionType == SectionType.imdbList) {
       // 合集，进入合集二级页
       Get.toNamed(Routes.imdbListSubPage, arguments: mediaItem);
@@ -523,16 +526,9 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
       Get.toNamed(Routes.interestDetailPage, arguments: mediaItem);
     } else if (sectionType == SectionType.streamingMedia) {
       // 渠道，进入视频播放页
-      toMediaDetail(mediaItem);
+      // toMediaDetail(mediaItem);
+      toMediaDetailMultiPage(mediaId: mediaItem.id, mediaType: mediaItem.type);
     }
-  }
-
-  void toMediaDetail(MediaItemEntity mediaItemEntity) {
-    Get.toNamed(
-      Routes.mediaDetailPage,
-      arguments: {'mediaId': mediaItemEntity.id, 'mediaType': mediaItemEntity.type},
-      preventDuplicates: false,
-    );
   }
 
   void saveMedia() {

@@ -352,7 +352,9 @@ class SearchPage extends GetView<SearchController> {
           itemBuilder: (context, index) {
             final mediaItem = controller.mediaList[index];
             final keyword = controller.textController.text;
-            return SearchMediaCell(mediaItem: mediaItem, keyword: keyword, action: controller.toMediaDetail);
+            return SearchMediaCell(mediaItem: mediaItem, keyword: keyword, action: (item) {
+              controller.toMediaDetailMultiPage(mediaId: item.id, mediaType: item.type);
+            });
           },
         ),
       ),

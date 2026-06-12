@@ -6,6 +6,7 @@ import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
 import 'package:editvideo/generated/assets.dart';
+import 'package:editvideo/mixin/media_operate_mixin.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/models/page_model.dart';
 import 'package:editvideo/routes/app_routes.dart';
@@ -16,7 +17,7 @@ import 'package:get/get.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:editvideo/utils/storage.dart';
 
-class SearchController extends BaseController {
+class SearchController extends BaseController with MediaOperateMixin {
   final refreshController = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: true);
 
   Timer? _debounceTimer;
@@ -213,10 +214,6 @@ class SearchController extends BaseController {
   void clearSearchHistory() {
     Storage.clearSearchHistory();
     searchHistoryList.clear();
-  }
-
-  void toMediaDetail(MediaItemEntity mediaItemEntity) {
-    Get.toNamed(Routes.mediaDetailPage, arguments: {'mediaId': mediaItemEntity.id, 'mediaType': mediaItemEntity.type});
   }
 
   @override

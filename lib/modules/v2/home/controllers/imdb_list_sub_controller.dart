@@ -3,12 +3,13 @@ import 'package:editvideo/base/base_controller.dart';
 import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
+import 'package:editvideo/mixin/media_operate_mixin.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:get/get.dart';
 
-class ImdbListSubController extends BaseController {
+class ImdbListSubController extends BaseController with MediaOperateMixin {
   var multiStatusType = MultiStatusType.statusLoading;
 
   final refreshController = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: false);
@@ -46,10 +47,6 @@ class ImdbListSubController extends BaseController {
       multiStatusType = MultiStatusType.statusError;
     }
     update();
-  }
-
-  void toMediaDetail(MediaItemEntity mediaItemEntity) {
-    Get.toNamed(Routes.mediaDetailPage, arguments: {'mediaId': mediaItemEntity.id, 'mediaType': mediaItemEntity.type});
   }
 
   ///跳转搜索

@@ -52,7 +52,9 @@ class ImdbListSubPage extends GetView<ImdbListSubController> {
                         final item = controller.imdbSubList[index];
                         return ImdbListSubCell(
                           mediaItem: item,
-                          action: (mediaItem) => controller.toMediaDetail(mediaItem),
+                          action: (mediaItem) {
+                            controller.toMediaDetailMultiPage(mediaId: mediaItem.id, mediaType: mediaItem.type);
+                          },
                         );
                       },
                     ),

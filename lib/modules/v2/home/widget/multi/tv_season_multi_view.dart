@@ -1,6 +1,6 @@
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/generated/assets.dart';
-import 'package:editvideo/modules/v2/home/controllers/media_detail_controller.dart';
+import 'package:editvideo/modules/v2/home/controllers/multi/media_detail_multi_controller.dart';
 import 'package:editvideo/utils/common_ui.dart';
 import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/button/common_button.dart';
@@ -10,8 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
-class TvSeasonView extends StatelessWidget {
-  const TvSeasonView({
+class TvSeasonMultiView extends StatelessWidget {
+  const TvSeasonMultiView({
     super.key,
     required this.controller,
     required this.contentBuilder,
@@ -19,7 +19,7 @@ class TvSeasonView extends StatelessWidget {
     this.needAdapted = true,
   });
 
-  final MediaDetailController controller;
+  final MediaDetailMultiController controller;
   final Widget Function(BuildContext context, List<dynamic> episodeList) contentBuilder;
   final bool isDialog;
   final bool needAdapted;
