@@ -14,6 +14,7 @@ import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/utils/common_values.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/storage.dart';
+import 'package:editvideo/utils/video_cache_utils.dart';
 import 'package:editvideo/widget/dialog/subtitle_setting_dialog.dart';
 import 'package:editvideo/widget/dialog/tv_season_dialog.dart';
 import 'package:editvideo/widget/media/media_player_controller.dart';
@@ -536,8 +537,8 @@ class MediaDetailController extends BaseController with GetSingleTickerProviderS
 
   void saveMedia() {
     if (mediaPlayerController.mediaPlayerStatus.completed) {
-      // 播放完成删除
-      Storage.deleteViewedMediaById(mediaDetailEntity?.id ?? 0);
+      // 播放完成删除 缓存
+      VideoCacheUtils.clearCache(videoUrl);
     } else {
       //Save history with new entity
       final historyEntity = MediaHistoryEntity(
