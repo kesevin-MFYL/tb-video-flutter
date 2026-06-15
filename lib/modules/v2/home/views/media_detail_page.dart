@@ -14,7 +14,7 @@ import 'package:editvideo/utils/common_values.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/button/common_button.dart';
-import 'package:editvideo/widget/dialog/subtitle_settings_bottom_sheet.dart';
+import 'package:editvideo/modules/v2/home/widget/bottom/subtitle_settings_bottom_sheet.dart';
 import 'package:editvideo/widget/image/common_image_view.dart';
 import 'package:editvideo/widget/media/model/media_data_source.dart';
 import 'package:editvideo/widget/media/model/media_player_status.dart';
@@ -77,7 +77,6 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
             enterFullScreen();
           } else {
             exitFullScreen();
-            // controller.closeBottomSheet();
           }
           return PopScope(
             canPop: !isFullscreen,
@@ -720,8 +719,8 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
 
   @override
   void didChangeMetrics() {
-    final orientation = MediaQuery.of(context).orientation;
-    print('屏幕旋转了，当前方向是: $orientation');
+    final orientation = MediaQueryData.fromView(View.of(context)).orientation;
+    controller.mediaPlayerController.currentOrientation.value = orientation;
     if (orientation == Orientation.portrait) {
       if (controller.isSideSeasonsDialogOpen || controller.isSubtitleSettingsDialogOpen) {
         Get.back();

@@ -61,7 +61,7 @@ class _MediaPlayerControlPanelState extends State<MediaPlayerControlPanel> {
   late double tempSpeed;
   Duration? tempSliderPosition;
 
-  bool get isFullscreen => mediaPlayerController.isFullScreen.value || MediaQuery.of(Get.context!).orientation == Orientation.landscape;
+  bool get isFullscreen => mediaPlayerController.isFullscreen;
 
   @override
   void initState() {

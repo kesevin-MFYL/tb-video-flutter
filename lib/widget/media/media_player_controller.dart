@@ -103,9 +103,12 @@ class MediaPlayerController {
   /// 当前亮度 恢复时使用
   var currentBrightness = 0.0;
 
+  /// 当前屏幕方向
+  final currentOrientation = Orientation.portrait.obs;
+
   /// 是否正在全屏
   final isFullScreen = false.obs;
-  bool get isFullscreen => isFullScreen.value || MediaQuery.of(Get.context!).orientation == Orientation.landscape;
+  bool get isFullscreen => isFullScreen.value || currentOrientation.value == Orientation.landscape;
 
   /// 是否有下一集
   final hasNextEpisode = true.obs;
@@ -324,6 +327,9 @@ class MediaPlayerController {
       var pp = mediaPlayer.platform as NativePlayer;
       // 解除倍速限制
       await pp.setProperty("af", "scaletempo2=max-speed=8");
+      // 忽略 HTTP MIME 类型，避免服务端返回错误的 content-type（如 text/plain）导致无法识别文件格式
+      await pp.setProperty("demuxer-lavf-allow-mimetype", "no");
+
       // todo// 音量不一致
       // if (Platform.isAndroid) {
       //   await pp.setProperty("volume-max", "100");
@@ -350,6 +356,8 @@ class MediaPlayerController {
       await previewPP.setProperty('vid', '1'); // Enable video
       await previewPP.setProperty('aid', 'no'); // Disable audio
       await previewPP.setProperty('sid', 'no'); // Disable subtitles
+      // 忽略 HTTP MIME 类型
+      await previewPP.setProperty("demuxer-lavf-allow-mimetype", "no");
 
       if (dataSource.type == MediaDataSourceType.asset) {
         final assetUrl = dataSource.videoSource!.startsWith("asset://")

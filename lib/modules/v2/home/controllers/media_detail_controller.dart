@@ -2,12 +2,12 @@ import 'package:editvideo/config/network/api/common_api.dart';
 import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/modules/v2/home/controllers/base_media_detail_controller.dart';
-import 'package:editvideo/modules/v2/home/widget/tv_season_dialog.dart';
+import 'package:editvideo/modules/v2/home/widget/dialog/tv_season_dialog.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/utils/common_values.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/storage.dart';
-import 'package:editvideo/widget/dialog/subtitle_setting_dialog.dart';
+import 'package:editvideo/modules/v2/home/widget/dialog/subtitle_setting_dialog.dart';
 import 'package:editvideo/widget/media/model/media_data_source.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +20,7 @@ class MediaDetailController extends BaseMediaDetailController {
   double get videoHeight => Get.width * 9 / 16;
 
   bool get isFullscreen =>
-      mediaPlayerController.isFullScreen.value || MediaQuery.of(Get.context!).orientation == Orientation.landscape;
+      mediaPlayerController.isFullScreen.value || mediaPlayerController.currentOrientation.value == Orientation.landscape;
 
   /// 是否显示媒体详情弹窗
   var showBottomOtherInfo = false.obs;
