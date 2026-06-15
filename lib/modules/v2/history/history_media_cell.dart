@@ -107,18 +107,25 @@ class _HistoryMediaCellState extends State<HistoryMediaCell> with SingleTickerPr
                       ),
                     ),
                   ),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(16.r),
-                  child: CommonImageView.normal(
-                    imageUrl: widget.mediaHistoryEntity.cover,
-                    alignment: Alignment.topCenter,
-                    width: 120.w,
-                    height: 68.w,
-                    errorWidget: (context, url, error) {
-                      return Center(
-                        child: Image.asset(Assets.commonMediaPlaceholder, width: 40.w, height: 40.w, fit: BoxFit.cover),
-                      );
-                    },
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16.r),
+                    color: CommonColors.color333333,
+                    border: Border.all(color: CommonColors.color222222, width: 1.w),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16.r),
+                    child: CommonImageView.normal(
+                      imageUrl: widget.mediaHistoryEntity.cover,
+                      alignment: Alignment.topCenter,
+                      width: 120.w,
+                      height: 68.w,
+                      errorWidget: (context, url, error) {
+                        return Center(
+                          child: Image.asset(Assets.commonMediaPlaceholder, width: 40.w, height: 40.w, fit: BoxFit.cover),
+                        );
+                      },
+                    ),
                   ),
                 ),
                 SizedBox(width: 16.w),
