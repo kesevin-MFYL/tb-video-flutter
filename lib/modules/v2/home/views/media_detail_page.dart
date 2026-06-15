@@ -1,11 +1,11 @@
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/models/home_section_entity.dart';
-import 'package:editvideo/modules/v2/home/controllers/single/media_detail_single_controller.dart';
+import 'package:editvideo/modules/v2/home/controllers/media_detail_controller.dart';
+import 'package:editvideo/modules/v2/home/widget/auto_scroll_episode_wrapper.dart';
 import 'package:editvideo/modules/v2/home/widget/episode_horizontal_cell.dart';
 import 'package:editvideo/modules/v2/home/widget/episode_vertical_cell.dart';
-import 'package:editvideo/modules/v2/home/widget/single/auto_scroll_episode_single_wrapper.dart';
-import 'package:editvideo/modules/v2/home/widget/single/tv_season_single_view.dart';
+import 'package:editvideo/modules/v2/home/widget/tv_season_view.dart';
 import 'package:editvideo/widget/media/media_player_control_panel.dart';
 import 'package:editvideo/modules/v2/home/widget/media_scroller_view.dart';
 import 'package:editvideo/modules/v2/home/widget/tab_page_view.dart';
@@ -28,24 +28,34 @@ import 'package:get/get.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
 /// 影片详情 单窗口播放视频
-class MediaDetailSinglePage extends StatefulWidget {
-  const MediaDetailSinglePage({super.key});
+class MediaDetailPage extends StatefulWidget {
+  const MediaDetailPage({super.key});
 
   static final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
   @override
-  State<MediaDetailSinglePage> createState() => _MediaDetailSinglePageState();
+  State<MediaDetailPage> createState() => _MediaDetailPageState();
 }
 
-class _MediaDetailSinglePageState extends State<MediaDetailSinglePage> with RouteAware, WidgetsBindingObserver {
-  late MediaDetailSingleController controller;
+class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, WidgetsBindingObserver {
+  late MediaDetailController controller;
+
+  late int mediaId;
+  late bool isMultiOpen;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    controller = Get.put(MediaDetailSingleController());
+    mediaId = Get.arguments['mediaId'];
+    isMultiOpen = Get.arguments['isMultiOpen'] ?? false;
+
+    if (!isMultiOpen) {
+      controller = Get.put(MediaDetailController());
+    } else {
+      controller = Get.put(MediaDetailController(), tag: '$mediaId');
+    }
 
     fullScreenStatusListener();
     lifecycleListener();
@@ -58,7 +68,8 @@ class _MediaDetailSinglePageState extends State<MediaDetailSinglePage> with Rout
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<MediaDetailSingleController>(
+    return GetBuilder<MediaDetailController>(
+      tag: isMultiOpen ? '$mediaId' : null,
       builder: (controller) {
         return Obx(() {
           final isFullscreen = controller.isFullscreen;
@@ -426,10 +437,10 @@ class _MediaDetailSinglePageState extends State<MediaDetailSinglePage> with Rout
 
     return Padding(
       padding: EdgeInsetsGeometry.symmetric(vertical: 16.w),
-      child: TvSeasonSingleView(
+      child: TvSeasonView(
         controller: controller,
         contentBuilder: (context, episodeList) {
-          return AutoScrollEpisodeSingleWrapper(
+          return AutoScrollEpisodeWrapper(
             controller: controller,
             episodeList: episodeList,
             calculateOffset: (index, viewportDimension) {
@@ -491,11 +502,11 @@ class _MediaDetailSinglePageState extends State<MediaDetailSinglePage> with Rout
                 color: CommonColors.color1B1B18,
                 borderRadius: BorderRadius.only(topLeft: Radius.circular(32.h), topRight: Radius.circular(32.h)),
               ),
-              child: TvSeasonSingleView(
+              child: TvSeasonView(
                 controller: controller,
                 isDialog: true,
                 contentBuilder: (context, episodeList) {
-                  return AutoScrollEpisodeSingleWrapper(
+                  return AutoScrollEpisodeWrapper(
                     controller: controller,
                     episodeList: episodeList,
                     calculateOffset: (index, viewportDimension) {
@@ -561,6 +572,7 @@ class _MediaDetailSinglePageState extends State<MediaDetailSinglePage> with Rout
               child: SubtitleSettingsView(
                 controller: controller.mediaPlayerController,
                 onClose: controller.bottomSubtitleSettingsChanged,
+                isOpen: showBottomSubtitleSettings,
               ),
             ),
           ),
@@ -703,7 +715,7 @@ class _MediaDetailSinglePageState extends State<MediaDetailSinglePage> with Rout
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    MediaDetailSinglePage.routeObserver.subscribe(this, ModalRoute.of(context)! as PageRoute);
+    MediaDetailPage.routeObserver.subscribe(this, ModalRoute.of(context)! as PageRoute);
   }
 
   @override

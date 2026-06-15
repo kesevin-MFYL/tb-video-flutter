@@ -2,7 +2,7 @@ import 'package:editvideo/config/network/api/common_api.dart';
 import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/modules/v2/home/controllers/base_media_detail_controller.dart';
-import 'package:editvideo/modules/v2/home/widget/single/tv_season_single_dialog.dart';
+import 'package:editvideo/modules/v2/home/widget/tv_season_dialog.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/utils/common_values.dart';
 import 'package:editvideo/utils/extension.dart';
@@ -13,14 +13,14 @@ import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// 影片详情 单窗口播放视频
-class MediaDetailSingleController extends BaseMediaDetailController {
-
+/// 影片详情
+class MediaDetailController extends BaseMediaDetailController {
   double get bottomHeight => Get.height - safeAreaEdgeInsets.top - videoHeight;
 
   double get videoHeight => Get.width * 9 / 16;
 
-  bool get isFullscreen => mediaPlayerController.isFullScreen.value || MediaQuery.of(Get.context!).orientation == Orientation.landscape;
+  bool get isFullscreen =>
+      mediaPlayerController.isFullScreen.value || MediaQuery.of(Get.context!).orientation == Orientation.landscape;
 
   /// 是否显示媒体详情弹窗
   var showBottomOtherInfo = false.obs;
@@ -77,7 +77,7 @@ class MediaDetailSingleController extends BaseMediaDetailController {
       barrierColor: Colors.transparent,
       transitionDuration: const Duration(milliseconds: 250),
       pageBuilder: (context, animation, secondaryAnimation) {
-        return TvSeasonSingleDialog(controller: this);
+        return TvSeasonDialog(controller: this);
       },
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         return SlideTransition(
@@ -133,6 +133,7 @@ class MediaDetailSingleController extends BaseMediaDetailController {
   void handRegister() {
     mediaPlayerController.submitVideoAction = submitViewVideo;
     mediaPlayerController.getNextVideoUrlAction = getNextVideoUrl;
+    mediaPlayerController.checkHasNextPlayAction = checkHasNextPlay;
   }
 
   /// 获取下一个视频地址
@@ -190,30 +191,24 @@ class MediaDetailSingleController extends BaseMediaDetailController {
     return null;
   }
 
-  /// 重新获取剧集
-  void reloadEpisodeList() {
-    if (tabController!.index >= seasonList.length) return;
-    final seasonId = seasonList[tabController!.index].id;
-    episodeList = episodeListCache[seasonId] ?? [];
-    update();
-  }
-
-  void mediaTap(MediaItemEntity mediaItem, SectionType sectionType) {
-    if (sectionType == SectionType.mediaList || sectionType == SectionType.topPicks) {
-      // 单片，进入视频播放页
-      // toMediaDetail(mediaItem);
-      toMediaDetailSinglePage(mediaId: mediaItem.id, mediaType: mediaItem.type);
-    } else if (sectionType == SectionType.imdbList) {
-      // 合集，进入合集二级页
-      Get.toNamed(Routes.imdbListSubPage, arguments: mediaItem);
-    } else if (sectionType == SectionType.imdbInterest) {
-      // 进入分类详情页
-      Get.toNamed(Routes.interestDetailPage, arguments: mediaItem);
-    } else if (sectionType == SectionType.streamingMedia) {
-      // 渠道，进入视频播放页
-      // toMediaDetail(mediaItem);
-      toMediaDetailSinglePage(mediaId: mediaItem.id, mediaType: mediaItem.type);
+  /// 检查是否有下一集
+  bool checkHasNextPlay() {
+    // 判断当前是否为最后一季的最后的最后一集
+    final currentSeason = selectSeason.value;
+    final currentEpisode = selectEpisode.value;
+    if (currentSeason != null && currentEpisode != null) {
+      final episodeIndex = episodeList.indexOf(currentEpisode);
+      final seasonIndex = seasonList.indexOf(currentSeason);
+      if (seasonIndex != -1 &&
+          seasonIndex == seasonList.length - 1 &&
+          episodeIndex != -1 &&
+          episodeIndex == episodeList.length - 1) {
+        return false;
+      } else {
+        return true;
+      }
     }
+    return true;
   }
 
   /// 提交已看过影视到IMDB
@@ -226,6 +221,45 @@ class MediaDetailSingleController extends BaseMediaDetailController {
       if (!hasPlayVideo) {
         // 记录用户行为
         Storage.setHasPlayVideo(true);
+      }
+    }
+  }
+
+  /// 重新获取剧集
+  void reloadEpisodeList() {
+    if (tabController!.index >= seasonList.length) return;
+    if (isMultiOpen) {
+      episodeStatusType.value = MultiStatusType.statusLoading;
+      getEpisodeList(seasonId: seasonList[tabController!.index].id);
+    } else {
+      final seasonId = seasonList[tabController!.index].id;
+      episodeList = episodeListCache[seasonId] ?? [];
+      update();
+    }
+  }
+
+  void mediaTap(MediaItemEntity mediaItem, SectionType sectionType) {
+    if (sectionType == SectionType.mediaList || sectionType == SectionType.topPicks) {
+      // 单片，进入视频播放页
+      // toMediaDetail(mediaItem);
+      if (isMultiOpen) {
+        toMediaDetailMultiPage(mediaId: mediaItem.id, mediaType: mediaItem.type);
+      } else {
+        toMediaDetailSinglePage(mediaId: mediaItem.id, mediaType: mediaItem.type);
+      }
+    } else if (sectionType == SectionType.imdbList) {
+      // 合集，进入合集二级页
+      Get.toNamed(Routes.imdbListSubPage, arguments: mediaItem);
+    } else if (sectionType == SectionType.imdbInterest) {
+      // 进入分类详情页
+      Get.toNamed(Routes.interestDetailPage, arguments: mediaItem);
+    } else if (sectionType == SectionType.streamingMedia) {
+      // 渠道，进入视频播放页
+      // toMediaDetail(mediaItem);
+      if (isMultiOpen) {
+        toMediaDetailMultiPage(mediaId: mediaItem.id, mediaType: mediaItem.type);
+      } else {
+        toMediaDetailSinglePage(mediaId: mediaItem.id, mediaType: mediaItem.type);
       }
     }
   }

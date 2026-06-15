@@ -31,22 +31,11 @@ class MediaPlayerController {
   /// 预览视频控制器
   late final VideoController previewVideoController;
 
-  var playerCount = 0.obs;
-
   /// 数据加载状态
   final MediaDataStatus mediaDataStatus = MediaDataStatus();
 
   /// 播放状态
   final MediaPlayerStatus mediaPlayerStatus = MediaPlayerStatus();
-
-  /// 录制事件
-  void Function()? recordAction;
-
-  /// 提交事件
-  void Function()? submitVideoAction;
-
-  /// 获取下一个视频URL的事件
-  Future<String?> Function()? getNextVideoUrlAction;
 
   /// 视频类型
   final videoType = Rx<VideoType>(VideoType.video);
@@ -190,6 +179,18 @@ class MediaPlayerController {
   /// 播放进度监听集合
   final List<Function()> _positionListeners = [];
 
+  /// 录制事件
+  void Function()? recordAction;
+
+  /// 提交事件
+  void Function()? submitVideoAction;
+
+  /// 获取下一个视频URL的事件
+  Future<String?> Function()? getNextVideoUrlAction;
+
+  /// 检查是否有下一集
+  bool Function()? checkHasNextPlayAction;
+
   /// 当前播放的原始视频URL
   String? currentVideoUrl;
 
@@ -206,8 +207,6 @@ class MediaPlayerController {
     // 硬件加速
     bool hardware = false,
   }) {
-    playerCount.value += 1;
-
     _createVideoController(hardware);
 
     _createPreviewController(hardware);
@@ -281,10 +280,6 @@ class MediaPlayerController {
         await pause();
       }
 
-      if (playerCount.value == 0) {
-        return;
-      }
-
       if (dataSource.videoSource.isEmptyString()) {
         mediaDataStatus.status.value = MediaDataStatusType.error;
         return;
@@ -307,6 +302,8 @@ class MediaPlayerController {
 
         dataSource.videoSource = videoUrl.toLocalUrl();
 
+        // 检查是否有下一集
+        hasNextEpisode.value = checkHasNextPlayAction?.call() ?? true;
         // 预缓存下一个视频
         _startVideoCacheNext();
       } else {
@@ -877,7 +874,6 @@ class MediaPlayerController {
   }
 
   Future<void> dispose() async {
-    playerCount.value = 0;
     try {
       _hideTimer?.cancel();
       _rewindTimer?.cancel();
@@ -890,6 +886,8 @@ class MediaPlayerController {
         var pp = mediaPlayer.platform as NativePlayer;
         await pp.setProperty('audio-files', '');
         recordAction = null;
+        submitVideoAction = null;
+        checkHasNextPlayAction = null;
         removeListeners();
         await mediaPlayer.dispose();
       }

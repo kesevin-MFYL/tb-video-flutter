@@ -1,7 +1,7 @@
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/models/episode_entity.dart';
 import 'package:editvideo/models/season_entity.dart';
-import 'package:editvideo/modules/v2/home/controllers/multi/episode_index_controller.dart';
+import 'package:editvideo/modules/v2/home/controllers/episode_index_controller.dart';
 import 'package:editvideo/utils/common_ui.dart';
 import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
@@ -87,7 +87,9 @@ class _EpisodeIndexViewState extends State<EpisodeIndexView> with AutomaticKeepA
               decoration: BoxDecoration(
                 color: CommonColors.color333333,
                 borderRadius: BorderRadius.all(Radius.circular(16.r)),
-                border: selectEpisode == episodeItem ? Border.all(color: CommonColors.primaryColor, width: 1.5.w) : null,
+                border: selectEpisode == episodeItem
+                    ? Border.all(color: CommonColors.primaryColor, width: 1.5.w)
+                    : null,
               ),
               child: Row(
                 children: [
@@ -137,7 +139,9 @@ class _EpisodeIndexViewState extends State<EpisodeIndexView> with AutomaticKeepA
               decoration: BoxDecoration(
                 color: CommonColors.color333333,
                 borderRadius: BorderRadius.circular(16.4),
-                border: selectEpisode == episodeItem ? Border.all(color: CommonColors.primaryColor, width: 1.5.w) : null,
+                border: selectEpisode == episodeItem
+                    ? Border.all(color: CommonColors.primaryColor, width: 1.5.w)
+                    : null,
               ),
               child: CommonText.instance(
                 '${episodeItem.epsNum}',

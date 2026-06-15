@@ -17,7 +17,7 @@ class SubtitleSettingsDialog extends StatefulWidget {
 }
 
 class _SubtitleSettingsDialogState extends State<SubtitleSettingsDialog> {
-  final PageController _pageController = PageController();
+  final PageController _pageController = PageController(initialPage: 0, keepPage: false);
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -41,9 +41,9 @@ class _SubtitleSettingsDialogState extends State<SubtitleSettingsDialog> {
             final padding = 16.0;
             final itemCenter = padding + index * (itemHeight + spacing) + itemHeight / 2;
             double offset = itemCenter - viewportDimension / 2;
-            
+
             if (offset < 0) offset = 0;
-            
+
             _scrollController.animateTo(
               offset,
               duration: const Duration(milliseconds: 250),
@@ -112,7 +112,11 @@ class _SubtitleSettingsDialogState extends State<SubtitleSettingsDialog> {
               children: [
                 Image.asset(Assets.commonIconLabelSubtitle, width: 24, height: 24),
                 SizedBox(width: 8),
-                CommonText.instance(openCaptions ? 'Turn Off Subtitles' : 'Turn On Subtitles', 14, fontWeight: CommonFontWeight.medium),
+                CommonText.instance(
+                  openCaptions ? 'Turn Off Subtitles' : 'Turn On Subtitles',
+                  14,
+                  fontWeight: CommonFontWeight.medium,
+                ),
                 Spacer(),
                 GestureDetector(
                   onTap: () {

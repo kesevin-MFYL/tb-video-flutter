@@ -21,17 +21,22 @@ import 'package:get/get.dart';
 import '../../../../widget/page_status/multi_status_view.dart';
 
 class BaseMediaDetailController extends BaseController with GetSingleTickerProviderStateMixin, MediaOperateMixin {
-
   TabController? tabController;
 
   /// 详情状态
   var multiStatusType = MultiStatusType.statusLoading;
 
   /// 集列表状态
-  var episodeStatusType = MultiStatusType.statusContent.obs;
+  var episodeStatusType = MultiStatusType.statusLoading.obs;
 
   /// 媒体播放控制器
   MediaPlayerController mediaPlayerController = MediaPlayerController();
+
+  /// 是否多窗口播放视频
+  bool isMultiOpen = false;
+
+  /// 是否首次加载集列表
+  bool isFirstLoadEpisode = true;
 
   /// 媒体id
   late int mediaId;
@@ -72,6 +77,8 @@ class BaseMediaDetailController extends BaseController with GetSingleTickerProvi
   @override
   void handArguments(arguments) {
     if (arguments != null && arguments is Map<String, dynamic>) {
+      isMultiOpen = arguments['isMultiOpen'] ?? false;
+
       mediaId = arguments['mediaId'];
       mediaType = arguments['mediaType'];
 
@@ -130,67 +137,84 @@ class BaseMediaDetailController extends BaseController with GetSingleTickerProvi
       final listData = result.responseData?.data;
       seasonList = listData ?? [];
 
-      // 获取所有季下的所有集
-      for (var season in seasonList) {
-        await _getEpisodeList(seasonId: season.id);
-      }
-
       // 选中的季，没有缓存记录默认第一季
-      selectSeason.value = seasonList.firstWhereOrNull((element) => element.id == mediaHistoryEntity?.season?.id) ?? seasonList.first;
+      selectSeason.value =
+          seasonList.firstWhereOrNull((element) => element.id == mediaHistoryEntity?.season?.id) ?? seasonList.first;
       var initialIndex = seasonList.indexWhere((element) => element.id == selectSeason.value?.id);
 
-      // 选中的集，没有缓存记录默认第一集
-      episodeList = episodeListCache[selectSeason.value?.id] ?? [];
-      selectEpisode.value = episodeList.firstWhereOrNull((element) => element.id == mediaHistoryEntity?.episode?.id) ?? episodeList.first;
+      // 如果不是多开窗口 提前获取所有季下的所有集
+      if (!isMultiOpen) {
+        // 获取所有季下的所有集
+        for (var season in seasonList) {
+          await getEpisodeList(seasonId: season.id);
+        }
 
-      // 检查是否有下一集
-      checkHasNextPlay();
+        episodeStatusType.value = MultiStatusType.statusContent;
 
-      // 字幕
-      captionList = selectEpisode.value?.captionList ?? [];
+        // 选中的集，没有缓存记录默认第一集
+        episodeList = episodeListCache[selectSeason.value?.id] ?? [];
+        selectEpisode.value =
+            episodeList.firstWhereOrNull((element) => element.id == mediaHistoryEntity?.episode?.id) ??
+            episodeList.first;
+
+        // 字幕
+        captionList = selectEpisode.value?.captionList ?? [];
+      }
 
       tabController ??= TabController(length: seasonList.length, vsync: this);
       tabController!.index = initialIndex == -1 ? 0 : initialIndex;
+
+      // 如果是多开窗口 每次单独获取每季下的所有季
+      if (isMultiOpen) {
+        // 获取季下的所有集
+        await getEpisodeList(seasonId: selectSeason.value?.id);
+      }
     } else {
       commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
     }
   }
 
   /// 获取季下的所有集
-  Future<void> _getEpisodeList({int? seasonId}) async {
+  Future<void> getEpisodeList({int? seasonId}) async {
     if (videoType != VideoType.tv || seasonId == null) return;
     if (episodeListCache.containsKey(seasonId)) {
+      if (isMultiOpen) {
+        episodeList = episodeListCache[seasonId]!;
+        _handleEpisodeListSuccess();
+      }
       return;
     }
 
     final result = await HomeApi.getSeasonAllEpisodes(id: seasonId);
     if (result.isSuccess) {
       final listData = result.responseData?.data;
-      episodeListCache[seasonId!] = listData ?? [];
+      episodeListCache[seasonId] = listData ?? [];
+
+      if (isMultiOpen) {
+        episodeList = listData ?? [];
+        _handleEpisodeListSuccess();
+      }
     } else {
       commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
+      if (isMultiOpen) {
+        episodeStatusType.value = MultiStatusType.statusError;
+      }
     }
   }
 
-  /// 检查是否有下一集
-  void checkHasNextPlay() {
-    // 判断当前是否为最后一季的最后的最后一集
-    final currentSeason = selectSeason.value;
-    final currentEpisode = selectEpisode.value;
-    if (currentSeason != null && currentEpisode != null) {
-      final episodeIndex = episodeList.indexOf(currentEpisode);
-      final seasonIndex = seasonList.indexOf(currentSeason);
-      if (seasonIndex != -1 &&
-          seasonIndex == seasonList.length - 1 &&
-          episodeIndex != -1 &&
-          episodeIndex == episodeList.length - 1) {
-        mediaPlayerController.hasNextEpisode.value = false;
-      } else {
-        mediaPlayerController.hasNextEpisode.value = true;
-      }
-    } else {
-      mediaPlayerController.hasNextEpisode.value = true;
+  void _handleEpisodeListSuccess() {
+    if (isFirstLoadEpisode) {
+      isFirstLoadEpisode = false;
+
+      // 没有缓存记录默认第一集
+      selectEpisode.value =
+          episodeList.firstWhereOrNull((element) => element.id == mediaHistoryEntity?.episode?.id) ?? episodeList.first;
+
+      captionList = selectEpisode.value?.captionList ?? [];
     }
+
+    episodeStatusType.value = episodeList.isEmpty ? MultiStatusType.statusEmpty : MultiStatusType.statusContent;
+    EasyLoading.dismiss();
   }
 
   /// 选择剧集
@@ -203,17 +227,19 @@ class BaseMediaDetailController extends BaseController with GetSingleTickerProvi
       selectSeason.value = seasonList[tabController!.index];
     }
 
-    //检查是否有下一集
-    checkHasNextPlay();
-
     updateMediaAndTitle();
   }
 
   /// 季Tab切换
   void seasonTabChanged(int tabIndex) {
-    final seasonId = seasonList[tabIndex].id;
-    episodeList = episodeListCache[seasonId] ?? [];
-    update();
+    if (isMultiOpen) {
+      episodeStatusType.value = MultiStatusType.statusLoading;
+      getEpisodeList(seasonId: seasonList[tabIndex].id);
+    } else {
+      final seasonId = seasonList[tabIndex].id;
+      episodeList = episodeListCache[seasonId] ?? [];
+      update();
+    }
   }
 
   /// 重置播放器和更新标题
@@ -244,7 +270,10 @@ class BaseMediaDetailController extends BaseController with GetSingleTickerProvi
             videoType: videoType,
             type: MediaDataSourceType.network,
           ),
-          initVideoPosition: mediaPlayerController.firstLoad && mediaHistoryEntity != null && mediaHistoryEntity!.currentDuration != null
+          initVideoPosition:
+              mediaPlayerController.firstLoad &&
+                  mediaHistoryEntity != null &&
+                  mediaHistoryEntity!.currentDuration != null
               ? Duration(seconds: mediaHistoryEntity!.currentDuration!)
               : isReload && mediaPlayerController.currentPosition.value.inSeconds > 0
               ? mediaPlayerController.currentPosition.value
@@ -259,7 +288,10 @@ class BaseMediaDetailController extends BaseController with GetSingleTickerProvi
               videoType: videoType,
               type: MediaDataSourceType.network,
             ),
-            initVideoPosition: mediaPlayerController.firstLoad && mediaHistoryEntity != null && mediaHistoryEntity!.currentDuration != null
+            initVideoPosition:
+                mediaPlayerController.firstLoad &&
+                    mediaHistoryEntity != null &&
+                    mediaHistoryEntity!.currentDuration != null
                 ? Duration(seconds: mediaHistoryEntity!.currentDuration!)
                 : isReload && mediaPlayerController.currentPosition.value.inSeconds > 0
                 ? mediaPlayerController.currentPosition.value
@@ -314,7 +346,12 @@ class BaseMediaDetailController extends BaseController with GetSingleTickerProvi
             // 不是最后一季,播放下一季第一集
             mediaPlayerController.setRecrodAction(null);
             selectSeason.value = seasonList[seasonIndex + 1];
-            episodeList = episodeListCache[selectSeason.value?.id] ?? [];
+            if (isMultiOpen) {
+              EasyLoading.show();
+              await getEpisodeList(seasonId: selectSeason.value?.id);
+            } else {
+              episodeList = episodeListCache[selectSeason.value?.id] ?? [];
+            }
             selectEpisode.value = episodeList.first;
             tabController?.animateTo(seasonIndex + 1);
             chooseEpisode(selectEpisode.value!);
@@ -341,7 +378,9 @@ class BaseMediaDetailController extends BaseController with GetSingleTickerProvi
   void saveMedia() {
     if (mediaPlayerController.mediaPlayerStatus.completed) {
       // 播放完成删除 缓存
-      VideoCacheUtils.clearCache(videoType == VideoType.video ? mediaDetailEntity?.video ?? '' : selectEpisode.value?.video ?? '');
+      VideoCacheUtils.clearCache(
+        videoType == VideoType.video ? mediaDetailEntity?.video ?? '' : selectEpisode.value?.video ?? '',
+      );
     } else {
       //Save history with new entity
       final historyEntity = MediaHistoryEntity(

@@ -1,6 +1,5 @@
 import 'package:editvideo/manager/app_manager.dart';
-import 'package:editvideo/modules/v2/home/views/multi/media_detail_multi_page.dart';
-import 'package:editvideo/modules/v2/home/views/single/media_detail_single_page.dart';
+import 'package:editvideo/modules/v2/home/views/media_detail_page.dart';
 import 'package:editvideo/routes/app_pages.dart';
 import 'package:editvideo/routes/route_util.dart';
 import 'package:editvideo/utils/common_values.dart';
@@ -35,8 +34,7 @@ void main() async {
           GlobalCupertinoLocalizations.delegate,
         ],
         navigatorObservers: [
-          // MediaDetailMultiPage.routeObserver,
-          MediaDetailSinglePage.routeObserver,
+          MediaDetailPage.routeObserver,
         ],
         builder: EasyLoading.init(
           builder: (context, child) {

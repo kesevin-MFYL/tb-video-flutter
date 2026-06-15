@@ -4,14 +4,14 @@ import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
 import 'package:editvideo/models/episode_entity.dart';
 import 'package:editvideo/models/season_entity.dart';
-import 'package:editvideo/modules/v2/home/controllers/multi/media_detail_multi_controller.dart';
+import 'package:editvideo/modules/v2/home/controllers/media_detail_controller.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:get/get.dart';
 
 class EpisodeIndexController extends BaseController {
   EpisodeIndexController({required this.seasonEntity, required this.mediaId});
 
-  MediaDetailMultiController get mediaDetailController => Get.find<MediaDetailMultiController>(tag: '$mediaId');
+  MediaDetailController get mediaDetailController => Get.find<MediaDetailController>(tag: '$mediaId');
 
   var multiStatusType = MultiStatusType.statusLoading;
 
@@ -46,7 +46,7 @@ class EpisodeIndexController extends BaseController {
         // 没有缓存 默认第一季第一集
         if (initialIndex == 0 && episodeList.isNotEmpty) {
           mediaDetailController.selectEpisode.value = episodeList.first;
-          mediaDetailController.changeFutureAndTitle();
+          mediaDetailController.updateMediaAndTitle();
         }
       }
 

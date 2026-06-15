@@ -1,15 +1,15 @@
 import 'package:editvideo/models/episode_entity.dart';
-import 'package:editvideo/modules/v2/home/controllers/single/media_detail_single_controller.dart';
+import 'package:editvideo/modules/v2/home/controllers/media_detail_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class AutoScrollEpisodeSingleWrapper extends StatefulWidget {
-  final MediaDetailSingleController controller;
+class AutoScrollEpisodeWrapper extends StatefulWidget {
+  final MediaDetailController controller;
   final List<dynamic> episodeList;
   final Widget Function(BuildContext context, ScrollController scrollController) builder;
   final double Function(int index, double viewportDimension) calculateOffset;
 
-  const AutoScrollEpisodeSingleWrapper({
+  const AutoScrollEpisodeWrapper({
     super.key,
     required this.controller,
     required this.episodeList,
@@ -18,10 +18,10 @@ class AutoScrollEpisodeSingleWrapper extends StatefulWidget {
   });
 
   @override
-  State<AutoScrollEpisodeSingleWrapper> createState() => _AutoScrollEpisodeSingleWrapperState();
+  State<AutoScrollEpisodeWrapper> createState() => _AutoScrollEpisodeWrapperState();
 }
 
-class _AutoScrollEpisodeSingleWrapperState extends State<AutoScrollEpisodeSingleWrapper> {
+class _AutoScrollEpisodeWrapperState extends State<AutoScrollEpisodeWrapper> {
   late ScrollController _scrollController;
   Worker? _worker;
 
@@ -29,7 +29,7 @@ class _AutoScrollEpisodeSingleWrapperState extends State<AutoScrollEpisodeSingle
   void initState() {
     super.initState();
     _scrollController = ScrollController();
-    
+
     // Listen to selectEpisode changes
     _worker = ever(widget.controller.selectEpisode, (EpisodeEntity? episode) {
       if (episode != null) {
@@ -63,17 +63,13 @@ class _AutoScrollEpisodeSingleWrapperState extends State<AutoScrollEpisodeSingle
       final viewportDimension = _scrollController.position.viewportDimension;
       double offset = widget.calculateOffset(index, viewportDimension);
       offset = offset.clamp(0.0, _scrollController.position.maxScrollExtent);
-      
-      _scrollController.animateTo(
-        offset,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+
+      _scrollController.animateTo(offset, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     }
   }
 
   @override
-  void didUpdateWidget(AutoScrollEpisodeSingleWrapper oldWidget) {
+  void didUpdateWidget(AutoScrollEpisodeWrapper oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.episodeList != widget.episodeList) {
       WidgetsBinding.instance.addPostFrameCallback((_) {

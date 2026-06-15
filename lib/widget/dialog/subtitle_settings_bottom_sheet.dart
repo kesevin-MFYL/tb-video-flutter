@@ -11,16 +11,27 @@ import 'package:get/get.dart';
 class SubtitleSettingsView extends StatefulWidget {
   final MediaPlayerController controller;
   final VoidCallback onClose;
+  final bool isOpen;
 
-  const SubtitleSettingsView({super.key, required this.controller, required this.onClose});
+  const SubtitleSettingsView({super.key, required this.controller, required this.onClose, this.isOpen = false});
 
   @override
   State<SubtitleSettingsView> createState() => _SubtitleSettingsViewState();
 }
 
 class _SubtitleSettingsViewState extends State<SubtitleSettingsView> {
-  final PageController _pageController = PageController();
+  final PageController _pageController = PageController(initialPage: 0, keepPage: false);
   final ScrollController _scrollController = ScrollController();
+
+  @override
+  void didUpdateWidget(SubtitleSettingsView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isOpen && !oldWidget.isOpen) {
+      if (_pageController.hasClients && _pageController.page != 0) {
+        _pageController.jumpToPage(0);
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -43,10 +54,10 @@ class _SubtitleSettingsViewState extends State<SubtitleSettingsView> {
             final padding = 16.w;
             final itemCenter = padding + index * (itemHeight + spacing) + itemHeight / 2;
             double offset = itemCenter - viewportDimension / 2;
-            
+
             // Do not clamp to maxScrollExtent because ListView might not have laid out all items yet
             if (offset < 0) offset = 0;
-            
+
             _scrollController.animateTo(
               offset,
               duration: const Duration(milliseconds: 250),
@@ -100,7 +111,11 @@ class _SubtitleSettingsViewState extends State<SubtitleSettingsView> {
               children: [
                 Image.asset(Assets.commonIconLabelSubtitle, width: 24.w, height: 24.w),
                 SizedBox(width: 8.w),
-                CommonText.instance(openCaptions ? 'Turn Off Subtitles' : 'Turn On Subtitles', 14.sp, fontWeight: CommonFontWeight.medium),
+                CommonText.instance(
+                  openCaptions ? 'Turn Off Subtitles' : 'Turn On Subtitles',
+                  14.sp,
+                  fontWeight: CommonFontWeight.medium,
+                ),
                 Spacer(),
                 GestureDetector(
                   onTap: () {
