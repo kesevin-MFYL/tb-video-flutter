@@ -381,23 +381,23 @@ class BaseVideoDetailController extends BaseController with GetSingleTickerProvi
       VideoCacheUtils.clearCache(
         videoType == VideoType.video ? mediaDetailEntity?.video ?? '' : selectEpisode.value?.video ?? '',
       );
-    } else {
-      //Save history with new entity
-      final historyEntity = MediaHistoryEntity(
-        id: mediaDetailEntity?.id,
-        title: mediaDetailEntity?.title,
-        cover: mediaDetailEntity?.cover,
-        type: mediaType,
-        videoUrl: videoType == VideoType.video ? mediaDetailEntity?.video ?? '' : selectEpisode.value?.video ?? '',
-        viewTime: DateTime.now().millisecondsSinceEpoch,
-        totalDuration: mediaPlayerController.totalDuration.value.inSeconds,
-        currentDuration: mediaPlayerController.currentPosition.value.inSeconds,
-        season: videoType == VideoType.tv ? selectSeason.value : null,
-        episode: videoType == VideoType.tv ? selectEpisode.value : null,
-      );
-
-      Storage.addViewedMedia(historyEntity);
     }
+
+    //Save history with new entity
+    final historyEntity = MediaHistoryEntity(
+      id: mediaDetailEntity?.id,
+      title: mediaDetailEntity?.title,
+      cover: mediaDetailEntity?.cover,
+      type: mediaType,
+      videoUrl: videoType == VideoType.video ? mediaDetailEntity?.video ?? '' : selectEpisode.value?.video ?? '',
+      viewTime: DateTime.now().millisecondsSinceEpoch,
+      totalDuration: mediaPlayerController.totalDuration.value.inSeconds,
+      currentDuration: mediaPlayerController.currentPosition.value.inSeconds,
+      season: videoType == VideoType.tv ? selectSeason.value : null,
+      episode: videoType == VideoType.tv ? selectEpisode.value : null,
+    );
+
+    Storage.addViewedMedia(historyEntity);
 
     EventBusManager.instance.post(EventBusName.historyRefresh);
   }

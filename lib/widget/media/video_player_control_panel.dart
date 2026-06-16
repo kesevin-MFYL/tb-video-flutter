@@ -217,6 +217,7 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
 
             mediaPlayerController.isSliderMoving.value = false;
             mediaPlayerController.seekTo(mediaPlayerController.sliderPosition.value, isHorizontalMove: true);
+            mediaPlayerController.play();
           },
           onVerticalDragUpdate: (DragUpdateDetails details) async {
             // 数据加载中或错误 禁用
@@ -562,6 +563,7 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
                                           Duration(seconds: duration.inSeconds),
                                           isHorizontalMove: true,
                                         );
+                                        mediaPlayerController.play();
                                       },
                                     ),
 

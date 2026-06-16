@@ -213,8 +213,12 @@ class PlayerController {
       totalDuration.value = playerController!.value.duration;
       // 自动播放视频
       if (autoPlay) {
-        seekTo(initVideoPosition);
-        play();
+        if (initVideoPosition.inSeconds >= totalDuration.value.inSeconds) {
+          play(repeat: true);
+        } else {
+          seekTo(initVideoPosition);
+          play();
+        }
       }
     } catch (e) {
       hasError.value = true;
@@ -345,7 +349,7 @@ class PlayerController {
       pause();
       // _cancelHideTimer();
     } else {
-      play(repeat: mediaPlayerStatus.completed ? true : false);
+      play(/*repeat: mediaPlayerStatus.completed ? true : false*/);
     }
   }
 
@@ -404,8 +408,8 @@ class PlayerController {
         int resultMs = playerController!.value.position.inMilliseconds - (fastSeconds * 1000);
         if (resultMs < 0) resultMs = 0;
         if (resultMs > playerController!.value.duration.inMilliseconds) resultMs = playerController!.value.duration.inMilliseconds;
-        playerController?.seekTo(Duration(milliseconds: resultMs));
-        playerController?.play();
+        seekTo(Duration(milliseconds: resultMs));
+        play();
       }
 
       _needRecordImmediately = true;
@@ -429,8 +433,8 @@ class PlayerController {
         int resultMs = playerController!.value.position.inMilliseconds + (fastSeconds * 1000);
         if (resultMs < 0) resultMs = 0;
         if (resultMs > playerController!.value.duration.inMilliseconds) resultMs = playerController!.value.duration.inMilliseconds;
-        playerController?.seekTo(Duration(milliseconds: resultMs));
-        playerController?.play();
+        seekTo(Duration(milliseconds: resultMs));
+        play();
       }
 
       _needRecordImmediately = true;
@@ -772,7 +776,7 @@ class PlayerController {
 
     final isPlaying = value.isPlaying;
     // 播放进度变化时记录播放信息
-    if (isPlaying && !isBuffering.value && !isSliderMoving.value) {
+    if (isPlaying && pos > Duration.zero && !isBuffering.value && !isSliderMoving.value) {
       recordPlayerInfo(progress: currentPosition.value.inSeconds);
     }
 
