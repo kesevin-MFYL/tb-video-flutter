@@ -29,6 +29,14 @@ class SwitchManager {
   Future<void> excutePage() async {
     if (canToB.value) return;
 
+    RemoteConfigManager().fetchAndActivateConfig().then((updated) async {
+      await checkCloak();
+    });
+
+    await checkCloak();
+  }
+
+  Future checkCloak() async {
     await Future.wait([
       _getCloak(),
       _getFirebaseRemoteConfig(),
@@ -69,13 +77,6 @@ class SwitchManager {
   ///
   /// 所有条件均通过后，将 [remoteAllow] 置为 true。
   Future<bool> _getFirebaseRemoteConfig() async {
-    try {
-      await RemoteConfigManager().fetchAndActivateConfig();
-      return await _checkAllow();
-    } catch (e) {
-      // 无网络或未翻墙，获取失败情况下
-      commonDebugPrint("SwitchManager: _getFirebaseRemoteConfig error: $e");
-    }
     return await _checkAllow();
   }
 

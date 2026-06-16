@@ -6,7 +6,7 @@ class Cast extends BaseEntity {
   int? gender;
   String? biography;
   String? birthday;
-  Null? deathday;
+  String? deathday;
   String? placeOfBirth;
   String? cover;
 

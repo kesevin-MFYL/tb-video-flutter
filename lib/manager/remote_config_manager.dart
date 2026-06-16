@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/manager/admob/ad_manager.dart';
+import 'package:editvideo/manager/switch_manager.dart';
 import 'package:editvideo/utils/storage.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
@@ -146,7 +147,7 @@ class RemoteConfigManager {
       try {
         // 激活最新配置
         await _remoteConfig.activate();
-        
+
         // 只有当 ad_json_and 更新时才重新加载广告
         if (event.updatedKeys.contains('ad_json_and')) {
           // 解析并缓存到内存及本地 Storage 中
@@ -158,6 +159,8 @@ class RemoteConfigManager {
             AdManager.instance.loadAd('behavior', _config!.behavior);
             AdManager.instance.loadAd('NVhome', _config!.nvhome);
           }
+        } else if(event.updatedKeys.contains('movix_reffer_clo') || event.updatedKeys.contains('movix_cloak_add') || event.updatedKeys.contains('movix_country_cloak')) {
+          SwitchManager.instance.excutePage();
         }
       } catch (e) {
         commonDebugPrint("Remote config: Failed to activate updated config: $e");

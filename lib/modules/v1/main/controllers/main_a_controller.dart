@@ -4,6 +4,7 @@ import 'package:editvideo/manager/admob/app_lifecycle_reactor.dart';
 import 'package:editvideo/manager/switch_manager.dart';
 import 'package:editvideo/modules/v1/home/views/home_page.dart';
 import 'package:editvideo/modules/v1/setting/views/setting_page.dart';
+import 'package:editvideo/modules/v2/main/controllers/main_b_controller.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:get/get.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -25,7 +26,9 @@ class MainAController extends BaseController {
 
     _worker = ever(SwitchManager.instance.canToB, (canToB) async {
       if (canToB) {
-        Get.offAllNamed(Routes.mainB);
+        if (!Get.isRegistered<MainBController>()) {
+          Get.offAllNamed(Routes.mainB);
+        }
       }
     });
   }
