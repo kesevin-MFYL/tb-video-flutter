@@ -217,6 +217,7 @@ class PlayerController {
         play();
       }
     } catch (e) {
+      hasError.value = true;
       commonDebugPrint('PlayerController _createVideoController error: $e');
     }
   }

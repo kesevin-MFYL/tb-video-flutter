@@ -262,7 +262,7 @@ class BaseVideoDetailController extends BaseController with GetSingleTickerProvi
     try {
       /// 注册播放器记录事件
       mediaPlayerController.setRecrodAction(saveMedia);
-
+      final lastPosition = mediaPlayerController.currentPosition.value;
       if (videoType == VideoType.video) {
         await mediaPlayerController.setDataSource(
           MediaDataSource(
@@ -276,7 +276,7 @@ class BaseVideoDetailController extends BaseController with GetSingleTickerProvi
                   mediaHistoryEntity!.currentDuration != null
               ? Duration(seconds: mediaHistoryEntity!.currentDuration!)
               : isReload && mediaPlayerController.currentPosition.value.inSeconds > 0
-              ? mediaPlayerController.currentPosition.value
+              ? lastPosition
               : Duration.zero,
           captionList: captionList,
         );
@@ -294,7 +294,7 @@ class BaseVideoDetailController extends BaseController with GetSingleTickerProvi
                     mediaHistoryEntity!.currentDuration != null
                 ? Duration(seconds: mediaHistoryEntity!.currentDuration!)
                 : isReload && mediaPlayerController.currentPosition.value.inSeconds > 0
-                ? mediaPlayerController.currentPosition.value
+                ? lastPosition
                 : Duration.zero,
             captionList: captionList,
           );
