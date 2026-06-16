@@ -1,0 +1,793 @@
+import 'package:editvideo/config/log/logger.dart';
+import 'package:editvideo/generated/assets.dart';
+import 'package:editvideo/utils/extension.dart';
+import 'package:editvideo/widget/media/model/media_data_source.dart';
+import 'package:editvideo/models/caption_entity.dart';
+import 'package:editvideo/widget/media/model/media_player_status.dart';
+import 'package:editvideo/widget/media/utils/fullscreen.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_video_caching/flutter_video_caching.dart';
+import 'dart:async';
+import 'dart:io';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:get/get.dart';
+import 'package:status_bar_control_plus/status_bar_control_plus.dart';
+import 'package:video_player/video_player.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
+
+class PlayerController {
+  /// 播放器
+  VideoPlayerController? playerController;
+
+  /// 预览播放器 (用于进度条滑动时显示缩略图)
+  VideoPlayerController? previewPlayerController;
+
+  final isInitialized = false.obs;
+  final hasError = false.obs;
+
+  /// 播放状态
+  final MediaPlayerStatus mediaPlayerStatus = MediaPlayerStatus();
+
+  /// 视频类型
+  final videoType = Rx<VideoType>(VideoType.video);
+
+  /// 是否自动播放 默认开启
+  var autoPlay = true;
+
+  /// 默认播放速度
+  var defaultSpeed = 1.0;
+
+  /// 快进秒数
+  var fastSeconds = 15;
+
+  /// 播放模式 默认不循环
+  var looping = false;
+
+  /// 是否自动熄屏
+  var autoWakelock = true;
+
+  /// 记录开关 默认开启
+  var openRecord = true;
+
+  /// 是否首次加载
+  var firstLoad = true;
+
+  /// 控制面板相关
+  /// 显示控制面板 默认开启
+  final showControls = false.obs;
+
+  /// 视频标题
+  final mediaTitle = ''.obs;
+
+  /// 锁定控制面板
+  final controlsLock = false.obs;
+
+  /// 总时长
+  final totalDuration = Rx<Duration>(Duration.zero);
+
+  /// 当前进度
+  final currentPosition = Rx<Duration>(Duration.zero);
+
+  /// 是否正在缓冲
+  final isBuffering = false.obs;
+
+  /// 缓存进度
+  final bufferedDuration = Rx<Duration>(Duration.zero);
+
+  /// 是否长按中
+  final longPressStatus = false.obs;
+
+  /// 快退
+  final fastRewindStatus = false.obs;
+
+  /// 快进
+  final fastForwardStatus = false.obs;
+
+  var fastAssets = '';
+  var fastTips = '';
+
+  /// 是否正在滑动进度条
+  final isSliderMoving = false.obs;
+
+  final sliderPosition = Rx<Duration>(Duration.zero);
+
+  /// 当前亮度 恢复时使用
+  var currentBrightness = 0.0;
+
+  /// 当前屏幕方向
+  final currentOrientation = Orientation.portrait.obs;
+
+  /// 是否正在全屏
+  final isFullScreen = false.obs;
+  bool get isFullscreen => isFullScreen.value || currentOrientation.value == Orientation.landscape;
+
+  /// 是否有下一集
+  final hasNextEpisode = true.obs;
+
+  /// 隐藏操作栏计时器
+  Timer? _hideTimer;
+
+  /// 快退计时器
+  Timer? _rewindTimer;
+
+  /// 快进计时器
+  Timer? _forwardTimer;
+
+  /// 上一次的播放时间
+  int _lastPositionSeconds = 0;
+
+  /// 是否需要立即记录播放信息
+  bool _needRecordImmediately = false;
+
+  /// 字幕开关 默认关闭
+  var openCaptions = false.obs;
+
+  /// 字幕列表
+  var captionList = <CaptionEntity>[].obs;
+
+  /// 当前选中的字幕
+  final selectedCaption = Rx<CaptionEntity?>(null);
+
+  /// 弹幕开关
+  final isOpenDanmu = false.obs;
+
+  /// 是否已经为当前媒体初始化过字幕
+  bool _isSubtitleInitializedForCurrentMedia = false;
+
+  /// 是否已经提交过当前视频
+  bool _hasSubmittedVideo = false;
+
+  /// 是否有网
+  bool isOnline = true;
+
+  /// 事件流
+  var subscriptions = <StreamSubscription>[];
+
+  /// 播放状态监听
+  Stream<MediaPlayerStatusType> get onPlayerStatusChanged => mediaPlayerStatus.status.stream;
+
+  /// 播放进度监听
+  Stream<Duration> get onPositionChanged => currentPosition.stream;
+
+  /// 网络状态监听
+  StreamSubscription<List<ConnectivityResult>>? connectivityChanged;
+
+  /// 播放状态监听集合
+  final List<Function(MediaPlayerStatusType status)> _statusChangedListeners = [];
+
+  /// 播放进度监听集合
+  final List<Function()> _positionListeners = [];
+
+  /// 录制事件
+  void Function()? recordAction;
+
+  /// 提交事件
+  void Function()? submitVideoAction;
+
+  /// 获取下一个视频URL的事件
+  Future<String?> Function()? getNextVideoUrlAction;
+
+  /// 检查是否有下一集
+  bool Function()? checkHasNextPlayAction;
+
+  /// 当前播放的原始视频URL
+  String? currentVideoUrl;
+
+  // 获取实例 传参
+  PlayerController({
+    // 默认自动播放
+    this.autoPlay = true,
+    // 默认自动播放
+    this.defaultSpeed = 1.0,
+    // 默认不循环
+    this.looping = false,
+    // 记录开关
+    this.openRecord = true,
+  }) {
+    /// 网络状态监听
+    connectivityChanged = Connectivity().onConnectivityChanged.listen((result) {
+      commonDebugPrint('PlayerController connectivity: $result');
+      isOnline = result.contains(ConnectivityResult.mobile) || result.contains(ConnectivityResult.wifi);
+    });
+  }
+
+  /// 配置播放器
+  Future<void> _createVideoController(MediaDataSource dataSource) async {
+    try {
+      final originalUrl = dataSource.videoSource!.toOriginUrl();
+      if (originalUrl.startsWith('http') || originalUrl.startsWith('https')) {
+        playerController = VideoPlayerController.networkUrl(dataSource.videoSource!.toLocalUri());
+      } else if (originalUrl.startsWith('assets/')) {
+        playerController = VideoPlayerController.asset(dataSource.videoSource!);
+      } else {
+        playerController = VideoPlayerController.file(File(dataSource.videoSource!));
+      }
+
+      await playerController?.initialize();
+
+      isInitialized.value = true;
+      // 获取视频总时长
+      totalDuration.value = playerController!.value.duration;
+      // 自动播放视频
+      if (autoPlay) {
+        play();
+      }
+    } catch (e) {
+      commonDebugPrint('PlayerController _createVideoController error: $e');
+    }
+  }
+
+  /// 配置预览播放器
+  Future<void> _createPreviewController(MediaDataSource dataSource) async {
+    try {
+      final originalUrl = dataSource.videoSource!.toOriginUrl();
+      if (originalUrl.startsWith('http') || originalUrl.startsWith('https')) {
+        previewPlayerController = VideoPlayerController.networkUrl(dataSource.videoSource!.toLocalUri());
+      } else if (originalUrl.startsWith('assets/')) {
+        previewPlayerController = VideoPlayerController.asset(dataSource.videoSource!);
+      } else {
+        previewPlayerController = VideoPlayerController.file(File(dataSource.videoSource!));
+      }
+
+      await previewPlayerController?.initialize();
+    } catch (e) {
+      commonDebugPrint('PlayerController _createPreviewController error: $e');
+    }
+  }
+
+  /// 设置数据源
+  Future<void> setDataSource(
+    MediaDataSource dataSource, {
+    // 初始进度
+    Duration initVideoPosition = Duration.zero,
+    // 字幕列表
+    List<CaptionEntity> captionList = const [],
+  }) async {
+    try {
+      // 每次配置时先移除监听
+      removeListeners();
+      // 重置配置
+      resetConfig();
+
+      videoType.value = dataSource.videoType;
+
+      this.captionList.value = captionList;
+
+      if (dataSource.videoSource.isEmptyString()) {
+        hasError.value = true;
+        return;
+      }
+
+      if (!isOnline) {
+        hasError.value = true;
+        return;
+      }
+
+      if (currentVideoUrl != null && currentVideoUrl != dataSource.videoSource) {
+        // 如果需要，可以在切换视频时清除上一个视频的缓存
+        // LruCacheSingleton().removeCacheByUrl(currentVideoUrl!);
+      }
+
+      if (dataSource.type == MediaDataSourceType.network) {
+        final videoUrl = dataSource.videoSource!;
+        commonDebugPrint('PlayerController: 原始视频地址$videoUrl');
+        currentVideoUrl = videoUrl;
+
+        dataSource.videoSource = videoUrl.toLocalUrl();
+
+        // 检查是否有下一集
+        hasNextEpisode.value = checkHasNextPlayAction?.call() ?? true;
+        // 预缓存下一个视频
+        _startVideoCacheNext();
+      } else {
+        currentVideoUrl = null;
+      }
+
+      // 数据加载完成
+      hasError.value = false;
+
+      // 配置Player
+      await _createVideoController(dataSource);
+
+      // 配置预览Player
+      _createPreviewController(dataSource);
+
+      // 添加监听
+      addListeners();
+
+      // 配置字幕
+      await initSubtitles();
+    } catch (err) {
+      hasError.value = true;
+      commonDebugPrint('PlayerController setDataSource error: $err');
+    }
+  }
+
+  /// 预缓存下一个视频
+  void _startVideoCacheNext() async {
+    try {
+      final nextUrl = await getNextVideoUrlAction?.call();
+      if (nextUrl != null && nextUrl.isNotEmpty) {
+        commonDebugPrint('PlayerController: 开始预缓存下一视频: $nextUrl');
+        VideoCaching.precache(nextUrl);
+      }
+    } catch (e) {
+      commonDebugPrint('PlayerController Video cache error for next url: $e');
+    }
+  }
+
+  void seekPreview(Duration position) {
+    previewPlayerController?.seekTo(position);
+  }
+
+  /// 切换操作栏状态
+  void toggleControls() {
+    showControls.value = !showControls.value;
+    if (showControls.value) {
+      _startHideTimer();
+    }
+    // if (showControls.value && mediaPlayerStatus.playing) {
+    //   _startHideTimer();
+    // } else {
+    //   _cancelHideTimer();
+    // }
+  }
+
+  /// 切换播放状态
+  void togglePlay() async {
+    if (mediaPlayerStatus.playing) {
+      showControls.value = true;
+      pause();
+      // _cancelHideTimer();
+    } else {
+      play(repeat: mediaPlayerStatus.completed ? true : false);
+    }
+  }
+
+  /// 播放视频
+  Future<void> play({bool repeat = false}) async {
+    // repeat为true，将从头播放
+    if (repeat) {
+      playerController?.seekTo(Duration.zero);
+      _needRecordImmediately = true;
+    }
+    await playerController?.play();
+    // 播放时延迟5s隐藏控制栏
+    _startHideTimer();
+  }
+
+  /// 暂停播放
+  Future<void> pause({bool isInterrupt = false}) async {
+    await playerController?.pause();
+    // 播放时延迟5s隐藏控制栏
+    _startHideTimer();
+  }
+
+  /// 跳转至指定位置
+  Future<void> seekTo(Duration position, {bool isHorizontalMove = false}) async {
+    try {
+      if (position < Duration.zero) {
+        position = Duration.zero;
+      }
+      currentPosition.value = position;
+      _needRecordImmediately = true;
+      if (totalDuration.value.inSeconds != 0) {
+        await playerController?.seekTo(position);
+
+        _startHideTimer();
+      }
+    } catch (err) {
+      commonDebugPrint('PlayerController seek error: $err');
+    }
+  }
+
+  /// 设置倍速
+  Future<void> setPlaybackSpeed(double speed) async {
+    await playerController?.setPlaybackSpeed(speed);
+  }
+
+  /// 快退
+  Future<void> fastRewind() async {
+    if (!isInitialized.value || hasError.value) return;
+
+    fastTips = 'Rewind';
+    fastAssets = Assets.commonIconRewindTips;
+    fastRewindStatus.value = true;
+
+    _rewindTimer = Timer(const Duration(milliseconds: 200), () {
+      if (playerController != null) {
+        int resultMs = playerController!.value.position.inMilliseconds - (fastSeconds * 1000);
+        if (resultMs < 0) resultMs = 0;
+        if (resultMs > playerController!.value.duration.inMilliseconds) resultMs = playerController!.value.duration.inMilliseconds;
+        playerController?.seekTo(Duration(milliseconds: resultMs));
+        playerController?.play();
+      }
+
+      _needRecordImmediately = true;
+      fastRewindStatus.value = false;
+
+      _rewindTimer?.cancel();
+      _rewindTimer = null;
+    });
+  }
+
+  /// 快进
+  Future<void> fastForward() async {
+    if (!isInitialized.value || hasError.value) return;
+
+    fastTips = 'Forward';
+    fastAssets = Assets.commonIconForwardTips;
+    fastForwardStatus.value = true;
+
+    _forwardTimer = Timer(const Duration(milliseconds: 200), () {
+      if (playerController != null) {
+        int resultMs = playerController!.value.position.inMilliseconds + (fastSeconds * 1000);
+        if (resultMs < 0) resultMs = 0;
+        if (resultMs > playerController!.value.duration.inMilliseconds) resultMs = playerController!.value.duration.inMilliseconds;
+        playerController?.seekTo(Duration(milliseconds: resultMs));
+        playerController?.play();
+      }
+
+      _needRecordImmediately = true;
+      fastForwardStatus.value = false;
+
+      _forwardTimer?.cancel();
+      _forwardTimer = null;
+    });
+  }
+
+  /// 全屏
+  Future<void> triggerFullScreen({bool status = true, ValueChanged<bool>? onToggleFullScreen}) async {
+    await StatusBarControlPlus.setHidden(true, animation: StatusBarAnimation.FADE);
+    if (!isFullscreen && status) {
+      isFullScreen.value = true;
+      /// 进入全屏
+      await enterFullScreen();
+      await landScape();
+    } else if (isFullscreen && !status) {
+      StatusBarControlPlus.setHidden(false, animation: StatusBarAnimation.FADE);
+      exitFullScreen();
+      await verticalScreen();
+
+      isFullScreen.value = false;
+    }
+    onToggleFullScreen?.call(isFullScreen.value);
+  }
+
+  Future<void> initSubtitles() async {
+    // if (captionList.isEmpty) {
+    //   openCaptions.value = false;
+    //   selectedCaption.value = null;
+    //   commonDebugPrint('PlayerController: 没有字幕');
+    //   await playerController.setSubtitleTrack(SubtitleTrack.no());
+    //   return;
+    // }
+    //
+    // CaptionEntity? targetCaption;
+    //
+    // // 1. Match system language
+    // final String? sysLangCode = Get.deviceLocale?.languageCode;
+    // commonDebugPrint('PlayerController: 当前系统语言$sysLangCode');
+    // if (sysLangCode != null) {
+    //   targetCaption = captionList.firstWhereOrNull(
+    //     (c) => c.shortName?.toLowerCase().startsWith(sysLangCode.toLowerCase()) == true,
+    //   );
+    // }
+    // if (targetCaption != null) {
+    //   commonDebugPrint('PlayerController: 匹配到系统语言字幕: ${targetCaption.name}');
+    // } else {
+    //   commonDebugPrint('PlayerController: 没有匹配到系统语言字幕');
+    // }
+    //
+    // // 2. Fallback to English
+    // targetCaption ??= captionList.firstWhereOrNull((c) => c.shortName?.toLowerCase().startsWith('en') == true);
+    //
+    // if (targetCaption != null) {
+    //   commonDebugPrint('PlayerController: 匹配到英文字幕: ${targetCaption.name}');
+    // } else {
+    //   commonDebugPrint('PlayerController: 没有匹配到英文字幕');
+    // }
+    //
+    // // 3. Fallback to first
+    // targetCaption ??= captionList.first;
+    //
+    // selectedCaption.value = targetCaption;
+    // // 默认展示
+    // openCaptions.value = true;
+    //
+    // _applySubtitle();
+  }
+
+  Future<void> _applySubtitle() async {
+    // if (!openCaptions.value || selectedCaption.value == null || selectedCaption.value!.s3Address.isEmptyString()) {
+    //   await mediaPlayer.setSubtitleTrack(SubtitleTrack.no());
+    //   return;
+    // }
+    //
+    // final url = selectedCaption.value!.s3Address!;
+    // int retryCount = 0;
+    // const maxRetries = 5;
+    //
+    // while (retryCount < maxRetries) {
+    //   // 如果在重试期间切换了字幕，则终止当前任务
+    //   if (selectedCaption.value?.s3Address != url) {
+    //     commonDebugPrint('MediaPlayer setSubtitleTrack aborted: subtitle changed');
+    //     return;
+    //   }
+    //
+    //   try {
+    //     final dio = Dio();
+    //     final response = await dio.get(url);
+    //     if (response.data != null && response.data.toString().isNotEmpty) {
+    //       // 再次检查是否被切换
+    //       if (selectedCaption.value?.s3Address != url) return;
+    //
+    //       final subtitleData = response.data.toString();
+    //       await mediaPlayer.setSubtitleTrack(SubtitleTrack.data(subtitleData));
+    //       commonDebugPrint('PlayerController: 设置字幕成功: ${selectedCaption.value!.name}');
+    //       return;
+    //     }
+    //   } catch (e) {
+    //     commonDebugPrint('PlayerController: 设置字幕失败: $e');
+    //   }
+    //
+    //   retryCount++;
+    //   if (retryCount < maxRetries) {
+    //     await Future.delayed(const Duration(seconds: 2));
+    //   }
+    // }
+    //
+    // commonDebugPrint('MediaPlayer setSubtitleTrack failed after $maxRetries retries');
+  }
+
+  /// 手动设置字幕
+  Future<void> setSubtitle({CaptionEntity? caption, bool? isOpen}) async {
+    if (isOpen != null) {
+      openCaptions.value = isOpen;
+    }
+    if (caption != null) {
+      selectedCaption.value = caption;
+      openCaptions.value = true;
+    }
+    await _applySubtitle();
+  }
+
+  /// 重置字幕
+  Future<void> resetSubtitle() async {
+    openCaptions.value = false;
+    captionList.clear();
+    selectedCaption.value = null;
+    setSubtitle(isOpen: false);
+  }
+
+  /// 开始隐藏控制栏计时
+  void _startHideTimer() {
+    _cancelHideTimer();
+
+    _hideTimer = Timer(const Duration(seconds: 5), () {
+      if ( /*mediaPlayerStatus.playing && */ !isSliderMoving.value) {
+        showControls.value = false;
+      }
+    });
+  }
+
+  void _cancelHideTimer() {
+    _hideTimer?.cancel();
+    _hideTimer = null;
+  }
+
+  /// 录制操作
+  void setRecrodAction(void Function()? action) {
+    recordAction = action;
+  }
+
+  /// 提交已看过影视到IMDB
+  void setSubmitVideoAction(void Function()? action) {
+    submitVideoAction = action;
+  }
+
+  /// 改变标题
+  void changeMediaTitle(String title) {
+    mediaTitle.value = title;
+  }
+
+  // 记录播放信息
+  Future recordPlayerInfo({int progress = 0, bool playStatusChanged = false}) async {
+    if (!openRecord) {
+      return;
+    }
+    // 播放状态变化时，更新
+    if (playStatusChanged) {
+      _lastPositionSeconds = progress;
+      recordAction?.call();
+    } else {
+      if (_needRecordImmediately) {
+        commonDebugPrint('recordPlayerInfo: 立即记录视频信息');
+        _needRecordImmediately = false;
+        _lastPositionSeconds = progress;
+        recordAction?.call();
+      } else if (progress - _lastPositionSeconds >= 5 || progress < _lastPositionSeconds) {
+        commonDebugPrint('recordPlayerInfo: 每5s记录一次视频信息');
+        // 正常播放时，间隔5秒更新一次
+        _lastPositionSeconds = progress;
+        recordAction?.call();
+      }
+    }
+  }
+
+  void _videoPlayerListener() {
+    if (!isInitialized.value || playerController == null) return;
+    
+    final value = playerController!.value;
+    final pos = value.position;
+    currentPosition.value = pos >= Duration.zero ? pos : Duration.zero;
+
+    if (pos.inMilliseconds > 0) {
+      firstLoad = false;
+      // 只要进度开始推进，说明已经开始播放，取消缓冲状态
+      if (isBuffering.value) {
+        isBuffering.value = false;
+      }
+    }
+
+    // 拖动进度条时，不更新进度
+    if (!isSliderMoving.value) {
+      sliderPosition.value = pos;
+    }
+
+    // 触发进度回调事件
+    for (var element in _positionListeners) {
+      element();
+    }
+
+    final isPlaying = value.isPlaying;
+    // 播放进度变化时记录播放信息
+    if (isPlaying && !isBuffering.value && !isSliderMoving.value) {
+      recordPlayerInfo(progress: currentPosition.value.inSeconds);
+    }
+
+    if (pos.inMilliseconds > 0 && !_hasSubmittedVideo) {
+      submitVideoAction?.call();
+      _hasSubmittedVideo = true;
+    }
+
+    // 播放/暂停
+    if (mediaPlayerStatus.playing != isPlaying) {
+      mediaPlayerStatus.status.value = isPlaying ? MediaPlayerStatusType.playing : MediaPlayerStatusType.paused;
+      // 触发回调事件
+      _callStateChangeListeners(playerStatus: mediaPlayerStatus.status.value);
+      if (isPlaying) _needRecordImmediately = true;
+    }
+
+    // 播放完成
+    if (pos >= value.duration && value.duration > Duration.zero) {
+      if (mediaPlayerStatus.status.value != MediaPlayerStatusType.completed) {
+        mediaPlayerStatus.status.value = MediaPlayerStatusType.completed;
+        // 播放状态变化时记录播放信息
+        recordPlayerInfo(progress: currentPosition.value.inSeconds, playStatusChanged: true);
+        // 触发回调事件
+        _callStateChangeListeners(playerStatus: mediaPlayerStatus.status.value);
+      }
+    }
+
+    if (value.isBuffering != isBuffering.value) {
+      isBuffering.value = value.isBuffering;
+      if (isBuffering.value && !isOnline) {
+        _errorChanged();
+      }
+    }
+
+    // 缓冲进度
+    if (value.buffered.isNotEmpty) {
+      bufferedDuration.value = value.buffered.last.end;
+    }
+
+    // 播放错误
+    if (value.hasError) {
+      _errorChanged();
+    }
+  }
+
+  /// 播放器事件监听
+  void addListeners() {
+    playerController?.addListener(_videoPlayerListener);
+  }
+
+  /// 移除播放器事件监听
+  void removeListeners() {
+    playerController?.removeListener(_videoPlayerListener);
+  }
+
+  void _errorChanged() async {
+    if (showControls.value) {
+      showControls.value = false;
+    }
+    hasError.value = true;
+    if (mediaPlayerStatus.playing) {
+      await pause();
+    }
+  }
+
+  /// 触发播放状态回调事件
+  void _callStateChangeListeners({required MediaPlayerStatusType playerStatus}) {
+    for (var element in _statusChangedListeners) {
+      element(playerStatus);
+    }
+    _autoWakelockCallback(playerStatus);
+  }
+
+  /// 自动锁屏
+  void _autoWakelockCallback(MediaPlayerStatusType playerStatus) {
+    if (Platform.isLinux) {
+      return;
+    }
+    if (autoWakelock) {
+      if (playerStatus == MediaPlayerStatusType.playing) {
+        WakelockPlus.enable();
+      } else {
+        WakelockPlus.disable();
+      }
+    } else {
+      WakelockPlus.disable();
+    }
+  }
+
+  /// 添加进度监听
+  void addPositionListener(Function() listener) {
+    _positionListeners.add(listener);
+  }
+
+  /// 移除进度监听
+  void removePositionListener(Function(Duration position) listener) {
+    _positionListeners.remove(listener);
+  }
+
+  /// 添加状态监听
+  void addStatusLister(Function(MediaPlayerStatusType status) listener) {
+    _statusChangedListeners.add(listener);
+  }
+
+  /// 移除状态监听
+  void removeStatusLister(Function(MediaPlayerStatusType status) listener) {
+    _statusChangedListeners.remove(listener);
+  }
+
+  void resetConfig() {
+    playerController?.dispose();
+    isInitialized.value = false;
+
+    // 是否已初始化字幕
+    _isSubtitleInitializedForCurrentMedia = false;
+    // 是否已提交视频信息
+    _hasSubmittedVideo = false;
+    // 缓存状态，初始化为true，避免开始播放前的灰色等待时间
+    isBuffering.value = false;
+    // 缓存进度
+    bufferedDuration.value = Duration.zero;
+    // 当前进度
+    currentPosition.value = Duration.zero;
+    // 上一次的播放时间
+    _lastPositionSeconds = 0;
+    _needRecordImmediately = true;
+  }
+
+  Future<void> dispose() async {
+    try {
+      _hideTimer?.cancel();
+      _rewindTimer?.cancel();
+      _forwardTimer?.cancel();
+      connectivityChanged?.cancel();
+
+      recordAction = null;
+      submitVideoAction = null;
+      checkHasNextPlayAction = null;
+
+      removeListeners();
+
+      await playerController?.dispose();
+      await previewPlayerController?.dispose();
+    } catch (err) {
+      commonDebugPrint('PlayerController dispose error: $err');
+    }
+  }
+}

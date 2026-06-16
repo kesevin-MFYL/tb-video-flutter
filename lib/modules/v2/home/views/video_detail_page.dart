@@ -1,44 +1,44 @@
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/models/home_section_entity.dart';
-import 'package:editvideo/modules/v2/home/controllers/media_detail_controller.dart';
-import 'package:editvideo/modules/v2/home/widget/media/auto_scroll_episode_wrapper.dart';
+import 'package:editvideo/modules/v2/home/controllers/video_detail_controller.dart';
 import 'package:editvideo/modules/v2/home/widget/episode_horizontal_cell.dart';
 import 'package:editvideo/modules/v2/home/widget/episode_vertical_cell.dart';
-import 'package:editvideo/modules/v2/home/widget/media/tv_season_view.dart';
-import 'package:editvideo/widget/media/media_player_control_panel.dart';
 import 'package:editvideo/modules/v2/home/widget/media_scroller_view.dart';
 import 'package:editvideo/modules/v2/home/widget/tab_page_view.dart';
+import 'package:editvideo/modules/v2/home/widget/video/video_auto_scroll_episode_wrapper.dart';
+import 'package:editvideo/modules/v2/home/widget/video/video_subtitle_settings_bottom_sheet.dart';
+import 'package:editvideo/modules/v2/home/widget/video/video_tv_season_view.dart';
 import 'package:editvideo/utils/common_ui.dart';
 import 'package:editvideo/utils/common_values.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/button/common_button.dart';
-import 'package:editvideo/modules/v2/home/widget/media/subtitle_settings_bottom_sheet.dart';
 import 'package:editvideo/widget/image/common_image_view.dart';
 import 'package:editvideo/widget/media/model/media_data_source.dart';
 import 'package:editvideo/widget/media/model/media_player_status.dart';
 import 'package:editvideo/widget/media/utils/fullscreen.dart';
+import 'package:editvideo/widget/media/video_player_control_panel.dart';
 import 'package:editvideo/widget/page_base.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:media_kit_video/media_kit_video.dart';
+import 'package:video_player/video_player.dart';
 
 /// 影片详情 单窗口播放视频
-class MediaDetailPage extends StatefulWidget {
-  const MediaDetailPage({super.key});
+class VideoDetailPage extends StatefulWidget {
+  const VideoDetailPage({super.key});
 
   static final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
   @override
-  State<MediaDetailPage> createState() => _MediaDetailPageState();
+  State<VideoDetailPage> createState() => _VideoDetailPageState();
 }
 
-class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, WidgetsBindingObserver {
-  late MediaDetailController controller;
+class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, WidgetsBindingObserver {
+  late VideoDetailController controller;
 
   late int mediaId;
   late bool isMultiOpen;
@@ -52,9 +52,9 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
     isMultiOpen = Get.arguments['isMultiOpen'] ?? false;
 
     if (!isMultiOpen) {
-      controller = Get.put(MediaDetailController());
+      controller = Get.put(VideoDetailController());
     } else {
-      controller = Get.put(MediaDetailController(), tag: '$mediaId');
+      controller = Get.put(VideoDetailController(), tag: '$mediaId');
     }
 
     fullScreenStatusListener();
@@ -68,7 +68,7 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<MediaDetailController>(
+    return GetBuilder<VideoDetailController>(
       tag: isMultiOpen ? '$mediaId' : null,
       builder: (controller) {
         return Obx(() {
@@ -193,29 +193,27 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
       fit: StackFit.expand,
       children: [
         Center(
-          child: Video(
-            key: ValueKey(controller.mediaId),
-            controller: controller.mediaPlayerController.videoController,
-            controls: NoVideoControls,
-            fill: CommonColors.color333333,
-            resumeUponEnteringForegroundMode: true,
-            subtitleViewConfiguration: SubtitleViewConfiguration(
-              style: TextStyle(
-                height: 1.5,
-                fontSize: 46.0,
-                letterSpacing: 0.0,
-                wordSpacing: 0.0,
-                color: CommonColors.white.withOpacity(0.9),
-                fontWeight: FontWeight.w500,
-                backgroundColor: Colors.transparent,
-              ),
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            ),
-          ),
+          child: Obx(() {
+            final isInitialized = controller.mediaPlayerController.isInitialized.value;
+            return isInitialized
+                ? AspectRatio(
+                    aspectRatio: controller.mediaPlayerController.playerController!.value.aspectRatio,
+                    child: VideoPlayer(controller.mediaPlayerController.playerController!),
+                  )
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      loadingIndicator(size: 30, strokeWidth: 2),
+                      SizedBox(height: 6),
+                      CommonText.instance('loading....', 12),
+                    ],
+                  );
+          }),
         ),
+
         // Center(child: danmaku),
         Center(
-          child: MediaPlayerControlPanel(
+          child: VideoPlayerControlPanel(
             controller.mediaPlayerController,
             onToggleFullScreen: (isFullscreen) {},
             onChooseEpisode: controller.showRightTvSeasonsDialog,
@@ -436,10 +434,10 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
 
     return Padding(
       padding: EdgeInsetsGeometry.symmetric(vertical: 16.w),
-      child: TvSeasonView(
+      child: VideoTvSeasonView(
         controller: controller,
         contentBuilder: (context, episodeList) {
-          return AutoScrollEpisodeWrapper(
+          return VideoAutoScrollEpisodeWrapper(
             controller: controller,
             episodeList: episodeList,
             calculateOffset: (index, viewportDimension) {
@@ -501,11 +499,11 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
                 color: CommonColors.color1B1B18,
                 borderRadius: BorderRadius.only(topLeft: Radius.circular(32.h), topRight: Radius.circular(32.h)),
               ),
-              child: TvSeasonView(
+              child: VideoTvSeasonView(
                 controller: controller,
                 isDialog: true,
                 contentBuilder: (context, episodeList) {
-                  return AutoScrollEpisodeWrapper(
+                  return VideoAutoScrollEpisodeWrapper(
                     controller: controller,
                     episodeList: episodeList,
                     calculateOffset: (index, viewportDimension) {
@@ -568,7 +566,7 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
                 color: CommonColors.color1B1B18,
                 borderRadius: BorderRadius.only(topLeft: Radius.circular(32.h), topRight: Radius.circular(32.h)),
               ),
-              child: SubtitleSettingsView(
+              child: VideoSubtitleSettingsBottomSheet(
                 controller: controller.mediaPlayerController,
                 onClose: controller.bottomSubtitleSettingsChanged,
                 isOpen: showBottomSubtitleSettings,
@@ -714,7 +712,7 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    MediaDetailPage.routeObserver.subscribe(this, ModalRoute.of(context)! as PageRoute);
+    VideoDetailPage.routeObserver.subscribe(this, ModalRoute.of(context)! as PageRoute);
   }
 
   @override

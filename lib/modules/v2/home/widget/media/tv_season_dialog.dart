@@ -1,8 +1,8 @@
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/modules/v2/home/controllers/media_detail_controller.dart';
 import 'package:editvideo/modules/v2/home/widget/episode_horizontal_cell.dart';
-import 'package:editvideo/modules/v2/home/widget/auto_scroll_episode_wrapper.dart';
-import 'package:editvideo/modules/v2/home/widget/tv_season_view.dart';
+import 'package:editvideo/modules/v2/home/widget/media/auto_scroll_episode_wrapper.dart';
+import 'package:editvideo/modules/v2/home/widget/media/tv_season_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

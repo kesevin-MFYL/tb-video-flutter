@@ -1,8 +1,9 @@
 import 'package:editvideo/config/network/api/common_api.dart';
 import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/models/home_section_entity.dart';
-import 'package:editvideo/modules/v2/home/controllers/base_media_detail_controller.dart';
-import 'package:editvideo/modules/v2/home/widget/media/tv_season_dialog.dart';
+import 'package:editvideo/modules/v2/home/controllers/base_video_detail_controller.dart';
+import 'package:editvideo/modules/v2/home/widget/video/video_subtitle_setting_dialog.dart';
+import 'package:editvideo/modules/v2/home/widget/video/video_tv_season_dialog.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:editvideo/utils/common_values.dart';
 import 'package:editvideo/utils/extension.dart';
@@ -14,7 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 /// 影片详情
-class MediaDetailController extends BaseMediaDetailController {
+class VideoDetailController extends BaseVideoDetailController {
   double get bottomHeight => Get.height - safeAreaEdgeInsets.top - videoHeight;
 
   double get videoHeight => Get.width * 9 / 16;
@@ -77,7 +78,7 @@ class MediaDetailController extends BaseMediaDetailController {
       barrierColor: Colors.transparent,
       transitionDuration: const Duration(milliseconds: 250),
       pageBuilder: (context, animation, secondaryAnimation) {
-        return TvSeasonDialog(controller: this);
+        return VideoTvSeasonDialog(controller: this);
       },
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         return SlideTransition(
@@ -104,7 +105,7 @@ class MediaDetailController extends BaseMediaDetailController {
         barrierColor: Colors.transparent,
         transitionDuration: const Duration(milliseconds: 250),
         pageBuilder: (context, animation, secondaryAnimation) {
-          return SubtitleSettingsDialog(controller: mediaPlayerController);
+          return VideoSubtitleSettingDialog(controller: mediaPlayerController);
         },
         transitionBuilder: (context, animation, secondaryAnimation, child) {
           return SlideTransition(
