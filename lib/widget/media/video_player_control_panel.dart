@@ -147,7 +147,7 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
           },
           onDoubleTap: () {
             // 数据加载中或错误 禁用
-            if (mediaPlayerController.isInitialized.value || mediaPlayerController.hasError.value) return;
+            if (!mediaPlayerController.isInitialized.value || mediaPlayerController.hasError.value) return;
 
             // 缓存中或锁定时🔒禁用
             if (mediaPlayerController.isBuffering.value || mediaPlayerController.controlsLock.value) return;
@@ -157,7 +157,7 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
           },
           onLongPress: () {
             // 数据加载中或错误 禁用
-            if (mediaPlayerController.isInitialized.value || mediaPlayerController.hasError.value) return;
+            if (!mediaPlayerController.isInitialized.value || mediaPlayerController.hasError.value) return;
 
             // 缓存中或锁定时🔒禁用
             if (mediaPlayerController.isBuffering.value || mediaPlayerController.controlsLock.value) return;
@@ -169,7 +169,7 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
           },
           onLongPressEnd: (details) {
             // 数据加载中或错误 禁用
-            if (mediaPlayerController.isInitialized.value || mediaPlayerController.hasError.value) return;
+            if (!mediaPlayerController.isInitialized.value || mediaPlayerController.hasError.value) return;
 
             // 缓存中或锁定时🔒禁用
             if (mediaPlayerController.isBuffering.value || mediaPlayerController.controlsLock.value) return;
@@ -180,17 +180,16 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
           },
           onHorizontalDragStart: (details) {
             // 数据加载中或错误 禁用
-            if (mediaPlayerController.isInitialized.value || mediaPlayerController.hasError.value) return;
+            if (!mediaPlayerController.isInitialized.value || mediaPlayerController.hasError.value) return;
 
             // 缓存中或锁定时🔒禁用
             if (mediaPlayerController.isBuffering.value || mediaPlayerController.controlsLock.value) return;
 
-            print('1111111----333');
             tempSliderPosition = mediaPlayerController.currentPosition.value;
           },
           onHorizontalDragUpdate: (details) {
             // 数据加载中或错误 禁用
-            if (mediaPlayerController.isInitialized.value || mediaPlayerController.hasError.value) return;
+            if (!mediaPlayerController.isInitialized.value || mediaPlayerController.hasError.value) return;
 
             // 缓存中或锁定时🔒禁用
             if (mediaPlayerController.isBuffering.value || mediaPlayerController.controlsLock.value) return;
@@ -205,14 +204,13 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
             if (resultMs > maxMs) resultMs = maxMs;
             final Duration result = Duration(milliseconds: resultMs);
 
-            print('1111111----3444444');
             mediaPlayerController.sliderPosition.value = result;
             mediaPlayerController.isSliderMoving.value = true;
             mediaPlayerController.seekPreview(result);
           },
           onHorizontalDragEnd: (details) {
             // 数据加载中或错误 禁用
-            if (mediaPlayerController.isInitialized.value || mediaPlayerController.hasError.value) return;
+            if (!mediaPlayerController.isInitialized.value || mediaPlayerController.hasError.value) return;
 
             // 缓存中或锁定时🔒禁用
             if (mediaPlayerController.isBuffering.value || mediaPlayerController.controlsLock.value) return;
@@ -222,7 +220,7 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
           },
           onVerticalDragUpdate: (DragUpdateDetails details) async {
             // 数据加载中或错误 禁用
-            if (mediaPlayerController.isInitialized.value || mediaPlayerController.hasError.value) return;
+            if (!mediaPlayerController.isInitialized.value || mediaPlayerController.hasError.value) return;
 
             final double totalWidth = MediaQuery.sizeOf(context).width;
             final double tapPosition = details.localPosition.dx;
@@ -236,8 +234,7 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
 
             if (tapPosition < sectionWidth) {
               // 左边区域 👈
-              final double level =
-                  (isFullscreen ? Get.size.height : screenWidth * 9 / 16) * 3;
+              final double level = (isFullscreen ? Get.size.height : screenWidth * 9 / 16) * 3;
               final double brightness = _brightnessValue.value - delta / level;
               final double result = brightness.clamp(0.0, 1.0);
               setBrightness(result);
@@ -251,7 +248,35 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
           onVerticalDragEnd: (DragEndDetails details) {},
         ),
 
-        /// 数据加载错误或缓存中
+        // 字幕
+        Obx(() {
+          final isFullScreen = isFullscreen;
+          final openCaptions = mediaPlayerController.openCaptions.value;
+          final subTitle = mediaPlayerController.subTitle.value;
+          return Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: IgnorePointer(
+              ignoring: true,
+              child: Visibility(
+                visible: openCaptions,
+                child: Padding(
+                  padding: EdgeInsets.only(left: isFullScreen ? 56 : 20, right: isFullScreen ? 56 : 20, bottom: 16),
+                  child: CommonText.instance(
+                    subTitle,
+                    isFullScreen ? 16 : 12,
+                    color: CommonColors.white.withOpacity(0.9),
+                    textAlign: TextAlign.center,
+                    fontWeight: CommonFontWeight.medium,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }),
+
+        // 数据加载错误或缓存中
         Obx(() {
           if (mediaPlayerController.hasError.value) {
             return Container(
@@ -260,8 +285,7 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (isFullscreen)
-                      Image.asset(Assets.commonIconFullscreenEmpty, width: 160, height: 160),
+                    if (isFullscreen) Image.asset(Assets.commonIconFullscreenEmpty, width: 160, height: 160),
 
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 32),
@@ -488,9 +512,11 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
                                 child: Obx(() {
                                   final hasNext = mediaPlayerController.hasNextEpisode.value;
                                   return GestureDetector(
-                                    onTap: hasNext ? () {
-                                      widget.onNextPlay?.call();
-                                    } : null,
+                                    onTap: hasNext
+                                        ? () {
+                                            widget.onNextPlay?.call();
+                                          }
+                                        : null,
                                     child: Opacity(
                                       opacity: hasNext ? 1.0 : 0.5,
                                       child: Image.asset(Assets.commonIconVideoPlayNext, width: 32, height: 32),
@@ -569,7 +595,10 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
                             // 横屏、竖屏
                             GestureDetector(
                               onTap: () {
-                                mediaPlayerController.triggerFullScreen(status: !isFullScreen, onToggleFullScreen: widget.onToggleFullScreen);
+                                mediaPlayerController.triggerFullScreen(
+                                  status: !isFullScreen,
+                                  onToggleFullScreen: widget.onToggleFullScreen,
+                                );
                               },
                               child: Image.asset(
                                 isFullScreen ? Assets.commonIconPortrait : Assets.commonIconLandscape,
@@ -697,7 +726,8 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (mediaPlayerController.previewPlayerController != null && mediaPlayerController.previewPlayerController!.value.isInitialized)
+                if (mediaPlayerController.previewPlayerController != null &&
+                    mediaPlayerController.previewPlayerController!.value.isInitialized)
                   Container(
                     width: isFullScreen ? 130 : 90,
                     height: isFullScreen ? 73 : 51,

@@ -125,14 +125,17 @@ class PlayerController {
   /// 字幕列表
   var captionList = <CaptionEntity>[].obs;
 
+  /// 字幕内容
+  final subTitle = ''.obs;
+
+  /// 解析后的字幕列表
+  List<SubtitleItem> _parsedSubtitles = [];
+
   /// 当前选中的字幕
   final selectedCaption = Rx<CaptionEntity?>(null);
 
   /// 弹幕开关
   final isOpenDanmu = false.obs;
-
-  /// 是否已经为当前媒体初始化过字幕
-  bool _isSubtitleInitializedForCurrentMedia = false;
 
   /// 是否已经提交过当前视频
   bool _hasSubmittedVideo = false;
@@ -192,7 +195,7 @@ class PlayerController {
   }
 
   /// 配置播放器
-  Future<void> _createVideoController(MediaDataSource dataSource) async {
+  Future<void> _createVideoController(MediaDataSource dataSource, Duration initVideoPosition) async {
     try {
       final originalUrl = dataSource.videoSource!.toOriginUrl();
       if (originalUrl.startsWith('http') || originalUrl.startsWith('https')) {
@@ -210,6 +213,7 @@ class PlayerController {
       totalDuration.value = playerController!.value.duration;
       // 自动播放视频
       if (autoPlay) {
+        seekTo(initVideoPosition);
         play();
       }
     } catch (e) {
@@ -218,7 +222,7 @@ class PlayerController {
   }
 
   /// 配置预览播放器
-  Future<void> _createPreviewController(MediaDataSource dataSource) async {
+  Future<void> _createPreviewController(MediaDataSource dataSource, Duration initVideoPosition) async {
     try {
       final originalUrl = dataSource.videoSource!.toOriginUrl();
       if (originalUrl.startsWith('http') || originalUrl.startsWith('https')) {
@@ -287,10 +291,10 @@ class PlayerController {
       hasError.value = false;
 
       // 配置Player
-      await _createVideoController(dataSource);
+      await _createVideoController(dataSource, initVideoPosition);
 
       // 配置预览Player
-      _createPreviewController(dataSource);
+      _createPreviewController(dataSource, initVideoPosition);
 
       // 添加监听
       addListeners();
@@ -455,89 +459,95 @@ class PlayerController {
   }
 
   Future<void> initSubtitles() async {
-    // if (captionList.isEmpty) {
-    //   openCaptions.value = false;
-    //   selectedCaption.value = null;
-    //   commonDebugPrint('PlayerController: 没有字幕');
-    //   await playerController.setSubtitleTrack(SubtitleTrack.no());
-    //   return;
-    // }
-    //
-    // CaptionEntity? targetCaption;
-    //
-    // // 1. Match system language
-    // final String? sysLangCode = Get.deviceLocale?.languageCode;
-    // commonDebugPrint('PlayerController: 当前系统语言$sysLangCode');
-    // if (sysLangCode != null) {
-    //   targetCaption = captionList.firstWhereOrNull(
-    //     (c) => c.shortName?.toLowerCase().startsWith(sysLangCode.toLowerCase()) == true,
-    //   );
-    // }
-    // if (targetCaption != null) {
-    //   commonDebugPrint('PlayerController: 匹配到系统语言字幕: ${targetCaption.name}');
-    // } else {
-    //   commonDebugPrint('PlayerController: 没有匹配到系统语言字幕');
-    // }
-    //
-    // // 2. Fallback to English
-    // targetCaption ??= captionList.firstWhereOrNull((c) => c.shortName?.toLowerCase().startsWith('en') == true);
-    //
-    // if (targetCaption != null) {
-    //   commonDebugPrint('PlayerController: 匹配到英文字幕: ${targetCaption.name}');
-    // } else {
-    //   commonDebugPrint('PlayerController: 没有匹配到英文字幕');
-    // }
-    //
-    // // 3. Fallback to first
-    // targetCaption ??= captionList.first;
-    //
-    // selectedCaption.value = targetCaption;
-    // // 默认展示
-    // openCaptions.value = true;
-    //
-    // _applySubtitle();
+    if (captionList.isEmpty) {
+      openCaptions.value = false;
+      selectedCaption.value = null;
+      commonDebugPrint('PlayerController: 没有字幕');
+      subTitle.value = '';
+      _parsedSubtitles.clear();
+      return;
+    }
+
+    CaptionEntity? targetCaption;
+
+    // 1. Match system language
+    final String? sysLangCode = Get.deviceLocale?.languageCode;
+    commonDebugPrint('PlayerController: 当前系统语言$sysLangCode');
+    if (sysLangCode != null) {
+      targetCaption = captionList.firstWhereOrNull(
+        (c) => c.shortName?.toLowerCase().startsWith(sysLangCode.toLowerCase()) == true,
+      );
+    }
+    if (targetCaption != null) {
+      commonDebugPrint('PlayerController: 匹配到系统语言字幕: ${targetCaption.name}');
+    } else {
+      commonDebugPrint('PlayerController: 没有匹配到系统语言字幕');
+    }
+
+    // 2. Fallback to English
+    targetCaption ??= captionList.firstWhereOrNull((c) => c.shortName?.toLowerCase().startsWith('en') == true);
+
+    if (targetCaption != null) {
+      commonDebugPrint('PlayerController: 匹配到英文字幕: ${targetCaption.name}');
+    } else {
+      commonDebugPrint('PlayerController: 没有匹配到英文字幕');
+    }
+
+    // 3. Fallback to first
+    targetCaption ??= captionList.first;
+
+    selectedCaption.value = targetCaption;
+    // 默认展示
+    openCaptions.value = true;
+
+    _applySubtitle();
   }
 
   Future<void> _applySubtitle() async {
-    // if (!openCaptions.value || selectedCaption.value == null || selectedCaption.value!.s3Address.isEmptyString()) {
-    //   await mediaPlayer.setSubtitleTrack(SubtitleTrack.no());
-    //   return;
-    // }
-    //
-    // final url = selectedCaption.value!.s3Address!;
-    // int retryCount = 0;
-    // const maxRetries = 5;
-    //
-    // while (retryCount < maxRetries) {
-    //   // 如果在重试期间切换了字幕，则终止当前任务
-    //   if (selectedCaption.value?.s3Address != url) {
-    //     commonDebugPrint('MediaPlayer setSubtitleTrack aborted: subtitle changed');
-    //     return;
-    //   }
-    //
-    //   try {
-    //     final dio = Dio();
-    //     final response = await dio.get(url);
-    //     if (response.data != null && response.data.toString().isNotEmpty) {
-    //       // 再次检查是否被切换
-    //       if (selectedCaption.value?.s3Address != url) return;
-    //
-    //       final subtitleData = response.data.toString();
-    //       await mediaPlayer.setSubtitleTrack(SubtitleTrack.data(subtitleData));
-    //       commonDebugPrint('PlayerController: 设置字幕成功: ${selectedCaption.value!.name}');
-    //       return;
-    //     }
-    //   } catch (e) {
-    //     commonDebugPrint('PlayerController: 设置字幕失败: $e');
-    //   }
-    //
-    //   retryCount++;
-    //   if (retryCount < maxRetries) {
-    //     await Future.delayed(const Duration(seconds: 2));
-    //   }
-    // }
-    //
-    // commonDebugPrint('MediaPlayer setSubtitleTrack failed after $maxRetries retries');
+    if (!openCaptions.value || selectedCaption.value == null || selectedCaption.value!.s3Address.isEmptyString()) {
+      subTitle.value = '';
+      _parsedSubtitles.clear();
+      return;
+    }
+
+    final url = selectedCaption.value!.s3Address!;
+    _parsedSubtitles.clear();
+    subTitle.value = '';
+    
+    int retryCount = 0;
+    const maxRetries = 5;
+
+    while (retryCount < maxRetries) {
+      // 如果在重试期间切换了字幕，则终止当前任务
+      if (selectedCaption.value?.s3Address != url) {
+        commonDebugPrint('MediaPlayer setSubtitleTrack aborted: subtitle changed');
+        return;
+      }
+
+      try {
+        final dio = Dio();
+        final response = await dio.get(url);
+        if (response.data != null && response.data.toString().isNotEmpty) {
+          // 再次检查是否被切换
+          if (selectedCaption.value?.s3Address != url) return;
+
+          final subtitleData = response.data.toString();
+          _parsedSubtitles = _parseSubtitles(subtitleData);
+          _updateSubtitle(currentPosition.value);
+          commonDebugPrint('PlayerController: 设置字幕成功: ${selectedCaption.value!.name}');
+          return;
+        }
+      } catch (e) {
+        commonDebugPrint('PlayerController: 设置字幕失败: $e');
+      }
+
+      retryCount++;
+      if (retryCount < maxRetries) {
+        await Future.delayed(const Duration(seconds: 2));
+      }
+    }
+
+    commonDebugPrint('MediaPlayer setSubtitleTrack failed after $maxRetries retries');
   }
 
   /// 手动设置字幕
@@ -552,11 +562,121 @@ class PlayerController {
     await _applySubtitle();
   }
 
+  void _updateSubtitle(Duration currentPos) {
+    if (!openCaptions.value || _parsedSubtitles.isEmpty) {
+      if (subTitle.value.isNotEmpty) {
+        subTitle.value = '';
+      }
+      return;
+    }
+
+    SubtitleItem? currentSub;
+    int low = 0;
+    int high = _parsedSubtitles.length - 1;
+
+    while (low <= high) {
+      int mid = (low + high) ~/ 2;
+      var sub = _parsedSubtitles[mid];
+      if (currentPos >= sub.startTime && currentPos <= sub.endTime) {
+        currentSub = sub;
+        break;
+      } else if (currentPos < sub.startTime) {
+        high = mid - 1;
+      } else {
+        low = mid + 1;
+      }
+    }
+
+    final newText = currentSub?.text ?? '';
+    if (subTitle.value != newText) {
+      subTitle.value = newText;
+    }
+  }
+
+  List<SubtitleItem> _parseSubtitles(String subtitleData) {
+    List<SubtitleItem> subtitles = [];
+    final lines = subtitleData.split(RegExp(r'\r\n|\n|\r'));
+
+    Duration? currentStartTime;
+    Duration? currentEndTime;
+    List<String> currentTextLines = [];
+
+    final timeRegExp = RegExp(r'((?:\d{2}:)?\d{2}:\d{2}[.,]\d{3})\s*-->\s*((?:\d{2}:)?\d{2}:\d{2}[.,]\d{3})');
+
+    for (int i = 0; i < lines.length; i++) {
+      final line = lines[i].trim();
+
+      if (line.isEmpty) {
+        if (currentStartTime != null && currentEndTime != null && currentTextLines.isNotEmpty) {
+          subtitles.add(SubtitleItem(
+            startTime: currentStartTime,
+            endTime: currentEndTime,
+            text: currentTextLines.join('\n'),
+          ));
+        }
+        currentStartTime = null;
+        currentEndTime = null;
+        currentTextLines = [];
+        continue;
+      }
+
+      final match = timeRegExp.firstMatch(line);
+      if (match != null) {
+        if (currentStartTime != null && currentEndTime != null && currentTextLines.isNotEmpty) {
+          subtitles.add(SubtitleItem(
+            startTime: currentStartTime,
+            endTime: currentEndTime,
+            text: currentTextLines.join('\n'),
+          ));
+          currentTextLines = [];
+        }
+        currentStartTime = _parseTime(match.group(1)!);
+        currentEndTime = _parseTime(match.group(2)!);
+      } else if (currentStartTime != null && currentEndTime != null) {
+        var text = line.replaceAll(RegExp(r'<[^>]*>'), '');
+        currentTextLines.add(text);
+      }
+    }
+
+    if (currentStartTime != null && currentEndTime != null && currentTextLines.isNotEmpty) {
+      subtitles.add(SubtitleItem(
+        startTime: currentStartTime,
+        endTime: currentEndTime,
+        text: currentTextLines.join('\n'),
+      ));
+    }
+
+    return subtitles;
+  }
+
+  Duration _parseTime(String timeString) {
+    timeString = timeString.replaceAll(',', '.');
+    final parts = timeString.split('.');
+    final ms = int.parse(parts[1]);
+    final timeParts = parts[0].split(':');
+
+    int hours = 0;
+    int minutes = 0;
+    int seconds = 0;
+
+    if (timeParts.length == 3) {
+      hours = int.parse(timeParts[0]);
+      minutes = int.parse(timeParts[1]);
+      seconds = int.parse(timeParts[2]);
+    } else if (timeParts.length == 2) {
+      minutes = int.parse(timeParts[0]);
+      seconds = int.parse(timeParts[1]);
+    }
+
+    return Duration(hours: hours, minutes: minutes, seconds: seconds, milliseconds: ms);
+  }
+
   /// 重置字幕
   Future<void> resetSubtitle() async {
     openCaptions.value = false;
     captionList.clear();
     selectedCaption.value = null;
+    _parsedSubtitles.clear();
     setSubtitle(isOpen: false);
   }
 
@@ -621,6 +741,8 @@ class PlayerController {
     final value = playerController!.value;
     final pos = value.position;
     currentPosition.value = pos >= Duration.zero ? pos : Duration.zero;
+
+    _updateSubtitle(currentPosition.value);
 
     if (pos.inMilliseconds > 0) {
       firstLoad = false;
@@ -756,8 +878,6 @@ class PlayerController {
     playerController?.dispose();
     isInitialized.value = false;
 
-    // 是否已初始化字幕
-    _isSubtitleInitializedForCurrentMedia = false;
     // 是否已提交视频信息
     _hasSubmittedVideo = false;
     // 缓存状态，初始化为true，避免开始播放前的灰色等待时间
@@ -769,6 +889,8 @@ class PlayerController {
     // 上一次的播放时间
     _lastPositionSeconds = 0;
     _needRecordImmediately = true;
+    subTitle.value = '';
+    _parsedSubtitles.clear();
   }
 
   Future<void> dispose() async {
@@ -790,4 +912,16 @@ class PlayerController {
       commonDebugPrint('PlayerController dispose error: $err');
     }
   }
+}
+
+class SubtitleItem {
+  final Duration startTime;
+  final Duration endTime;
+  final String text;
+
+  SubtitleItem({
+    required this.startTime,
+    required this.endTime,
+    required this.text,
+  });
 }
