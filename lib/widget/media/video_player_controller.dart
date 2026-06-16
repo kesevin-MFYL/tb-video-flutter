@@ -741,7 +741,14 @@ class PlayerController {
     
     final value = playerController!.value;
     final pos = value.position;
-    currentPosition.value = pos >= Duration.zero ? pos : Duration.zero;
+    if (isOnline) {
+      currentPosition.value = pos >= Duration.zero ? pos : Duration.zero;
+    } else {
+      if (pos > Duration.zero) {
+        currentPosition.value = pos;
+      }
+    }
+
 
     _updateSubtitle(currentPosition.value);
 
