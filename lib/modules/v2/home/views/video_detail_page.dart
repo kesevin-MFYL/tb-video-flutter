@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/generated/assets.dart';
+import 'package:editvideo/manager/event_manager.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/modules/v2/home/controllers/video_detail_controller.dart';
 import 'package:editvideo/modules/v2/home/widget/episode_horizontal_cell.dart';
@@ -43,6 +46,8 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
   late int mediaId;
   late bool isMultiOpen;
 
+  late StreamSubscription<EventBusModel> _playVideoSubscription;
+
   @override
   void initState() {
     super.initState();
@@ -57,8 +62,8 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
       controller = Get.put(VideoDetailController(), tag: '$mediaId');
     }
 
-    fullScreenStatusListener();
     lifecycleListener();
+    fullScreenStatusListener();
     initPlayerStatusListener();
   }
 
@@ -729,17 +734,11 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
 
   // 生命周期监听
   void lifecycleListener() {
-    // _lifecycleListener = AppLifecycleListener(
-    //   // onResume: () => _handleTransition('resume'),
-    //   // 后台
-    //   // onInactive: () => _handleTransition('inactive'),
-    //   // 在Android和iOS端不生效
-    //   // onHide: () => _handleTransition('hide'),
-    //   onShow: () => _handleTransition('show'),
-    //   onPause: () => _handleTransition('pause'),
-    //   onRestart: () => _handleTransition('restart'),
-    //   onDetach: () => _handleTransition('detach'),
-    // );
+    _playVideoSubscription = EventBusManager.instance.addObserver(EventBusName.playVideo, (value) async {
+      if (controller.mediaPlayerController.isInitialized.value && !controller.mediaPlayerController.playerController!.value.isPlaying) {
+        controller.mediaPlayerController.play();
+      }
+    });
   }
 
   @override
@@ -751,6 +750,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _playVideoSubscription.cancel();
     super.dispose();
   }
 }

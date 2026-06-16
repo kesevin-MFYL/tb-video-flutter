@@ -374,9 +374,9 @@ class PlayerController {
         position = Duration.zero;
       }
       currentPosition.value = position;
-      _needRecordImmediately = true;
       if (totalDuration.value.inSeconds != 0) {
         await playerController?.seekTo(position);
+        _needRecordImmediately = true;
 
         _startHideTimer();
       }
