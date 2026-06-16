@@ -16,11 +16,12 @@ class SearchMediaCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        GestureDetector(
-          onTap: () => action?.call(mediaItem),
-          child: Container(
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: () => action?.call(mediaItem),
+      child: Stack(
+        children: [
+          Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16.r),
               color: CommonColors.color333333,
@@ -41,26 +42,26 @@ class SearchMediaCell extends StatelessWidget {
               ),
             ),
           ),
-        ),
 
-        Positioned(
-          left: 92.w,
-          right: 0,
-          top: 12.w,
-          bottom: 12.w,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHighlightedText(mediaItem.title ?? '', keyword),
-              if (mediaItem.certification.isNotEmptyString()) _buildTag(tagName: mediaItem.certification!),
-              if ((mediaItem.countryCodeList != null && mediaItem.countryCodeList!.isNotEmpty) ||
-                  mediaItem.year.isNotEmptyString())
-                CommonText.instance(_getCountryYearText(), 12.sp, color: CommonColors.primaryColor.withOpacity(0.5)),
-            ],
+          Positioned(
+            left: 92.w,
+            right: 0,
+            top: 12.w,
+            bottom: 12.w,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHighlightedText(mediaItem.title ?? '', keyword),
+                if (mediaItem.certification.isNotEmptyString()) _buildTag(tagName: mediaItem.certification!),
+                if ((mediaItem.countryCodeList != null && mediaItem.countryCodeList!.isNotEmpty) ||
+                    mediaItem.year.isNotEmptyString())
+                  CommonText.instance(_getCountryYearText(), 12.sp, color: CommonColors.primaryColor.withOpacity(0.5)),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

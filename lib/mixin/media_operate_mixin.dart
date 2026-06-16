@@ -1,4 +1,4 @@
-import 'package:editvideo/modules/v2/home/controllers/media_detail_controller.dart';
+import 'package:editvideo/modules/v2/home/controllers/video_detail_controller.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:get/get.dart';
 
@@ -17,9 +17,9 @@ mixin MediaOperateMixin {
   void toMediaDetailSinglePage({int? mediaId, int? mediaType}) {
     if (mediaId == null || mediaType == null) return;
 
-    if (Get.isRegistered<MediaDetailController>()) {
+    if (Get.isRegistered<VideoDetailController>()) {
       // 已存在播放详情
-      final controller = Get.find<MediaDetailController>();
+      final controller = Get.find<VideoDetailController>();
       if (controller.mediaId != mediaId) {
         // 当前播放的视频和要打开的视频不一致
         controller.changePlay(mediaId: mediaId, mediaType: mediaType);
