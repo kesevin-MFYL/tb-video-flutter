@@ -126,7 +126,14 @@ class InterstitialAdManager {
         commonDebugPrint('InterstitialAdManager: $ad onAdDismissedFullScreenContent for scenario: $scenario');
         _isShowingAd = false;
         disposeAd(scenario); // 用户关闭广告后销毁并清理缓存
-        if (onAdDismissed != null) onAdDismissed(true); // 触发回调通知调度器重新拉取备用广告
+
+        // 在原生全屏广告关闭时，给 Flutter 渲染一点恢复的缓冲时间（比如 100 毫秒）
+        // 否则可能会因为原生转场动画和 GetX 路由切换同时发生而导致界面僵死或延迟
+        if (onAdDismissed != null) {
+          Future.delayed(const Duration(milliseconds: 100), () {
+            onAdDismissed(true); // 触发回调通知调度器重新拉取备用广告
+          });
+        }
       },
     );
     
