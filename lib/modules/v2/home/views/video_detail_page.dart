@@ -457,14 +457,22 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CommonButton(
-                    minSize: 54.w,
-                    borderRadius: BorderRadius.circular(22.r),
-                    color: CommonColors.color333333,
-                    child: ClipOval(
-                      child: CommonImageView.normal(imageUrl: entity.cover, width: 54.w, height: 54.w),
+                  ClipOval(
+                    child: CommonButton(
+                      minSize: 54.w,
+                      borderRadius: BorderRadius.circular(27.r),
+                      color: CommonColors.color333333,
+                      child: CommonImageView.normal(
+                        imageUrl: entity.cover,
+                        width: 54.w,
+                        height: 54.w,
+                        errorWidget: (context, url, error) {
+                          return const SizedBox();
+                        },
+                      ),
                     ),
                   ),
+
                   SizedBox(height: 8.h),
                   CommonText.instance(
                     entity.name ?? '--',

@@ -357,6 +357,16 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
               ignoring: !showControls,
               child: Stack(
                 children: [
+                  // 蒙层
+                  if (isFullScreen)
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: Container(
+                          color: CommonColors.black.withOpacity(0.3),
+                        ),
+                      ),
+                    ),
+
                   // 锁
                   if (isFullScreen)
                     Align(
