@@ -60,6 +60,7 @@ class HomeBPage extends GetView<HomeBController> {
                                 child: Container(
                                   padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.w),
                                   decoration: BoxDecoration(
+                                    color: CommonColors.color060600,
                                     borderRadius: BorderRadius.circular(24.r),
                                     border: Border.all(color: CommonColors.primaryColor, width: 1.w),
                                   ),
@@ -107,7 +108,8 @@ class HomeBPage extends GetView<HomeBController> {
                                   final sectionType = SectionType.kind(section.kind);
                                   return _buildVideoSection(sectionType: sectionType, section: section);
                                 }),
-                                SliverToBoxAdapter(child: SizedBox(height: 34.w)),
+
+                                SliverToBoxAdapter(child: Container(height: 16.w)),
                               ],
                             ),
                           ),

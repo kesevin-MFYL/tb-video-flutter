@@ -56,7 +56,7 @@ extension CommonText on Text {
     return Text(
       text,
       maxLines: maxLines,
-      strutStyle: strutStyle ?? const StrutStyle(forceStrutHeight: true, height: 1.0, leading: 0),
+      strutStyle: strutStyle,
       style: CommonTextStyle.instance(
         fontSize,
         color: color,

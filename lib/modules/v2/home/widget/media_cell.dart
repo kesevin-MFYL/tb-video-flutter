@@ -95,19 +95,30 @@ class MediaCell extends StatelessWidget {
                             colors: [CommonColors.color060600.withOpacity(0), CommonColors.color060600],
                           ),
                         ),
-                        child: CommonButton(
-                          minSize: 20.w,
-                          alignment: Alignment.centerLeft,
-                          borderRadius: BorderRadius.circular(10.r),
-                          spacing: 4.w,
-                          suffixDirectional: SuffixDirectional.left,
-                          suffixWidget: Image.asset(Assets.commonIconVideoList, width: 16.w, height: 16.w),
-                          child: CommonText.instance(
-                            'List',
-                            10.sp,
-                            color: CommonColors.white.withOpacity(0.8),
-                            fontWeight: CommonFontWeight.medium,
-                          ),
+                        child: Row(
+                          children: [
+                            Container(
+                              height: 20.w,
+                              padding: EdgeInsets.only(left: 4.w, right: 8.w),
+                              decoration: BoxDecoration(
+                                color: CommonColors.color84705C.withOpacity(0.5),
+                                borderRadius: BorderRadius.circular(10.r),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Image.asset(Assets.commonIconVideoList, width: 16.w, height: 16.w),
+                                  SizedBox(width: 4.w),
+                                  CommonText.instance(
+                                    'List',
+                                    10.sp,
+                                    color: CommonColors.white.withOpacity(0.8),
+                                    fontWeight: CommonFontWeight.medium,
+                                  ),
+                                ],
+                              ),
+                            )
+                          ],
                         ),
                       ),
                     ),
@@ -119,6 +130,7 @@ class MediaCell extends StatelessWidget {
               mediaItem.title ?? '',
               12.sp,
               fontWeight: CommonFontWeight.medium,
+              strutStyle: const StrutStyle(forceStrutHeight: true, height: 1.0, leading: 0),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),

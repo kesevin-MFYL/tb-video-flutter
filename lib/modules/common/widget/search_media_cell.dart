@@ -91,7 +91,6 @@ class SearchMediaCell extends StatelessWidget {
       return CommonText.instance(
         text,
         14.sp,
-        color: CommonColors.white.withOpacity(0.5),
         fontWeight: CommonFontWeight.bold,
       );
     }
@@ -105,7 +104,7 @@ class SearchMediaCell extends StatelessWidget {
         spans.add(
           TextSpan(
             text: match.group(0),
-            style: CommonTextStyle.instance(14.sp, fontWeight: CommonFontWeight.bold),
+            style: CommonTextStyle.instance(14.sp, color: CommonColors.primaryColor, fontWeight: CommonFontWeight.bold),
           ),
         );
         return '';
@@ -117,7 +116,6 @@ class SearchMediaCell extends StatelessWidget {
               text: nonMatch,
               style: CommonTextStyle.instance(
                 14.sp,
-                color: CommonColors.white.withOpacity(0.5),
                 fontWeight: CommonFontWeight.bold,
               ),
             ),

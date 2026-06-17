@@ -156,7 +156,7 @@ class InterestDetailPage extends GetView<InterestDetailController> {
                           },
                         ),
 
-                      SliverToBoxAdapter(child: SizedBox(height: 16.w)),
+                      SliverToBoxAdapter(child: SizedBox(height: 32.w)),
                     ],
                   ),
                 ),
@@ -196,6 +196,7 @@ class InterestDetailPage extends GetView<InterestDetailController> {
               controller.interestDetailEntity?.description ?? '',
               14.sp,
               color: CommonColors.white.withOpacity(0.5),
+              strutStyle: const StrutStyle(forceStrutHeight: true, height: 1.4, leading: 0),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
             ),

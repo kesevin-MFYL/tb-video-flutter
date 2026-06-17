@@ -20,46 +20,57 @@ class HistoryPage extends GetView<HistoryController> {
       builder: (controller) {
         return PageBase(
           hasAppBar: false,
-          child: SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(),
-
-                Expanded(
-                  child: MultiStatusView(
-                    hasAppBar: false,
-                    currentStatus: controller.multiStatusType,
-                    emptyText: 'You haven\'t watched any videoshere yet',
-                    child: Obx(() {
-                      return SingleChildScrollView(
-                        padding: EdgeInsets.only(bottom: controller.isEdit.value ? 32.w : 0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (controller.todayList.isNotEmpty) ...[
-                              _buildSectionTitle('Today', assets: Assets.commonIconToday),
-                              ...controller.todayList.map((item) => _buildItem(item)),
-                              SizedBox(height: 16.w),
-                            ],
-                            if (controller.yesterdayList.isNotEmpty) ...[
-                              _buildSectionTitle('Yesterday'),
-                              ...controller.yesterdayList.map((item) => _buildItem(item)),
-                              SizedBox(height: 16.w),
-                            ],
-                            if (controller.earlyList.isNotEmpty) ...[
-                              _buildSectionTitle('Early'),
-                              ...controller.earlyList.map((item) => _buildItem(item)),
-                            ],
-                          ],
-                        ),
-                      );
-                    }),
-                  ),
+          child: Stack(
+            children: [
+              Container(
+                height: 128.w,
+                decoration: const BoxDecoration(
+                  image: DecorationImage(fit: BoxFit.cover, image: AssetImage(Assets.commonIconSearchBg)),
                 ),
-              ],
-            ),
-          ),
+              ),
+
+              SafeArea(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(),
+
+                    Expanded(
+                      child: MultiStatusView(
+                        hasAppBar: false,
+                        currentStatus: controller.multiStatusType,
+                        emptyText: 'You haven\'t watched any videoshere yet',
+                        child: Obx(() {
+                          return SingleChildScrollView(
+                            padding: EdgeInsets.only(bottom: controller.isEdit.value ? 32.w : 0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (controller.todayList.isNotEmpty) ...[
+                                  _buildSectionTitle('Today', assets: Assets.commonIconToday),
+                                  ...controller.todayList.map((item) => _buildItem(item)),
+                                  SizedBox(height: 16.w),
+                                ],
+                                if (controller.yesterdayList.isNotEmpty) ...[
+                                  _buildSectionTitle('Yesterday'),
+                                  ...controller.yesterdayList.map((item) => _buildItem(item)),
+                                  SizedBox(height: 16.w),
+                                ],
+                                if (controller.earlyList.isNotEmpty) ...[
+                                  _buildSectionTitle('Early'),
+                                  ...controller.earlyList.map((item) => _buildItem(item)),
+                                ],
+                              ],
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          )
         );
       },
     );
@@ -67,7 +78,8 @@ class HistoryPage extends GetView<HistoryController> {
 
   Widget _buildHeader() {
     return Container(
-      height: 72.w,
+      height: 48.w,
+      margin: EdgeInsets.only(top: 8.w, bottom: 16.w),
       padding: EdgeInsets.symmetric(horizontal: 16.w),
       child: Obx(() {
         final isEdit = controller.isEdit.value;
@@ -114,7 +126,7 @@ class HistoryPage extends GetView<HistoryController> {
 
   Widget _buildSectionTitle(String title, {String? assets}) {
     return Padding(
-      padding: EdgeInsets.only(left: 16.w, right: 16.w, bottom: 20.w),
+      padding: EdgeInsets.only(left: 16.w, right: 16.w, bottom: 16.w),
       child: Row(
         children: [
           if (assets.isNotEmptyString()) ...[Image.asset(assets!, width: 24.w, height: 24.w), SizedBox(width: 8.w)],

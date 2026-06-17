@@ -54,6 +54,7 @@ class DeleteBottomSheet extends StatelessWidget {
                     tips,
                     14.sp,
                     color: CommonColors.white.withOpacity(0.8),
+                    strutStyle: const StrutStyle(forceStrutHeight: true, height: 1.4, leading: 0),
                     textAlign: TextAlign.center,
                   ),
                 ),

@@ -24,30 +24,37 @@ class MediaContinueWatchingCell extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16.r),
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                ClipRRect(
                   borderRadius: BorderRadius.circular(16.r),
-                  color: CommonColors.color333333,
-                  border: Border.all(color: CommonColors.color222222, width: 1.w),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16.r),
-                  child: CommonImageView.normal(
-                    imageUrl: mediaHistoryEntity.cover,
-                    alignment: Alignment.topCenter,
+                  child: Container(
                     width: double.infinity,
-                    height: 101.w,
-                    errorWidget: (context, url, error) {
-                      return Center(
-                        child: Image.asset(Assets.commonMediaPlaceholder, width: 40.w, height: 40.w, fit: BoxFit.cover),
-                      );
-                    },
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16.r),
+                      color: CommonColors.color333333,
+                      border: Border.all(color: CommonColors.color222222, width: 1.w),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16.r),
+                      child: CommonImageView.normal(
+                        imageUrl: mediaHistoryEntity.cover,
+                        alignment: Alignment.topCenter,
+                        width: double.infinity,
+                        height: 101.w,
+                        errorWidget: (context, url, error) {
+                          return Center(
+                            child: Image.asset(Assets.commonMediaPlaceholder, width: 40.w, height: 40.w, fit: BoxFit.cover),
+                          );
+                        },
+                      ),
+                    ),
                   ),
                 ),
-              ),
+
+                Image.asset(Assets.commonVideoPlay, width: 32.w, height: 32.w),
+              ],
             ),
 
             SizedBox(height: 12.w),
@@ -56,6 +63,7 @@ class MediaContinueWatchingCell extends StatelessWidget {
               mediaHistoryEntity.title ?? '',
               14.sp,
               fontWeight: CommonFontWeight.medium,
+              strutStyle: const StrutStyle(forceStrutHeight: true, height: 1.0, leading: 0),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
