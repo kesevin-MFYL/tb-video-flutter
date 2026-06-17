@@ -83,7 +83,7 @@ class _VideoSubtitleSettingsBottomSheetState extends State<VideoSubtitleSettings
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          padding: EdgeInsets.only(left: 16.w, top: 22.w, right: 16.w, bottom: 16.w),
           child: Row(
             children: [
               CommonText.instance(
@@ -102,7 +102,6 @@ class _VideoSubtitleSettingsBottomSheetState extends State<VideoSubtitleSettings
             ],
           ),
         ),
-        SizedBox(height: 16.w),
         Obx(() {
           final openCaptions = widget.controller.openCaptions.value;
           return Padding(
@@ -171,7 +170,7 @@ class _VideoSubtitleSettingsBottomSheetState extends State<VideoSubtitleSettings
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          padding: EdgeInsets.only(left: 16.w, top: 22.w, right: 16.w, bottom: 16.w),
           child: Row(
             children: [
               CommonButton(

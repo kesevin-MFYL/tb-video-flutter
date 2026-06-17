@@ -1,4 +1,5 @@
 import 'package:editvideo/config/color/colors.dart';
+import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/models/episode_entity.dart';
 import 'package:editvideo/utils/text_extension.dart';
 import 'package:flutter/material.dart';
@@ -19,9 +20,9 @@ class EpisodeVerticalCell extends StatelessWidget {
       },
       child: Container(
         height: 48.w,
-        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        padding: EdgeInsets.only(left: 16.w, right: 12.w),
         decoration: BoxDecoration(
-          color: CommonColors.color333333,
+          color: selected ? CommonColors.color1B1B18 : CommonColors.color333333,
           borderRadius: BorderRadius.all(Radius.circular(16.r)),
           border: selected ? Border.all(color: CommonColors.primaryColor, width: 1.5.w) : null,
         ),
@@ -43,6 +44,11 @@ class EpisodeVerticalCell extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
+
+            if (selected) ...[
+              SizedBox(width: 16.w),
+              Image.asset(Assets.commonIconSeasonPlay, width: 24.w, height: 24.w),
+            ],
           ],
         ),
       ),

@@ -13,10 +13,12 @@ class EpisodeHorizontalCell extends StatelessWidget {
     this.height,
     this.needAdapted = true,
     this.action,
+    this.isDialog = false,
   });
 
   final EpisodeEntity episodeEntity;
   final bool selected;
+  final bool isDialog;
   final double? width;
   final double? height;
   final bool needAdapted;
@@ -33,7 +35,7 @@ class EpisodeHorizontalCell extends StatelessWidget {
         height: width ?? 48.w,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: CommonColors.color333333,
+          color: selected ? (isDialog ? CommonColors.color1B1B18.withOpacity(0.5) : CommonColors.color1B1B18) : (isDialog ? CommonColors.white.withOpacity(0.1) : CommonColors.color333333),
           borderRadius: BorderRadius.circular(needAdapted ? 16.r : 16),
           border: selected ? Border.all(color: CommonColors.primaryColor, width: needAdapted ? 1.5.w : 1.5) : null,
         ),

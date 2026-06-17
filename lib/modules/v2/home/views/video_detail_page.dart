@@ -120,7 +120,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
                               expandedHeight: isFullscreen ? Get.size.height : controller.videoHeight,
                               backgroundColor: Colors.black,
                               flexibleSpace: FlexibleSpaceBar(
-                                background: Container(color: CommonColors.color333333, child: _buildMediaPlayerView()),
+                                background: Container(color: CommonColors.color060600, child: _buildMediaPlayerView()),
                               ),
                             ),
                           ];
@@ -201,9 +201,57 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
           child: Obx(() {
             final isInitialized = controller.mediaPlayerController.isInitialized.value;
             return isInitialized
-                ? AspectRatio(
-                    aspectRatio: controller.mediaPlayerController.playerController!.value.aspectRatio,
-                    child: VideoPlayer(controller.mediaPlayerController.playerController!),
+                ? Stack(
+                    children: [
+                      AspectRatio(
+                        aspectRatio: controller.mediaPlayerController.playerController!.value.aspectRatio,
+                        child: VideoPlayer(controller.mediaPlayerController.playerController!),
+                      ),
+
+                      Obx(() {
+                        return !controller.isFullscreen
+                            ? Positioned(
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                child: IgnorePointer(
+                                  child: Container(
+                                    height: 52,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [Colors.transparent, CommonColors.color060600.withOpacity(0.8)],
+                                        begin: Alignment.bottomCenter,
+                                        end: Alignment.topCenter,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : const SizedBox();
+                      }),
+
+                      Obx(() {
+                        return !controller.isFullscreen
+                            ? Positioned(
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                child: IgnorePointer(
+                                  child: Container(
+                                    height: 54,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [Colors.transparent, CommonColors.color060600.withOpacity(0.8)],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : const SizedBox();
+                      }),
+                    ],
                   )
                 : Column(
                     mainAxisSize: MainAxisSize.min,
@@ -344,6 +392,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
               controller.mediaDetailEntity!.description ?? '',
               14.sp,
               color: CommonColors.white.withOpacity(0.5),
+              strutStyle: const StrutStyle(forceStrutHeight: true, height: 1.4, leading: 0),
             ),
         ],
       ),
@@ -565,7 +614,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
               return FractionalTranslation(translation: offset, child: child);
             },
             child: Container(
-              padding: EdgeInsets.only(top: 22.w, bottom: safeAreaBottomDistance(16.w)),
+              padding: EdgeInsets.only(bottom: safeAreaBottomDistance(16.w)),
               height: controller.bottomHeight,
               decoration: BoxDecoration(
                 color: CommonColors.color1B1B18,
@@ -735,7 +784,8 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
   // 生命周期监听
   void lifecycleListener() {
     _playVideoSubscription = EventBusManager.instance.addObserver(EventBusName.playVideo, (value) async {
-      if (controller.mediaPlayerController.isInitialized.value && !controller.mediaPlayerController.playerController!.value.isPlaying) {
+      if (controller.mediaPlayerController.isInitialized.value &&
+          !controller.mediaPlayerController.playerController!.value.isPlaying) {
         controller.mediaPlayerController.play();
       }
     });

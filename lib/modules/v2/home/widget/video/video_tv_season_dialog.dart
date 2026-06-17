@@ -70,6 +70,7 @@ class _VideoTvSeasonDialogState extends State<VideoTvSeasonDialog> {
                           width: double.infinity,
                           height: double.infinity,
                           needAdapted: false,
+                          isDialog: true,
                           action: (item) {
                             Navigator.of(context).pop();
                             widget.controller.chooseEpisode(item);

@@ -115,7 +115,7 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
                               expandedHeight: isFullscreen ? Get.size.height : controller.videoHeight,
                               backgroundColor: Colors.black,
                               flexibleSpace: FlexibleSpaceBar(
-                                background: Container(color: CommonColors.color333333, child: _buildMediaPlayerView()),
+                                background: Container(color: CommonColors.color060600, child: _buildMediaPlayerView()),
                               ),
                             ),
                           ];
@@ -213,6 +213,51 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
             ),
           ),
         ),
+
+        Obx(() {
+          return !controller.isFullscreen
+              ? Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: IgnorePointer(
+              child: Container(
+                height: 52,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.transparent, CommonColors.color060600.withOpacity(0.8)],
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                  ),
+                ),
+              ),
+            ),
+          )
+              : const SizedBox();
+        }),
+
+        Obx(() {
+          return !controller.isFullscreen
+              ? Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: IgnorePointer(
+              child: Container(
+                height: 54,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.transparent, CommonColors.color060600.withOpacity(0.8)],
+                  ),
+                ),
+              ),
+            ),
+          )
+              : const SizedBox();
+        }),
+
         // Center(child: danmaku),
         Center(
           child: MediaPlayerControlPanel(
