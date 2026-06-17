@@ -1,5 +1,6 @@
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/generated/assets.dart';
+import 'package:editvideo/manager/switch_manager.dart';
 import 'package:editvideo/modules/common/controllers/web_controller.dart';
 import 'package:editvideo/modules/v1/setting/controllers/setting_controller.dart';
 import 'package:editvideo/routes/app_routes.dart';
@@ -114,28 +115,45 @@ class SettingPage extends StatelessWidget {
                       ),
                     ),
 
-                    SizedBox(height: 16.h),
-                    CommonButton(
-                      minSize: 0,
-                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 19.h),
-                      borderRadius: BorderRadius.circular(24.r),
-                      color: CommonColors.color333333,
-                      onPressed: controller.clearCache,
-                      child: Row(
-                        children: [
-                          Image.asset(Assets.commonIconCache, width: 24.w, height: 24.w),
-                          SizedBox(width: 8.w),
-                          Expanded(child: CommonText.instance('Cache', 16.sp, fontWeight: CommonFontWeight.semiBold)),
-                          Obx(() {
-                            return CommonText.instance(
-                              controller.cacheString.value,
-                              12.sp,
-                              color: CommonColors.colorDB88E6,
-                            );
-                          }),
-                        ],
-                      ),
-                    ),
+                    Obx(() {
+                      final canTob = SwitchManager.instance.canToB.value;
+                      return canTob
+                          ? Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(height: 16.h),
+                                CommonButton(
+                                  minSize: 0,
+                                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 19.h),
+                                  borderRadius: BorderRadius.circular(24.r),
+                                  color: CommonColors.color333333,
+                                  onPressed: controller.clearCache,
+                                  child: Row(
+                                    children: [
+                                      Image.asset(Assets.commonIconCache, width: 24.w, height: 24.w),
+                                      SizedBox(width: 8.w),
+                                      Expanded(
+                                        child: CommonText.instance(
+                                          'Cache',
+                                          16.sp,
+                                          fontWeight: CommonFontWeight.semiBold,
+                                        ),
+                                      ),
+                                      Obx(() {
+                                        return CommonText.instance(
+                                          controller.cacheString.value,
+                                          12.sp,
+                                          color: CommonColors.colorDB88E6,
+                                        );
+                                      }),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            )
+                          : const SizedBox();
+                    }),
 
                     //todo GDPR权限检查
                     // if (controller.isPrivacyOptionsRequired) ...[

@@ -28,11 +28,6 @@ dependencies:
   wakelock_plus: ^1.2.8 #屏幕常亮
   visibility_detector: ^0.4.0+2 #监听可见性
   event_bus: ^2.0.1 #事件总线
-  firebase_crashlytics: ^5.2.0
-  firebase_analytics: ^12.3.0
-  firebase_core: ^4.7.0
-  firebase_remote_config: ^6.4.0
-  google_mobile_ads: 7.0.0
   package_info_plus: ^9.0.1
   device_info_plus: ^11.3.0
   connectivity_plus: ^7.1.1
@@ -52,6 +47,12 @@ dependencies:
   audio_video_progress_bar: ^2.0.3
   status_bar_control_plus: ^3.3.0
 
+  firebase_crashlytics: ^5.2.0
+  firebase_analytics: ^12.3.0
+  firebase_core: ^4.7.0
+  firebase_remote_config: ^6.4.0
+
+  google_mobile_ads: 7.0.0
   gma_mediation_applovin: 2.5.2
   gma_mediation_liftoffmonetize: ^1.4.3
   gma_mediation_meta: ^1.5.1

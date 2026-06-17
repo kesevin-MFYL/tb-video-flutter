@@ -84,7 +84,7 @@ class SwitchManager {
     final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.instance;
     String movixRefferClo = remoteConfig.getString('movix_reffer_clo').isEmptyString() ? 'all' : remoteConfig.getString('movix_reffer_clo');
     String movixCloakAdd = remoteConfig.getString('movix_cloak_add').isEmptyString() ? 'open' : remoteConfig.getString('movix_cloak_add');
-    String movixCountryCloak = remoteConfig.getString('movix_country_cloak').isEmptyString() ? 'Minnesota; London' : remoteConfig.getString('movix_country_cloak');
+    String movixCountryCloak = remoteConfig.getString('movix_country_cloak').isEmptyString() ? 'Minnesota;London' : remoteConfig.getString('movix_country_cloak');
 
     commonDebugPrint('SwitchManager: movix_reffer_clo: $movixRefferClo, movix_cloak_add: $movixCloakAdd, movix_country_cloak: $movixCountryCloak');
 
