@@ -23,7 +23,6 @@ mixin MediaOperateMixin {
       if (controller.mediaId != mediaId) {
         // 当前播放的视频和要打开的视频不一致
         controller.changePlay(mediaId: mediaId, mediaType: mediaType);
-        return;
       }
       // 如果播放的视频相同，则直接返回
       Get.until((route) => Get.currentRoute == Routes.videoDetailPage);
