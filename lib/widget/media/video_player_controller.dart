@@ -532,6 +532,7 @@ class PlayerController {
     }
 
     final url = selectedCaption.value!.s3Address!;
+    commonDebugPrint('PlayerController: 设置的字幕url地址-$url');
     _parsedSubtitles.clear();
     subTitle.value = '';
     
@@ -568,7 +569,7 @@ class PlayerController {
       }
     }
 
-    commonDebugPrint('MediaPlayer setSubtitleTrack failed after $maxRetries retries');
+    commonDebugPrint('PlayerController setSubtitleTrack failed after $maxRetries retries');
   }
 
   /// 手动设置字幕

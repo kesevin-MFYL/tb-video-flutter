@@ -253,7 +253,7 @@ class HttpUtils {
     return data;
   }
 
-  //todo
+  //todo 替换包名
   static String _pkgName = 'com.movix.editvideo';
   static String _deviceId = '';
   static String _appVersion = '';
