@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/models/home_section_entity.dart';
@@ -97,25 +98,31 @@ class MediaCell extends StatelessWidget {
                         ),
                         child: Row(
                           children: [
-                            Container(
-                              height: 20.w,
-                              padding: EdgeInsets.only(left: 4.w, right: 8.w),
-                              decoration: BoxDecoration(
-                                color: CommonColors.color84705C.withOpacity(0.5),
-                                borderRadius: BorderRadius.circular(10.r),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Image.asset(Assets.commonIconVideoList, width: 16.w, height: 16.w),
-                                  SizedBox(width: 4.w),
-                                  CommonText.instance(
-                                    'List',
-                                    10.sp,
-                                    color: CommonColors.white.withOpacity(0.8),
-                                    fontWeight: CommonFontWeight.medium,
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(10.r),
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                child: Container(
+                                  height: 20.w,
+                                  padding: EdgeInsets.only(left: 4.w, right: 8.w),
+                                  decoration: BoxDecoration(
+                                    color: CommonColors.color84705C.withOpacity(0.5),
+                                    borderRadius: BorderRadius.circular(10.r),
                                   ),
-                                ],
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Image.asset(Assets.commonIconVideoList, width: 16.w, height: 16.w),
+                                      SizedBox(width: 4.w),
+                                      CommonText.instance(
+                                        'List',
+                                        10.sp,
+                                        color: CommonColors.white.withOpacity(0.8),
+                                        fontWeight: CommonFontWeight.medium,
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             )
                           ],
