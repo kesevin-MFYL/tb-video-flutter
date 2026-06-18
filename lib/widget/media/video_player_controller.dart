@@ -616,13 +616,14 @@ class PlayerController {
 
   List<SubtitleItem> _parseSubtitles(String subtitleData) {
     List<SubtitleItem> subtitles = [];
-    final lines = subtitleData.split(RegExp(r'\r\n|\n|\r'));
+    final lines = subtitleData.replaceAll('\uFEFF', '').split(RegExp(r'\r\n|\n|\r'));
 
     Duration? currentStartTime;
     Duration? currentEndTime;
     List<String> currentTextLines = [];
 
-    final timeRegExp = RegExp(r'((?:\d{2}:)?\d{2}:\d{2}[.,]\d{3})\s*-->\s*((?:\d{2}:)?\d{2}:\d{2}[.,]\d{3})');
+    // 匹配如 00:00:01,000 或 00:01.000 的时间格式，兼容 SRT 和 WebVTT 格式，包括1-3位的毫秒
+    final timeRegExp = RegExp(r'((?:\d{1,2}:)?\d{1,2}:\d{1,2}[.,]\d{1,3})\s*-->\s*((?:\d{1,2}:)?\d{1,2}:\d{1,2}[.,]\d{1,3})');
 
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i].trim();
@@ -654,7 +655,8 @@ class PlayerController {
         currentStartTime = _parseTime(match.group(1)!);
         currentEndTime = _parseTime(match.group(2)!);
       } else if (currentStartTime != null && currentEndTime != null) {
-        var text = line.replaceAll(RegExp(r'<[^>]*>'), '');
+        // 清理类似 <i> </i> 或 {\an8} 等字幕标签样式
+        var text = line.replaceAll(RegExp(r'<[^>]*>'), '').replaceAll(RegExp(r'\{[^}]*\}'), '');
         currentTextLines.add(text);
       }
     }
@@ -673,7 +675,17 @@ class PlayerController {
   Duration _parseTime(String timeString) {
     timeString = timeString.replaceAll(',', '.');
     final parts = timeString.split('.');
-    final ms = int.parse(parts[1]);
+
+    String msStr = parts.length > 1 ? parts[1] : '0';
+    if (msStr.length == 1) {
+      msStr += '00';
+    } else if (msStr.length == 2) {
+      msStr += '0';
+    } else if (msStr.length > 3) {
+      msStr = msStr.substring(0, 3);
+    }
+    final ms = int.parse(msStr);
+
     final timeParts = parts[0].split(':');
 
     int hours = 0;

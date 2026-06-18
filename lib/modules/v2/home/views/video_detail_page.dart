@@ -201,57 +201,9 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
           child: Obx(() {
             final isInitialized = controller.mediaPlayerController.isInitialized.value;
             return isInitialized
-                ? Stack(
-                    children: [
-                      AspectRatio(
-                        aspectRatio: controller.mediaPlayerController.playerController!.value.aspectRatio,
-                        child: VideoPlayer(controller.mediaPlayerController.playerController!),
-                      ),
-
-                      Obx(() {
-                        return !controller.isFullscreen
-                            ? Positioned(
-                                top: 0,
-                                left: 0,
-                                right: 0,
-                                child: IgnorePointer(
-                                  child: Container(
-                                    height: 52,
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [Colors.transparent, CommonColors.color060600.withOpacity(0.8)],
-                                        begin: Alignment.bottomCenter,
-                                        end: Alignment.topCenter,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              )
-                            : const SizedBox();
-                      }),
-
-                      Obx(() {
-                        return !controller.isFullscreen
-                            ? Positioned(
-                                left: 0,
-                                right: 0,
-                                bottom: 0,
-                                child: IgnorePointer(
-                                  child: Container(
-                                    height: 54,
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topCenter,
-                                        end: Alignment.bottomCenter,
-                                        colors: [Colors.transparent, CommonColors.color060600.withOpacity(0.8)],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              )
-                            : const SizedBox();
-                      }),
-                    ],
+                ? AspectRatio(
+                    aspectRatio: controller.mediaPlayerController.playerController!.value.aspectRatio,
+                    child: VideoPlayer(controller.mediaPlayerController.playerController!),
                   )
                 : Column(
                     mainAxisSize: MainAxisSize.min,

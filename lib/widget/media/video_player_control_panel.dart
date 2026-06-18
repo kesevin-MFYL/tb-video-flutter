@@ -292,7 +292,7 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
                     subTitle,
                     isFullScreen ? 16 : 12,
                     color: CommonColors.white.withOpacity(0.9),
-                    strutStyle: const StrutStyle(forceStrutHeight: true, height: 1.3, leading: 0),
+                    strutStyle: StrutStyle(forceStrutHeight: true, height: isFullScreen ? 1.3 : 1.1,  leading: 0),
                     textAlign: TextAlign.center,
                     fontWeight: CommonFontWeight.medium,
                   ),
@@ -385,11 +385,7 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
                   // 蒙层
                   if (isFullScreen)
                     Positioned.fill(
-                      child: IgnorePointer(
-                        child: Container(
-                          color: CommonColors.black.withOpacity(0.3),
-                        ),
-                      ),
+                      child: IgnorePointer(child: Container(color: CommonColors.black.withOpacity(0.3))),
                     ),
 
                   // 锁
@@ -417,11 +413,20 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
                       top: 0,
                       left: 0,
                       right: 0,
-                      child: Padding(
+                      child: Container(
                         padding: EdgeInsets.symmetric(
                           horizontal: isFullScreen ? 56 : 16,
                           vertical: isFullScreen ? 16 : 10,
                         ),
+                        decoration: isFullScreen
+                            ? null
+                            : BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [Colors.transparent, CommonColors.color060600.withOpacity(0.8)],
+                                  begin: Alignment.bottomCenter,
+                                  end: Alignment.topCenter,
+                                ),
+                              ),
                         child: Row(
                           children: [
                             GestureDetector(
@@ -524,11 +529,20 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
                       bottom: 0,
                       left: 0,
                       right: 0,
-                      child: Padding(
+                      child: Container(
                         padding: EdgeInsets.symmetric(
                           horizontal: isFullScreen ? 56 : 16,
                           vertical: isFullScreen ? 16 : 8,
                         ),
+                        decoration: isFullScreen
+                            ? null
+                            : BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [Colors.transparent, CommonColors.color060600.withOpacity(0.8)],
+                                ),
+                              ),
                         child: Row(
                           children: [
                             // 播放/暂停按钮
@@ -835,7 +849,7 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
       if (asset == Assets.commonIconVideoVolume && value.value == 0) {
         currentAsset = Assets.commonIconVideoNoVolume;
       }
-      
+
       return Align(
         alignment: isFullscreen ? Alignment.topCenter : Alignment.center,
         child: AnimatedOpacity(
