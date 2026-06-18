@@ -14,6 +14,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:media_kit_video/media_kit_video.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 import 'package:video_player/video_player.dart';
 
@@ -762,8 +763,7 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (mediaPlayerController.previewPlayerController != null &&
-                    mediaPlayerController.previewPlayerController!.value.isInitialized)
+                if (mediaPlayerController.previewVideoController != null)
                   Container(
                     width: isFullScreen ? 130 : 90,
                     height: isFullScreen ? 73 : 51,
@@ -771,9 +771,11 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
                     decoration: BoxDecoration(color: CommonColors.color333333, borderRadius: BorderRadius.circular(12)),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: AspectRatio(
-                        aspectRatio: mediaPlayerController.previewPlayerController!.value.aspectRatio,
-                        child: VideoPlayer(mediaPlayerController.previewPlayerController!),
+                      child: Video(
+                        controller: mediaPlayerController.previewVideoController!,
+                        controls: NoVideoControls,
+                        fill: CommonColors.color333333,
+                        fit: BoxFit.cover,
                       ),
                     ),
                   ),

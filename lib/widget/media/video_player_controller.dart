@@ -11,6 +11,8 @@ import 'dart:async';
 import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:get/get.dart';
+import 'package:media_kit/media_kit.dart';
+import 'package:media_kit_video/media_kit_video.dart';
 import 'package:status_bar_control_plus/status_bar_control_plus.dart';
 import 'package:video_player/video_player.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -20,7 +22,10 @@ class PlayerController {
   VideoPlayerController? playerController;
 
   /// 预览播放器 (用于进度条滑动时显示缩略图)
-  VideoPlayerController? previewPlayerController;
+  Player? previewPlayer;
+
+  /// 预览视频控制器
+  VideoController? previewVideoController;
 
   final isInitialized = false.obs;
   final hasError = false.obs;
@@ -229,16 +234,27 @@ class PlayerController {
   /// 配置预览播放器
   Future<void> _createPreviewController(MediaDataSource dataSource, Duration initVideoPosition) async {
     try {
-      final originalUrl = dataSource.videoSource!.toOriginUrl();
-      if (originalUrl.startsWith('http') || originalUrl.startsWith('https')) {
-        previewPlayerController = VideoPlayerController.networkUrl(dataSource.videoSource!.toLocalUri());
-      } else if (originalUrl.startsWith('assets/')) {
-        previewPlayerController = VideoPlayerController.asset(dataSource.videoSource!);
-      } else {
-        previewPlayerController = VideoPlayerController.file(File(dataSource.videoSource!));
-      }
+      previewPlayer ??= Player(configuration: const PlayerConfiguration(bufferSize: 2 * 1024 * 1024));
+      previewPlayer?.setVolume(0.0);
 
-      await previewPlayerController?.initialize();
+      previewVideoController ??= VideoController(
+        previewPlayer!,
+      );
+
+      // 配置预览Player
+      var previewPP = previewPlayer!.platform as NativePlayer;
+      await previewPP.setProperty('vid', '1'); // Enable video
+      await previewPP.setProperty('aid', 'no'); // Disable audio
+      await previewPP.setProperty('sid', 'no'); // Disable subtitles
+
+      if (dataSource.type == MediaDataSourceType.asset) {
+        final assetUrl = dataSource.videoSource!.startsWith("asset://")
+            ? dataSource.videoSource!
+            : "asset://${dataSource.videoSource!}";
+        await previewPlayer!.open(Media(assetUrl, httpHeaders: dataSource.httpHeaders), play: false);
+      } else {
+        await previewPlayer!.open(Media(dataSource.videoSource!, httpHeaders: dataSource.httpHeaders), play: false);
+      }
     } catch (e) {
       commonDebugPrint('PlayerController _createPreviewController error: $e');
     }
@@ -299,7 +315,7 @@ class PlayerController {
       await _createVideoController(dataSource, initVideoPosition);
 
       // 配置预览Player
-      _createPreviewController(dataSource, initVideoPosition);
+      await _createPreviewController(dataSource, initVideoPosition);
 
       // 添加监听
       addListeners();
@@ -326,7 +342,7 @@ class PlayerController {
   }
 
   void seekPreview(Duration position) {
-    previewPlayerController?.seekTo(position);
+    previewPlayer?.seek(position);
   }
 
   /// 切换操作栏状态
@@ -919,7 +935,7 @@ class PlayerController {
       removeListeners();
 
       await playerController?.dispose();
-      await previewPlayerController?.dispose();
+      await previewPlayer?.dispose();
     } catch (err) {
       commonDebugPrint('PlayerController dispose error: $err');
     }
