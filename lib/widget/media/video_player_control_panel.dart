@@ -254,6 +254,25 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
           final isFullScreen = isFullscreen;
           final openCaptions = mediaPlayerController.openCaptions.value;
           final subTitle = mediaPlayerController.subTitle.value;
+          final showControls = mediaPlayerController.showControls.value;
+
+          final isMultiLine = subTitle.contains('\n');
+          double bottomPadding = 16.0;
+
+          if (isFullScreen) {
+            if (isMultiLine) {
+              bottomPadding = showControls ? 55.0 : 16.0;
+            } else {
+              bottomPadding = showControls ? 67.0 : 28.0;
+            }
+          } else {
+            if (isMultiLine) {
+              bottomPadding = showControls ? 40.0 : 8.0;
+            } else {
+              bottomPadding = showControls ? 48.0 : 16.0;
+            }
+          }
+
           return Positioned(
             left: 0,
             right: 0,
@@ -263,11 +282,16 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
               child: Visibility(
                 visible: openCaptions,
                 child: Padding(
-                  padding: EdgeInsets.only(left: isFullScreen ? 56 : 20, right: isFullScreen ? 56 : 20, bottom: 16),
+                  padding: EdgeInsets.only(
+                    left: isFullScreen ? 56 : 20,
+                    right: isFullScreen ? 56 : 20,
+                    bottom: bottomPadding,
+                  ),
                   child: CommonText.instance(
                     subTitle,
                     isFullScreen ? 16 : 12,
                     color: CommonColors.white.withOpacity(0.9),
+                    strutStyle: const StrutStyle(forceStrutHeight: true, height: 1.3, leading: 0),
                     textAlign: TextAlign.center,
                     fontWeight: CommonFontWeight.medium,
                   ),
@@ -638,7 +662,7 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
         // 时间进度条提示
         _buildTimeProgressTips(),
 
-        /// 音量🔊 控制条展示
+        /// 音量🔊 控制条展示 音量为0时显示Assets.commonIconVideoNoVolume
         _buildControlTips(_volumePopShow, _volumeValue, Assets.commonIconVideoVolume),
 
         /// 亮度🌞 控制条展示
@@ -805,6 +829,11 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
   /// 控制条展示 (音量/亮度)
   Widget _buildControlTips(RxBool popShow, RxDouble value, String asset) {
     return Obx(() {
+      String currentAsset = asset;
+      if (asset == Assets.commonIconVideoVolume && value.value == 0) {
+        currentAsset = Assets.commonIconVideoNoVolume;
+      }
+      
       return Align(
         alignment: isFullscreen ? Alignment.topCenter : Alignment.center,
         child: AnimatedOpacity(
@@ -824,7 +853,7 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  Image.asset(asset, width: 24, height: 24),
+                  Image.asset(currentAsset, width: 24, height: 24),
                   SizedBox(width: 8),
                   SizedBox(
                     width: 150.0,

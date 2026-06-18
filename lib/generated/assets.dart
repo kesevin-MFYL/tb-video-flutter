@@ -88,6 +88,7 @@ class Assets {
   static const String commonIconLabelSubtitle = 'assets/images/common/icon_label_subtitle.png';
   static const String commonIconSubtitleClose = 'assets/images/common/icon_subtitle_close.png';
   static const String commonIconUserAgreement = 'assets/images/common/icon_user_agreement.png';
+  static const String commonIconVideoNoVolume = 'assets/images/common/icon_video_no_volume.png';
   static const String commonIconVideoPlayNext = 'assets/images/common/icon_video_play_next.png';
   static const String commonVideoDeleteDisable = 'assets/images/common/video_delete_disable.png';
   static const String commonIconFullscreenEmpty = 'assets/images/common/icon_fullscreen_empty.png';
