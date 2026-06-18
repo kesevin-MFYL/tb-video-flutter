@@ -35,7 +35,7 @@ class ExplorePage extends GetView<ExploreController> {
                   children: [
                     // search bar
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.w),
+                      padding: EdgeInsets.only(left: 16.w, top: 12.w, right: 16.w, bottom: 8.w),
                       child: GestureDetector(
                         onTap: controller.toSearch,
                         child: Container(
@@ -76,6 +76,10 @@ class ExplorePage extends GetView<ExploreController> {
                               controller: controller.scrollController,
                               headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
                                 return <Widget>[
+                                  SliverToBoxAdapter(
+                                    child: SizedBox(height: 8.w),
+                                  ),
+
                                   _buildFilter(
                                     filterList: controller.typeFilter,
                                     mediaFilterType: MediaFilterType.mediaType,
@@ -108,7 +112,7 @@ class ExplorePage extends GetView<ExploreController> {
                                   },
                                   child: GridView.builder(
                                     shrinkWrap: true,
-                                    padding: EdgeInsets.only(left: 16.w, right: 16.w, bottom: 16.w),
+                                    padding: EdgeInsets.only(left: 16.w, top: 4.w, right: 16.w, bottom: 16.w),
                                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                       crossAxisCount: 3,
                                       crossAxisSpacing: 8.w,
@@ -239,15 +243,15 @@ class ExplorePage extends GetView<ExploreController> {
         },
         child: Container(
           color: CommonColors.background,
-          padding: EdgeInsets.only(left: 16.w, right: 16.w, bottom: 12.w),
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.w),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Expanded(
                 child: CommonText.instance(
                   text,
                   12.sp,
                   color: CommonColors.white.withOpacity(0.5),
+                  strutStyle: const StrutStyle(forceStrutHeight: true, height: 1.0, leading: 0),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -279,6 +283,7 @@ class ExplorePage extends GetView<ExploreController> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              SizedBox(height: 8.w),
               _buildFilterItem(filterList: controller.typeFilter, mediaFilterType: MediaFilterType.mediaType),
               _buildFilterItem(filterList: controller.genresFilter, mediaFilterType: MediaFilterType.genres),
               _buildFilterItem(filterList: controller.yearFilter, mediaFilterType: MediaFilterType.year),
