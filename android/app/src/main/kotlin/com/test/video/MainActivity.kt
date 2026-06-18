@@ -1,4 +1,4 @@
-package com.test.video
+package com.movix.editvideo
 
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
