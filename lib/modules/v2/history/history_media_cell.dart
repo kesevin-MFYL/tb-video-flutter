@@ -90,117 +90,134 @@ class _HistoryMediaCellState extends State<HistoryMediaCell> with SingleTickerPr
           }
         },
         child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 16.w),
           margin: EdgeInsets.only(bottom: 16.w),
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (widget.isEdit)
-                  Padding(
-                    padding: EdgeInsets.only(right: 8.w),
-                    child: Center(
-                      child: Image.asset(
-                        widget.isSelected ? Assets.commonIconSelected : Assets.commonIconUnselected,
-                        width: 24.w,
-                        height: 24.w,
-                      ),
-                    ),
-                  ),
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16.r),
-                    color: CommonColors.color333333,
-                    border: Border.all(color: CommonColors.color222222, width: 1.w),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16.r),
-                    child: CommonImageView.normal(
-                      imageUrl: widget.mediaHistoryEntity.cover,
-                      alignment: Alignment.topCenter,
-                      width: 120.w,
-                      height: 68.w,
-                      errorWidget: (context, url, error) {
-                        return Center(
-                          child: Image.asset(Assets.commonMediaPlaceholder, width: 40.w, height: 40.w, fit: BoxFit.cover),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                SizedBox(width: 16.w),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const NeverScrollableScrollPhysics(),
+                child: IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      CommonText.instance(
-                        widget.mediaHistoryEntity.title ?? '',
-                        14.sp,
-                        fontWeight: CommonFontWeight.medium,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Row(
-                        children: [
-                          Container(
-                            height: 20.w,
-                            padding: EdgeInsets.symmetric(horizontal: 4.w),
-                            decoration: BoxDecoration(
-                              color: CommonColors.color84705C.withOpacity(0.5),
-                              borderRadius: BorderRadius.circular(10.r),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Image.asset(
-                                  widget.mediaHistoryEntity.isTv ? Assets.commonIconTv : Assets.commonIconMovie,
-                                  width: 16.w,
-                                  height: 16.w,
-                                ),
-
-                                if (widget.mediaHistoryEntity.isTv)
-                                  Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 4.w),
-                                    child: CommonText.instance(
-                                      '${widget.mediaHistoryEntity.season?.title ?? ''}: Episode ${widget.mediaHistoryEntity.episode?.epsNum ?? 0}',
-                                      10.sp,
-                                      color: CommonColors.white.withOpacity(0.8),
-                                      fontWeight: CommonFontWeight.medium,
-                                    ),
-                                  )
-                                else if (widget.mediaHistoryEntity.remainingTimeText.isNotEmpty)
-                                  // 剩余时间观看时间
-                                  Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 4.w),
-                                    child: CommonText.instance(
-                                      widget.mediaHistoryEntity.remainingTimeText,
-                                      10.sp,
-                                      color: CommonColors.white.withOpacity(0.8),
-                                      fontWeight: CommonFontWeight.medium,
-                                    ),
-                                  ),
-                              ],
+                      SizedBox(width: 16.w),
+                      if (widget.isEdit)
+                        Padding(
+                          padding: EdgeInsets.only(right: 8.w),
+                          child: Center(
+                            child: Image.asset(
+                              widget.isSelected ? Assets.commonIconSelected : Assets.commonIconUnselected,
+                              width: 24.w,
+                              height: 24.w,
                             ),
                           ),
-
-                          Spacer(),
-
-                          // 观看进度
-                          if (widget.mediaHistoryEntity.progressText.isNotEmpty)
-                            CommonText.instance(
-                              widget.mediaHistoryEntity.progressText,
-                              12.sp,
-                              color: CommonColors.primaryColor.withOpacity(0.5),
-                              fontWeight: CommonFontWeight.medium,
+                        ),
+                      SizedBox(
+                        width: constraints.maxWidth - 32.w,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16.r),
+                                color: CommonColors.color333333,
+                                border: Border.all(color: CommonColors.color222222, width: 1.w),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(16.r),
+                                child: CommonImageView.normal(
+                                  imageUrl: widget.mediaHistoryEntity.cover,
+                                  alignment: Alignment.topCenter,
+                                  width: 120.w,
+                                  height: 68.w,
+                                  errorWidget: (context, url, error) {
+                                    return Center(
+                                      child: Image.asset(Assets.commonMediaPlaceholder, width: 40.w, height: 40.w, fit: BoxFit.cover),
+                                    );
+                                  },
+                                ),
+                              ),
                             ),
-                        ],
+                            SizedBox(width: 16.w),
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CommonText.instance(
+                                    widget.mediaHistoryEntity.title ?? '',
+                                    14.sp,
+                                    fontWeight: CommonFontWeight.medium,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        height: 20.w,
+                                        padding: EdgeInsets.symmetric(horizontal: 4.w),
+                                        decoration: BoxDecoration(
+                                          color: CommonColors.color84705C.withOpacity(0.5),
+                                          borderRadius: BorderRadius.circular(10.r),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Image.asset(
+                                              widget.mediaHistoryEntity.isTv ? Assets.commonIconTv : Assets.commonIconMovie,
+                                              width: 16.w,
+                                              height: 16.w,
+                                            ),
+
+                                            if (widget.mediaHistoryEntity.isTv)
+                                              Padding(
+                                                padding: EdgeInsets.symmetric(horizontal: 4.w),
+                                                child: CommonText.instance(
+                                                  '${widget.mediaHistoryEntity.season?.title ?? ''}: Episode ${widget.mediaHistoryEntity.episode?.epsNum ?? 0}',
+                                                  10.sp,
+                                                  color: CommonColors.white.withOpacity(0.8),
+                                                  fontWeight: CommonFontWeight.medium,
+                                                ),
+                                              )
+                                            else if (widget.mediaHistoryEntity.remainingTimeText.isNotEmpty)
+                                              // 剩余时间观看时间
+                                              Padding(
+                                                padding: EdgeInsets.symmetric(horizontal: 4.w),
+                                                child: CommonText.instance(
+                                                  widget.mediaHistoryEntity.remainingTimeText,
+                                                  10.sp,
+                                                  color: CommonColors.white.withOpacity(0.8),
+                                                  fontWeight: CommonFontWeight.medium,
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+
+                                      Spacer(),
+
+                                      // 观看进度
+                                      if (widget.mediaHistoryEntity.progressText.isNotEmpty)
+                                        CommonText.instance(
+                                          widget.mediaHistoryEntity.progressText,
+                                          12.sp,
+                                          color: CommonColors.primaryColor.withOpacity(0.5),
+                                          fontWeight: CommonFontWeight.medium,
+                                        ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
+                      SizedBox(width: 16.w),
                     ],
                   ),
                 ),
-              ],
-            ),
+              );
+            },
           ),
         ),
       ),
