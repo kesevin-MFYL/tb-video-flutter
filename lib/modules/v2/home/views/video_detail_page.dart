@@ -50,6 +50,8 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
   late StreamSubscription<EventBusModel> _playVideoSubscription;
   late StreamSubscription<bool> _fullScreenStatusSubscription;
 
+  bool pageClosed = false;
+
   @override
   void initState() {
     super.initState();
@@ -711,6 +713,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
   // 离开当前页面时
   void didPushNext() async {
     /// 开启
+    pageClosed = true;
     controller.mediaPlayerController.removeStatusLister(playerListener);
     controller.mediaPlayerController.pause();
     _playVideoSubscription.cancel();
@@ -731,6 +734,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
     //   isShowing.value = true;
     // }
     await Future.delayed(const Duration(milliseconds: 300));
+    pageClosed = false;
     lifecycleListener();
     fullScreenStatusListener();
     SystemChrome.setPreferredOrientations([]);
@@ -747,6 +751,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
 
   @override
   void didChangeMetrics() {
+    if (pageClosed) return;
     final orientation = MediaQueryData.fromView(View.of(context)).orientation;
     controller.mediaPlayerController.currentOrientation.value = orientation;
     if (orientation == Orientation.portrait) {

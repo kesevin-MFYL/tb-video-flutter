@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:editvideo/config/network/api/common_api.dart';
 import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/models/home_section_entity.dart';
@@ -15,7 +17,7 @@ import 'package:get/get.dart';
 
 /// 影片详情
 class VideoDetailController extends BaseVideoDetailController {
-  double get bottomHeight => Get.height - safeAreaEdgeInsets.top - videoHeight;
+  double get bottomHeight => max(0.0, Get.height - safeAreaEdgeInsets.top - videoHeight);
 
   double get videoHeight => Get.width * 9 / 16;
 
