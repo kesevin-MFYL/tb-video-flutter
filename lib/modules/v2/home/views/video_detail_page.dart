@@ -48,11 +48,17 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
   late bool isMultiOpen;
 
   late StreamSubscription<EventBusModel> _playVideoSubscription;
+  late StreamSubscription<bool> _fullScreenStatusSubscription;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
+    // 仅当前页面支持自动旋转，使用 microtask 确保在其他页面的 didPushNext 之后执行
+    Future.microtask(() {
+      SystemChrome.setPreferredOrientations([]);
+    });
 
     mediaId = Get.arguments['mediaId'];
     isMultiOpen = Get.arguments['isMultiOpen'] ?? false;
@@ -79,11 +85,6 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
       builder: (controller) {
         return Obx(() {
           final isFullscreen = controller.isFullscreen;
-          if (isFullscreen) {
-            enterFullScreen();
-          } else {
-            exitFullScreen();
-          }
           return PopScope(
             canPop: !isFullscreen,
             onPopInvokedWithResult: (didPop, _) {
@@ -675,7 +676,12 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
   }
 
   void fullScreenStatusListener() {
-    controller.mediaPlayerController.isFullScreen.listen((bool isFullScreen) {
+    _fullScreenStatusSubscription = controller.mediaPlayerController.isFullScreen.listen((bool isFullScreen) {
+      if (isFullScreen) {
+        enterFullScreen();
+      } else {
+        exitFullScreen();
+      }
       if (!isFullScreen) {
         controller.closeBottomSheet();
       }
@@ -707,7 +713,8 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
     /// 开启
     controller.mediaPlayerController.removeStatusLister(playerListener);
     controller.mediaPlayerController.pause();
-    print('1111111');
+    _playVideoSubscription.cancel();
+    _fullScreenStatusSubscription.cancel();
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
@@ -724,6 +731,8 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
     //   isShowing.value = true;
     // }
     await Future.delayed(const Duration(milliseconds: 300));
+    lifecycleListener();
+    fullScreenStatusListener();
     SystemChrome.setPreferredOrientations([]);
     controller.mediaPlayerController.addStatusLister(playerListener);
     controller.mediaPlayerController.play();
