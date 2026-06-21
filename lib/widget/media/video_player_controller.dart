@@ -371,26 +371,37 @@ class PlayerController {
 
   /// 播放视频
   Future<void> play({bool repeat = false}) async {
-    // repeat为true，将从头播放
-    if (repeat) {
-      playerController?.seekTo(Duration.zero);
-      _needRecordImmediately = true;
+    try {
+      if (playerController == null) return;
+      // repeat为true，将从头播放
+      if (repeat) {
+        await playerController?.seekTo(Duration.zero);
+        _needRecordImmediately = true;
+      }
+      await playerController?.play();
+      // 播放时延迟5s隐藏控制栏
+      _startHideTimer();
+    } catch (e) {
+      commonDebugPrint('PlayerController play error: $e');
     }
-    await playerController?.play();
-    // 播放时延迟5s隐藏控制栏
-    _startHideTimer();
   }
 
   /// 暂停播放
   Future<void> pause({bool isInterrupt = false}) async {
-    await playerController?.pause();
-    // 播放时延迟5s隐藏控制栏
-    _startHideTimer();
+    try {
+      if (playerController == null) return;
+      await playerController?.pause();
+      // 播放时延迟5s隐藏控制栏
+      _startHideTimer();
+    } catch (e) {
+      commonDebugPrint('PlayerController pause error: $e');
+    }
   }
 
   /// 跳转至指定位置
   Future<void> seekTo(Duration position, {bool isHorizontalMove = false}) async {
     try {
+      if (playerController == null) return;
       if (position < Duration.zero) {
         position = Duration.zero;
       }
@@ -408,7 +419,12 @@ class PlayerController {
 
   /// 设置倍速
   Future<void> setPlaybackSpeed(double speed) async {
-    await playerController?.setPlaybackSpeed(speed);
+    try {
+      if (playerController == null) return;
+      await playerController?.setPlaybackSpeed(speed);
+    } catch (e) {
+      commonDebugPrint('PlayerController setPlaybackSpeed error: $e');
+    }
   }
 
   /// 快退
@@ -420,12 +436,16 @@ class PlayerController {
     fastRewindStatus.value = true;
 
     _rewindTimer = Timer(const Duration(milliseconds: 200), () {
-      if (playerController != null) {
-        int resultMs = playerController!.value.position.inMilliseconds - (fastSeconds * 1000);
-        if (resultMs < 0) resultMs = 0;
-        if (resultMs > playerController!.value.duration.inMilliseconds) resultMs = playerController!.value.duration.inMilliseconds;
-        seekTo(Duration(milliseconds: resultMs));
-        play();
+      try {
+        if (playerController != null) {
+          int resultMs = playerController!.value.position.inMilliseconds - (fastSeconds * 1000);
+          if (resultMs < 0) resultMs = 0;
+          if (resultMs > playerController!.value.duration.inMilliseconds) resultMs = playerController!.value.duration.inMilliseconds;
+          seekTo(Duration(milliseconds: resultMs));
+          play();
+        }
+      } catch (e) {
+        commonDebugPrint('PlayerController fastRewind error: $e');
       }
 
       _needRecordImmediately = true;
@@ -445,12 +465,16 @@ class PlayerController {
     fastForwardStatus.value = true;
 
     _forwardTimer = Timer(const Duration(milliseconds: 200), () {
-      if (playerController != null) {
-        int resultMs = playerController!.value.position.inMilliseconds + (fastSeconds * 1000);
-        if (resultMs < 0) resultMs = 0;
-        if (resultMs > playerController!.value.duration.inMilliseconds) resultMs = playerController!.value.duration.inMilliseconds;
-        seekTo(Duration(milliseconds: resultMs));
-        play();
+      try {
+        if (playerController != null) {
+          int resultMs = playerController!.value.position.inMilliseconds + (fastSeconds * 1000);
+          if (resultMs < 0) resultMs = 0;
+          if (resultMs > playerController!.value.duration.inMilliseconds) resultMs = playerController!.value.duration.inMilliseconds;
+          seekTo(Duration(milliseconds: resultMs));
+          play();
+        }
+      } catch (e) {
+        commonDebugPrint('PlayerController fastForward error: $e');
       }
 
       _needRecordImmediately = true;
@@ -772,82 +796,86 @@ class PlayerController {
   void _videoPlayerListener() {
     if (!isInitialized.value || playerController == null) return;
     
-    final value = playerController!.value;
-    final pos = value.position;
-    if (isOnline) {
-      currentPosition.value = pos >= Duration.zero ? pos : Duration.zero;
-    } else {
-      if (pos > Duration.zero) {
-        currentPosition.value = pos;
+    try {
+      final value = playerController!.value;
+      final pos = value.position;
+      if (isOnline) {
+        currentPosition.value = pos >= Duration.zero ? pos : Duration.zero;
+      } else {
+        if (pos > Duration.zero) {
+          currentPosition.value = pos;
+        }
       }
-    }
 
 
-    _updateSubtitle(currentPosition.value);
+      _updateSubtitle(currentPosition.value);
 
-    if (pos.inMilliseconds > 0) {
-      firstLoad = false;
-      // 只要进度开始推进，说明已经开始播放，取消缓冲状态
-      if (isBuffering.value) {
-        isBuffering.value = false;
+      if (pos.inMilliseconds > 0) {
+        firstLoad = false;
+        // 只要进度开始推进，说明已经开始播放，取消缓冲状态
+        if (isBuffering.value) {
+          isBuffering.value = false;
+        }
       }
-    }
 
-    // 拖动进度条时，不更新进度
-    if (!isSliderMoving.value) {
-      sliderPosition.value = pos;
-    }
+      // 拖动进度条时，不更新进度
+      if (!isSliderMoving.value) {
+        sliderPosition.value = pos;
+      }
 
-    // 触发进度回调事件
-    for (var element in _positionListeners) {
-      element();
-    }
+      // 触发进度回调事件
+      for (var element in _positionListeners) {
+        element();
+      }
 
-    final isPlaying = value.isPlaying;
-    // 播放进度变化时记录播放信息
-    if (isPlaying && pos > Duration.zero && !isBuffering.value && !isSliderMoving.value) {
-      recordPlayerInfo(progress: currentPosition.value.inSeconds);
-    }
+      final isPlaying = value.isPlaying;
+      // 播放进度变化时记录播放信息
+      if (isPlaying && pos > Duration.zero && !isBuffering.value && !isSliderMoving.value) {
+        recordPlayerInfo(progress: currentPosition.value.inSeconds);
+      }
 
-    if (pos.inMilliseconds > 0 && !_hasSubmittedVideo) {
-      submitVideoAction?.call();
-      _hasSubmittedVideo = true;
-    }
+      if (pos.inMilliseconds > 0 && !_hasSubmittedVideo) {
+        submitVideoAction?.call();
+        _hasSubmittedVideo = true;
+      }
 
-    // 播放/暂停
-    if (mediaPlayerStatus.playing != isPlaying) {
-      mediaPlayerStatus.status.value = isPlaying ? MediaPlayerStatusType.playing : MediaPlayerStatusType.paused;
-      // 触发回调事件
-      _callStateChangeListeners(playerStatus: mediaPlayerStatus.status.value);
-      if (isPlaying) _needRecordImmediately = true;
-    }
-
-    // 播放完成
-    if (pos >= value.duration && value.duration > Duration.zero) {
-      if (mediaPlayerStatus.status.value != MediaPlayerStatusType.completed) {
-        mediaPlayerStatus.status.value = MediaPlayerStatusType.completed;
-        // 播放状态变化时记录播放信息
-        recordPlayerInfo(progress: currentPosition.value.inSeconds, playStatusChanged: true);
+      // 播放/暂停
+      if (mediaPlayerStatus.playing != isPlaying) {
+        mediaPlayerStatus.status.value = isPlaying ? MediaPlayerStatusType.playing : MediaPlayerStatusType.paused;
         // 触发回调事件
         _callStateChangeListeners(playerStatus: mediaPlayerStatus.status.value);
+        if (isPlaying) _needRecordImmediately = true;
       }
-    }
 
-    if (value.isBuffering != isBuffering.value) {
-      isBuffering.value = value.isBuffering;
-      if (isBuffering.value && !isOnline) {
+      // 播放完成
+      if (pos >= value.duration && value.duration > Duration.zero) {
+        if (mediaPlayerStatus.status.value != MediaPlayerStatusType.completed) {
+          mediaPlayerStatus.status.value = MediaPlayerStatusType.completed;
+          // 播放状态变化时记录播放信息
+          recordPlayerInfo(progress: currentPosition.value.inSeconds, playStatusChanged: true);
+          // 触发回调事件
+          _callStateChangeListeners(playerStatus: mediaPlayerStatus.status.value);
+        }
+      }
+
+      if (value.isBuffering != isBuffering.value) {
+        isBuffering.value = value.isBuffering;
+        if (isBuffering.value && !isOnline) {
+          _errorChanged();
+        }
+      }
+
+      // 缓冲进度
+      if (value.buffered.isNotEmpty) {
+        bufferedDuration.value = value.buffered.last.end;
+      }
+
+      // 播放错误
+      if (value.hasError) {
         _errorChanged();
       }
-    }
-
-    // 缓冲进度
-    if (value.buffered.isNotEmpty) {
-      bufferedDuration.value = value.buffered.last.end;
-    }
-
-    // 播放错误
-    if (value.hasError) {
-      _errorChanged();
+    } catch (e) {
+      commonDebugPrint('PlayerController _videoPlayerListener error: $e');
     }
   }
 
@@ -916,7 +944,13 @@ class PlayerController {
   }
 
   void resetConfig() {
+    _rewindTimer?.cancel();
+    _rewindTimer = null;
+    _forwardTimer?.cancel();
+    _forwardTimer = null;
+
     playerController?.dispose();
+    playerController = null;
     isInitialized.value = false;
 
     // 是否已提交视频信息
@@ -938,7 +972,9 @@ class PlayerController {
     try {
       _hideTimer?.cancel();
       _rewindTimer?.cancel();
+      _rewindTimer = null;
       _forwardTimer?.cancel();
+      _forwardTimer = null;
       connectivityChanged?.cancel();
 
       recordAction = null;
@@ -949,6 +985,10 @@ class PlayerController {
 
       await playerController?.dispose();
       await previewPlayer?.dispose();
+
+      playerController = null;
+      previewPlayer = null;
+      previewVideoController = null;
     } catch (err) {
       commonDebugPrint('PlayerController dispose error: $err');
     }

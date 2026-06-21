@@ -26,6 +26,7 @@ import 'package:editvideo/widget/page_base.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
@@ -706,6 +707,11 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
     /// 开启
     controller.mediaPlayerController.removeStatusLister(playerListener);
     controller.mediaPlayerController.pause();
+    print('1111111');
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     // controller.mediaPlayerController.clearSubtitleContent();
     super.didPushNext();
   }
@@ -718,6 +724,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
     //   isShowing.value = true;
     // }
     await Future.delayed(const Duration(milliseconds: 300));
+    SystemChrome.setPreferredOrientations([]);
     controller.mediaPlayerController.addStatusLister(playerListener);
     controller.mediaPlayerController.play();
     super.didPopNext();
@@ -761,6 +768,12 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _playVideoSubscription.cancel();
+    VideoDetailPage.routeObserver.unsubscribe(this);
+    // 恢复竖屏
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     super.dispose();
   }
 }

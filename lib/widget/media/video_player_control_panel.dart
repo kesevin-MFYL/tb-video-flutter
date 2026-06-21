@@ -57,7 +57,7 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
   final _volumeInterceptEventStream = false.obs;
   Timer? _volumeTimer;
 
-  late double tempSpeed;
+  double tempSpeed = 1.0;
   Duration? tempSliderPosition;
 
   bool get isFullscreen => mediaPlayerController.isFullscreen;
@@ -75,7 +75,8 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
     Future.microtask(() async {
       try {
         FlutterVolumeController.updateShowSystemUI(true);
-        _volumeValue.value = (await FlutterVolumeController.getVolume())!;
+        final vol = await FlutterVolumeController.getVolume();
+        _volumeValue.value = vol ?? 0.0;
         FlutterVolumeController.addListener((double value) {
           if (mounted && !_volumeInterceptEventStream.value) {
             _volumeValue.value = value;
@@ -237,14 +238,18 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
             if (tapPosition < sectionWidth) {
               // 左边区域 👈
               final double level = (isFullscreen ? Get.size.height : screenWidth * 9 / 16) * 3;
-              final double brightness = _brightnessValue.value - delta / level;
-              final double result = brightness.clamp(0.0, 1.0);
-              setBrightness(result);
+              if (level > 0) {
+                final double brightness = _brightnessValue.value - (delta / level);
+                final double result = brightness.clamp(0.0, 1.0);
+                setBrightness(result);
+              }
             } else {
               final double level = (isFullscreen ? Get.size.height : screenWidth * 9 / 16);
-              final double volume = _volumeValue.value - double.parse(delta.toStringAsFixed(1)) / level;
-              final double result = volume.clamp(0.0, 1.0);
-              setVolume(result);
+              if (level > 0) {
+                final double volume = _volumeValue.value - (delta / level);
+                final double result = volume.clamp(0.0, 1.0);
+                setVolume(result);
+              }
             }
           },
           onVerticalDragEnd: (DragEndDetails details) {},
@@ -596,14 +601,17 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
                                       barHeight: 4,
                                       thumbRadius: 5,
                                       onDragStart: (duration) {
+                                        if (!mediaPlayerController.isInitialized.value) return;
                                         tempSliderPosition = mediaPlayerController.currentPosition.value;
                                         mediaPlayerController.isSliderMoving.value = true;
                                       },
                                       onDragUpdate: (duration) {
+                                        if (!mediaPlayerController.isInitialized.value) return;
                                         mediaPlayerController.sliderPosition.value = duration.timeStamp;
                                         mediaPlayerController.seekPreview(duration.timeStamp);
                                       },
                                       onSeek: (duration) {
+                                        if (!mediaPlayerController.isInitialized.value) return;
                                         mediaPlayerController.isSliderMoving.value = false;
                                         mediaPlayerController.sliderPosition.value = Duration(
                                           seconds: duration.inSeconds.toDouble().floor(),
@@ -740,9 +748,11 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Image.asset(mediaPlayerController.fastAssets, width: 16, height: 16),
+                  if (mediaPlayerController.fastAssets.isNotEmpty)
+                    Image.asset(mediaPlayerController.fastAssets, width: 16, height: 16),
 
-                  SizedBox(width: 8),
+                  if (mediaPlayerController.fastAssets.isNotEmpty)
+                    SizedBox(width: 8),
 
                   CommonText.instance(
                     '${mediaPlayerController.fastTips} ${mediaPlayerController.fastSeconds}s',

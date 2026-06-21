@@ -133,7 +133,6 @@ class AdManager {
     // 检查是否有广告正在展示（主要是 open 和 behavior 场景互斥）
     if ((scenario == 'open' || scenario == 'behavior') && _isAnyFullScreenAdShowing) {
       commonDebugPrint('AdManager: Cannot show $scenario ad. Another full screen ad is already showing.');
-      if (onAdDismissed != null) onAdDismissed();
       return;
     }
 
