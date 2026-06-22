@@ -14,6 +14,7 @@ import 'package:editvideo/utils/storage.dart';
 import 'package:editvideo/widget/media/model/media_data_source.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 
 /// 影片详情
@@ -329,6 +330,9 @@ class VideoDetailController extends BaseVideoDetailController {
 
   @override
   void onClose() {
+    if (EasyLoading.isShow) {
+      EasyLoading.dismiss();
+    }
     mediaPlayerController.dispose();
     tabController?.dispose();
     super.onClose();

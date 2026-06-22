@@ -140,12 +140,7 @@ class BaseVideoDetailController extends BaseController with GetTickerProviderSta
 
         if (seasonList.isEmpty) {
           episodeStatusType.value = MultiStatusType.statusEmpty;
-          if (tabController != null && tabController!.length != 0) {
-            tabController!.dispose();
-            tabController = TabController(length: 0, vsync: this);
-          } else {
-            tabController ??= TabController(length: 0, vsync: this);
-          }
+          tabController = TabController(length: 0, vsync: this);
           return;
         }
 
@@ -173,12 +168,7 @@ class BaseVideoDetailController extends BaseController with GetTickerProviderSta
           captionList = selectEpisode.value?.captionList ?? [];
         }
 
-        if (tabController != null && tabController!.length != seasonList.length) {
-          tabController!.dispose();
-          tabController = TabController(length: seasonList.length, vsync: this);
-        } else {
-          tabController ??= TabController(length: seasonList.length, vsync: this);
-        }
+        tabController = TabController(length: seasonList.length, vsync: this);
         tabController?.index = initialIndex == -1 ? 0 : initialIndex;
 
         // 如果是多开窗口 每次单独获取每季下的所有季
