@@ -129,64 +129,89 @@ class BaseVideoDetailController extends BaseController with GetTickerProviderSta
 
   /// 获取所有季
   Future<void> _getTvSeasons() async {
-    if (videoType != VideoType.tv) return;
+    if (videoType == VideoType.video) return;
 
-    // 电视剧获取季
-    final result = await HomeApi.getAllSeasons(id: mediaId);
-    if (result.isSuccess) {
-      final listData = result.responseData?.data;
-      seasonList = listData ?? [];
+    if (videoType == VideoType.tv) {
+      // 电视剧获取季
+      final result = await HomeApi.getAllSeasons(id: mediaId);
+      if (result.isSuccess) {
+        final listData = result.responseData?.data;
+        seasonList = listData ?? [];
 
-      if (seasonList.isEmpty) {
-        episodeStatusType.value = MultiStatusType.statusEmpty;
-        if (tabController != null && tabController!.length != 0) {
-          tabController!.dispose();
-          tabController = TabController(length: 0, vsync: this);
-        } else {
-          tabController ??= TabController(length: 0, vsync: this);
+        if (seasonList.isEmpty) {
+          episodeStatusType.value = MultiStatusType.statusEmpty;
+          if (tabController != null && tabController!.length != 0) {
+            tabController!.dispose();
+            tabController = TabController(length: 0, vsync: this);
+          } else {
+            tabController ??= TabController(length: 0, vsync: this);
+          }
+          return;
         }
-        return;
+
+        // 选中的季，没有缓存记录默认第一季
+        selectSeason.value =
+            seasonList.firstWhereOrNull((element) => element.id == mediaHistoryEntity?.season?.id) ?? seasonList.first;
+        var initialIndex = seasonList.indexWhere((element) => element.id == selectSeason.value?.id);
+
+        // 如果不是多开窗口 提前获取所有季下的所有集
+        if (!isMultiOpen) {
+          // 获取所有季下的所有集
+          for (var season in seasonList) {
+            await getEpisodeList(seasonId: season.id);
+          }
+
+          episodeStatusType.value = MultiStatusType.statusContent;
+
+          // 选中的集，没有缓存记录默认第一集
+          episodeList = episodeListCache[selectSeason.value?.id] ?? [];
+          selectEpisode.value =
+              episodeList.firstWhereOrNull((element) => element.id == mediaHistoryEntity?.episode?.id) ??
+              episodeList.first;
+
+          // 字幕
+          captionList = selectEpisode.value?.captionList ?? [];
+        }
+
+        if (tabController != null && tabController!.length != seasonList.length) {
+          tabController!.dispose();
+          tabController = TabController(length: seasonList.length, vsync: this);
+        } else {
+          tabController ??= TabController(length: seasonList.length, vsync: this);
+        }
+        tabController?.index = initialIndex == -1 ? 0 : initialIndex;
+
+        // 如果是多开窗口 每次单独获取每季下的所有季
+        if (isMultiOpen) {
+          // 获取季下的所有集
+          await getEpisodeList(seasonId: selectSeason.value?.id);
+        }
+      } else {
+        commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
       }
+    } else if (videoType == VideoType.anime) {
+      // 动漫获取集
+      final result = await HomeApi.getAnimeAllEpisodes(id: mediaId);
+      if (result.isSuccess) {
+        final listData = result.responseData?.data;
+        episodeList = listData ?? [];
 
-      // 选中的季，没有缓存记录默认第一季
-      selectSeason.value =
-          seasonList.firstWhereOrNull((element) => element.id == mediaHistoryEntity?.season?.id) ?? seasonList.first;
-      var initialIndex = seasonList.indexWhere((element) => element.id == selectSeason.value?.id);
-
-      // 如果不是多开窗口 提前获取所有季下的所有集
-      if (!isMultiOpen) {
-        // 获取所有季下的所有集
-        for (var season in seasonList) {
-          await getEpisodeList(seasonId: season.id);
+        if (episodeList.isEmpty) {
+          episodeStatusType.value = MultiStatusType.statusContent;
+          return;
         }
 
         episodeStatusType.value = MultiStatusType.statusContent;
 
-        // 选中的集，没有缓存记录默认第一集
-        episodeList = episodeListCache[selectSeason.value?.id] ?? [];
         selectEpisode.value =
             episodeList.firstWhereOrNull((element) => element.id == mediaHistoryEntity?.episode?.id) ??
             episodeList.first;
 
         // 字幕
         captionList = selectEpisode.value?.captionList ?? [];
-      }
-
-      if (tabController != null && tabController!.length != seasonList.length) {
-        tabController!.dispose();
-        tabController = TabController(length: seasonList.length, vsync: this);
       } else {
-        tabController ??= TabController(length: seasonList.length, vsync: this);
+        commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
       }
-      tabController?.index = initialIndex == -1 ? 0 : initialIndex;
-
-      // 如果是多开窗口 每次单独获取每季下的所有季
-      if (isMultiOpen) {
-        // 获取季下的所有集
-        await getEpisodeList(seasonId: selectSeason.value?.id);
-      }
-    } else {
-      commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
     }
   }
 
@@ -239,13 +264,15 @@ class BaseVideoDetailController extends BaseController with GetTickerProviderSta
 
   /// 选择剧集
   void chooseEpisode(EpisodeEntity episode) {
-    if (tabController == null || tabController!.index >= seasonList.length) return;
+    if (videoType == VideoType.tv) {
+      if (tabController == null || tabController!.index >= seasonList.length) return;
 
+      if (tabController!.index < seasonList.length) {
+        selectSeason.value = seasonList[tabController!.index];
+      }
+    }
     selectEpisode.value = episode;
     captionList = selectEpisode.value?.captionList ?? [];
-    if (tabController!.index < seasonList.length) {
-      selectSeason.value = seasonList[tabController!.index];
-    }
 
     updateMediaAndTitle();
   }
@@ -384,6 +411,18 @@ class BaseVideoDetailController extends BaseController with GetTickerProviderSta
           }
         }
       }
+    } else if (videoType == VideoType.anime) {
+      // 动漫剧集播放完毕
+      final currentEpisode = selectEpisode.value;
+      if (currentEpisode != null) {
+        final episodeIndex = episodeList.indexOf(currentEpisode);
+        if (episodeIndex != -1 && episodeIndex < episodeList.length - 1) {
+          // 不是最后一集,播放下一集
+          mediaPlayerController.setRecrodAction(null);
+          final nextEpisode = episodeList[episodeIndex + 1];
+          chooseEpisode(nextEpisode);
+        }
+      }
     }
   }
 
@@ -417,8 +456,8 @@ class BaseVideoDetailController extends BaseController with GetTickerProviderSta
       viewTime: DateTime.now().millisecondsSinceEpoch,
       totalDuration: mediaPlayerController.totalDuration.value.inSeconds,
       currentDuration: mediaPlayerController.currentPosition.value.inSeconds,
-      season: videoType == VideoType.tv ? selectSeason.value : null,
-      episode: videoType == VideoType.tv ? selectEpisode.value : null,
+      season: videoType == VideoType.tv || videoType == VideoType.anime ? selectSeason.value : null,
+      episode: videoType == VideoType.tv || videoType == VideoType.anime ? selectEpisode.value : null,
     );
 
     Storage.addViewedMedia(historyEntity);

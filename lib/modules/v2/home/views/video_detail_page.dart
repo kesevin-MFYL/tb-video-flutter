@@ -9,6 +9,7 @@ import 'package:editvideo/modules/v2/home/widget/episode_horizontal_cell.dart';
 import 'package:editvideo/modules/v2/home/widget/episode_vertical_cell.dart';
 import 'package:editvideo/modules/v2/home/widget/media_scroller_view.dart';
 import 'package:editvideo/modules/v2/home/widget/tab_page_view.dart';
+import 'package:editvideo/modules/v2/home/widget/video/video_anime_episode_view.dart';
 import 'package:editvideo/modules/v2/home/widget/video/video_auto_scroll_episode_wrapper.dart';
 import 'package:editvideo/modules/v2/home/widget/video/video_subtitle_settings_bottom_sheet.dart';
 import 'package:editvideo/modules/v2/home/widget/video/video_tv_season_view.dart';
@@ -145,6 +146,9 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
                               // 电视剧剧集
                               _buildTvSeasons(),
 
+                              // 动漫集
+                              _buildAnimeEpisodes(),
+
                               // 其他信息
                               _buildOtherInfo(),
 
@@ -158,6 +162,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
                   ),
                 ),
 
+                // 详细信息弹窗
                 Positioned(
                   left: 0,
                   right: 0,
@@ -169,6 +174,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
                   ),
                 ),
 
+                // 电视剧选集弹窗
                 Positioned(
                   left: 0,
                   right: 0,
@@ -180,6 +186,19 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
                   ),
                 ),
 
+                // 动漫选集弹窗
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Visibility(
+                    visible: isFullscreen ? false : true,
+                    maintainState: true,
+                    child: _buildBottomAnimeEpisodes(),
+                  ),
+                ),
+
+                // 字幕设置弹窗
                 Positioned(
                   left: 0,
                   right: 0,
@@ -493,6 +512,52 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
     );
   }
 
+  /// 动漫选集信息
+  Widget _buildAnimeEpisodes() {
+    if (controller.videoType != VideoType.anime) return const SizedBox();
+
+    return Padding(
+      padding: EdgeInsetsGeometry.symmetric(vertical: 16.w),
+      child: VideoAnimeEpisodeView(
+        controller: controller,
+        contentBuilder: (context, episodeList) {
+          return VideoAutoScrollEpisodeWrapper(
+            controller: controller,
+            episodeList: episodeList,
+            calculateOffset: (index, viewportDimension) {
+              final itemWidth = 48.w;
+              final spacing = 8.w;
+              final padding = 16.w;
+              final itemCenter = padding + index * (itemWidth + spacing) + itemWidth / 2;
+              return itemCenter - viewportDimension / 2;
+            },
+            builder: (context, scrollController) {
+              return ListView.separated(
+                controller: scrollController,
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                shrinkWrap: true,
+                separatorBuilder: (context, index) => SizedBox(width: 8.w),
+                itemCount: episodeList.length,
+                itemBuilder: (context, index) {
+                  final episodeItem = episodeList[index];
+                  return Obx(() {
+                    final selectEpisode = controller.selectEpisode.value;
+                    return EpisodeHorizontalCell(
+                      episodeEntity: episodeItem,
+                      selected: selectEpisode == episodeItem,
+                      action: controller.chooseEpisode,
+                    );
+                  });
+                },
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
   /// 剧集底部弹窗
   Widget _buildBottomTvSeasons() {
     if (controller.videoType != VideoType.tv) return const SizedBox();
@@ -519,6 +584,75 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
                 borderRadius: BorderRadius.only(topLeft: Radius.circular(32.h), topRight: Radius.circular(32.h)),
               ),
               child: VideoTvSeasonView(
+                controller: controller,
+                isDialog: true,
+                contentBuilder: (context, episodeList) {
+                  return VideoAutoScrollEpisodeWrapper(
+                    controller: controller,
+                    episodeList: episodeList,
+                    calculateOffset: (index, viewportDimension) {
+                      final itemHeight = 48.w;
+                      final spacing = 16.w;
+                      final padding = 16.w;
+                      final itemCenter = padding + index * (itemHeight + spacing) + itemHeight / 2;
+                      return itemCenter - viewportDimension / 2;
+                    },
+                    builder: (context, scrollController) {
+                      return ListView.separated(
+                        controller: scrollController,
+                        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.w),
+                        shrinkWrap: true,
+                        separatorBuilder: (context, index) => SizedBox(height: 16.w),
+                        itemCount: episodeList.length,
+                        itemBuilder: (context, index) {
+                          final episodeItem = episodeList[index];
+                          return Obx(() {
+                            final selectEpisode = controller.selectEpisode.value;
+                            return EpisodeVerticalCell(
+                              episodeEntity: episodeItem,
+                              selected: selectEpisode == episodeItem,
+                              action: controller.chooseEpisode,
+                            );
+                          });
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+    });
+  }
+
+  /// 动漫选集底部弹窗
+  Widget _buildBottomAnimeEpisodes() {
+    if (controller.videoType != VideoType.anime) return const SizedBox();
+
+    return Obx(() {
+      final showBottomEposide = controller.showBottomEposide.value;
+      return IgnorePointer(
+        ignoring: !showBottomEposide,
+        child: ClipRect(
+          child: TweenAnimationBuilder<Offset>(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOutCubic,
+            tween: showBottomEposide
+                ? Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+                : Tween<Offset>(begin: Offset.zero, end: const Offset(0, 1)),
+            builder: (context, offset, child) {
+              return FractionalTranslation(translation: offset, child: child);
+            },
+            child: Container(
+              padding: EdgeInsets.only(top: 22.w, bottom: safeAreaBottomDistance(16.w)),
+              height: controller.bottomHeight,
+              decoration: BoxDecoration(
+                color: CommonColors.color1B1B18,
+                borderRadius: BorderRadius.only(topLeft: Radius.circular(32.h), topRight: Radius.circular(32.h)),
+              ),
+              child: VideoAnimeEpisodeView(
                 controller: controller,
                 isDialog: true,
                 contentBuilder: (context, episodeList) {
@@ -694,7 +828,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
       } else {
         exitFullScreen();
         controller.closeBottomSheet();
-        if (controller.isSideSeasonsDialogOpen || controller.isSubtitleSettingsDialogOpen) {
+        if (controller.isSideSeasonsDialogOpen || controller.isSideAnimeDialogOpen || controller.isSubtitleSettingsDialogOpen) {
           Get.back();
         }
       }
@@ -708,7 +842,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
       if (controller.isFullscreen) {
         // 非锁定的情况下，退出全屏
         if (!controller.mediaPlayerController.controlsLock.value) {
-          if (controller.isSideSeasonsDialogOpen || controller.isSubtitleSettingsDialogOpen) {
+          if (controller.isSideSeasonsDialogOpen || controller.isSideAnimeDialogOpen || controller.isSubtitleSettingsDialogOpen) {
             Get.back();
           }
           controller.mediaPlayerController.triggerFullScreen(status: false);

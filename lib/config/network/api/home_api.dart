@@ -30,6 +30,7 @@ class HomeApi {
   static final mediaRecommendPath = '/DFTJEUpY/zuWvNHqf/cKf';
   static final tvAllSeasonPath = '/VXBTwAg/YgB';
   static final tvSeasonAllEpisodePath = '/SSxOkjA/DkEpWK';
+  static final animeAllEpisodePath = '/HiymwtzRA/xDUFkhpPa';
 
   /// 获取首页数据
   static Future<ApiResult<ListResponse<HomeSectionEntity>?, ApiError>> getHomeSection() async {
@@ -165,6 +166,17 @@ class HomeApi {
     final Map<String, dynamic> body = {'tv_show_season_id': id};
     return await HttpUtils.postRequest(
       tvSeasonAllEpisodePath,
+      body: body,
+      construction: EpisodeEntity.fromJson,
+      decoder: ListResponse<EpisodeEntity>.fromJson,
+    );
+  }
+
+  /// 获取动漫所有集
+  static Future<ApiResult<ListResponse<EpisodeEntity>?, ApiError>> getAnimeAllEpisodes({required int? id}) async {
+    final Map<String, dynamic> body = {'media_id': id};
+    return await HttpUtils.postRequest(
+      animeAllEpisodePath,
       body: body,
       construction: EpisodeEntity.fromJson,
       decoder: ListResponse<EpisodeEntity>.fromJson,

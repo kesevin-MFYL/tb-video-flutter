@@ -300,8 +300,11 @@ class PlayerController {
 
         dataSource.videoSource = videoUrl.toLocalUrl();
 
-        // 检查是否有下一集
-        hasNextEpisode.value = checkHasNextPlayAction?.call() ?? true;
+        if (videoType.value != VideoType.video) {
+          // 检查是否有下一集
+          hasNextEpisode.value = checkHasNextPlayAction?.call() ?? true;
+        }
+
         // 预缓存下一个视频
         _startVideoCacheNext();
       } else {

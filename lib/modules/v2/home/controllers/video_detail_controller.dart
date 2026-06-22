@@ -4,6 +4,7 @@ import 'package:editvideo/config/network/api/common_api.dart';
 import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/modules/v2/home/controllers/base_video_detail_controller.dart';
+import 'package:editvideo/modules/v2/home/widget/video/video_anime_episode_dialog.dart';
 import 'package:editvideo/modules/v2/home/widget/video/video_subtitle_setting_dialog.dart';
 import 'package:editvideo/modules/v2/home/widget/video/video_tv_season_dialog.dart';
 import 'package:editvideo/routes/app_routes.dart';
@@ -22,7 +23,8 @@ class VideoDetailController extends BaseVideoDetailController {
   double get videoHeight => Get.width * 9 / 16;
 
   bool get isFullscreen =>
-      mediaPlayerController.isFullScreen.value || mediaPlayerController.currentOrientation.value == Orientation.landscape;
+      mediaPlayerController.isFullScreen.value ||
+      mediaPlayerController.currentOrientation.value == Orientation.landscape;
 
   /// 是否显示媒体详情弹窗
   var showBottomOtherInfo = false.obs;
@@ -30,11 +32,17 @@ class VideoDetailController extends BaseVideoDetailController {
   /// 是否显示剧集底部弹窗
   var showBottomSeasons = false.obs;
 
+  /// 是否显示动漫集底部弹窗
+  var showBottomEposide = false.obs;
+
   /// 是否显示字幕底部弹窗
   var showBottomSubtitleSettings = false.obs;
 
   /// 横屏选集dialog
   bool isSideSeasonsDialogOpen = false;
+
+  /// 横屏动漫选集dialog
+  bool isSideAnimeDialogOpen = false;
 
   /// 横屏字幕设置dialog
   bool isSubtitleSettingsDialogOpen = false;
@@ -49,6 +57,11 @@ class VideoDetailController extends BaseVideoDetailController {
     showBottomSeasons.value = !showBottomSeasons.value;
   }
 
+  /// 动漫集弹窗(竖屏)
+  void bottomEposidesChanged() {
+    showBottomEposide.value = !showBottomEposide.value;
+  }
+
   /// 字幕弹窗(竖屏)
   void bottomSubtitleSettingsChanged() {
     showBottomSubtitleSettings.value = !showBottomSubtitleSettings.value;
@@ -58,6 +71,9 @@ class VideoDetailController extends BaseVideoDetailController {
   void closeBottomSheet() {
     if (showBottomSeasons.value) {
       showBottomSeasons.value = false;
+    }
+    if (showBottomEposide.value) {
+      showBottomEposide.value = false;
     }
     if (showBottomOtherInfo.value) {
       showBottomOtherInfo.value = false;
@@ -69,30 +85,55 @@ class VideoDetailController extends BaseVideoDetailController {
 
   /// 剧集右侧弹窗(横屏)
   void showRightTvSeasonsDialog() {
-    if (videoType != VideoType.tv) return;
+    if (videoType == VideoType.video) return;
 
-    isSideSeasonsDialogOpen = true;
-    showGeneralDialog(
-      context: Get.context!,
-      barrierDismissible: true,
-      barrierLabel: 'SideSeasons',
-      barrierColor: Colors.transparent,
-      transitionDuration: const Duration(milliseconds: 250),
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return VideoTvSeasonDialog(controller: this);
-      },
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        return SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(1, 0),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
-          child: child,
-        );
-      },
-    ).then((_) {
-      isSideSeasonsDialogOpen = false;
-    });
+    if (videoType == VideoType.tv) {
+      isSideSeasonsDialogOpen = true;
+      showGeneralDialog(
+        context: Get.context!,
+        barrierDismissible: true,
+        barrierLabel: 'SideSeasons',
+        barrierColor: Colors.transparent,
+        transitionDuration: const Duration(milliseconds: 250),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return VideoTvSeasonDialog(controller: this);
+        },
+        transitionBuilder: (context, animation, secondaryAnimation, child) {
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(1, 0),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
+            child: child,
+          );
+        },
+      ).then((_) {
+        isSideSeasonsDialogOpen = false;
+      });
+    } else {
+      isSideAnimeDialogOpen = true;
+      showGeneralDialog(
+        context: Get.context!,
+        barrierDismissible: true,
+        barrierLabel: 'SideSeasons',
+        barrierColor: Colors.transparent,
+        transitionDuration: const Duration(milliseconds: 250),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return VideoAnimeEpisodeDialog(controller: this);
+        },
+        transitionBuilder: (context, animation, secondaryAnimation, child) {
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(1, 0),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
+            child: child,
+          );
+        },
+      ).then((_) {
+        isSideAnimeDialogOpen = false;
+      });
+    }
   }
 
   /// 字幕右侧弹窗(横屏)/底部弹窗(竖屏)
@@ -189,6 +230,14 @@ class VideoDetailController extends BaseVideoDetailController {
           }
         }
       }
+    } else if (videoType == VideoType.anime) {
+      final currentEpisode = selectEpisode.value;
+      if (currentEpisode != null) {
+        final episodeIndex = episodeList.indexOf(currentEpisode);
+        if (episodeIndex != -1 && episodeIndex < episodeList.length - 1) {
+          return episodeList[episodeIndex + 1].video;
+        }
+      }
     }
     return null;
   }
@@ -196,18 +245,30 @@ class VideoDetailController extends BaseVideoDetailController {
   /// 检查是否有下一集
   bool checkHasNextPlay() {
     // 判断当前是否为最后一季的最后的最后一集
-    final currentSeason = selectSeason.value;
-    final currentEpisode = selectEpisode.value;
-    if (currentSeason != null && currentEpisode != null) {
-      final episodeIndex = episodeList.indexOf(currentEpisode);
-      final seasonIndex = seasonList.indexOf(currentSeason);
-      if (seasonIndex != -1 &&
-          seasonIndex == seasonList.length - 1 &&
-          episodeIndex != -1 &&
-          episodeIndex == episodeList.length - 1) {
-        return false;
-      } else {
-        return true;
+    if (videoType == VideoType.tv) {
+      final currentSeason = selectSeason.value;
+      final currentEpisode = selectEpisode.value;
+      if (currentSeason != null && currentEpisode != null) {
+        final episodeIndex = episodeList.indexOf(currentEpisode);
+        final seasonIndex = seasonList.indexOf(currentSeason);
+        if (seasonIndex != -1 &&
+            seasonIndex == seasonList.length - 1 &&
+            episodeIndex != -1 &&
+            episodeIndex == episodeList.length - 1) {
+          return false;
+        } else {
+          return true;
+        }
+      }
+    } else if (videoType == VideoType.anime) {
+      final currentEpisode = selectEpisode.value;
+      if (currentEpisode != null) {
+        final episodeIndex = episodeList.indexOf(currentEpisode);
+        if (episodeIndex != -1 && episodeIndex == episodeList.length - 1) {
+          return false;
+        } else {
+          return true;
+        }
       }
     }
     return true;

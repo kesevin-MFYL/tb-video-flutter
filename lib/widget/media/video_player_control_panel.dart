@@ -461,7 +461,7 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
                             else
                               Spacer(),
 
-                            if (isFullScreen && videoType == VideoType.tv)
+                            if (isFullScreen && videoType != VideoType.video)
                               Padding(
                                 padding: EdgeInsets.only(right: 24),
                                 child: GestureDetector(
@@ -561,7 +561,7 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
                               ),
                             ),
 
-                            if (isFullScreen && videoType == VideoType.tv)
+                            if (isFullScreen && videoType != VideoType.video)
                               Padding(
                                 padding: EdgeInsets.only(left: 8),
                                 child: Obx(() {

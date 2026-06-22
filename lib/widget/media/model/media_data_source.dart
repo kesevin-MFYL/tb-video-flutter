@@ -2,7 +2,8 @@ import 'dart:io';
 
 enum VideoType {
   video(1),
-  tv(2);
+  tv(2),
+  anime(4);
 
   final int value;
 
@@ -11,6 +12,8 @@ enum VideoType {
   static VideoType instance(int? type) {
     if (type == VideoType.tv.value) {
       return VideoType.tv;
+    } else if (type == VideoType.anime.value) {
+      return VideoType.anime;
     } else {
       return VideoType.video;
     }
@@ -29,8 +32,15 @@ class MediaDataSource {
   VideoType videoType;
   Map<String, String>? httpHeaders;
 
-  MediaDataSource({this.file, this.videoSource, this.audioSource, this.subFiles, required this.type, required this.videoType, this.httpHeaders})
-    : assert((type == MediaDataSourceType.file && file != null) || videoSource != null);
+  MediaDataSource({
+    this.file,
+    this.videoSource,
+    this.audioSource,
+    this.subFiles,
+    required this.type,
+    required this.videoType,
+    this.httpHeaders,
+  }) : assert((type == MediaDataSourceType.file && file != null) || videoSource != null);
 
   MediaDataSource copyWith({
     File? file,
