@@ -19,6 +19,10 @@ import 'package:status_bar_control_plus/status_bar_control_plus.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 class MediaPlayerController {
+  /// 是否已销毁
+  bool _isDisposed = false;
+  bool get isDisposed => _isDisposed;
+
   /// 播放器
   late final Player mediaPlayer;
 
@@ -272,6 +276,7 @@ class MediaPlayerController {
     // 字幕列表
     List<CaptionEntity> captionList = const [],
   }) async {
+    if (_isDisposed) return;
     try {
       mediaDataStatus.status.value = MediaDataStatusType.loading;
 
@@ -282,6 +287,7 @@ class MediaPlayerController {
       if (mediaPlayer != null && mediaPlayer.state.playing) {
         await pause();
       }
+      if (_isDisposed) return;
 
       if (dataSource.videoSource.isEmptyString()) {
         mediaDataStatus.status.value = MediaDataStatusType.error;
@@ -330,6 +336,8 @@ class MediaPlayerController {
       // 忽略 HTTP MIME 类型，避免服务端返回错误的 content-type（如 text/plain）导致无法识别文件格式
       await pp.setProperty("demuxer-lavf-allow-mimetype", "no");
 
+      if (_isDisposed) return;
+
       // todo// 音量不一致
       // if (Platform.isAndroid) {
       //   await pp.setProperty("volume-max", "100");
@@ -358,6 +366,8 @@ class MediaPlayerController {
       await previewPP.setProperty('sid', 'no'); // Disable subtitles
       // 忽略 HTTP MIME 类型
       await previewPP.setProperty("demuxer-lavf-allow-mimetype", "no");
+
+      if (_isDisposed) return;
 
       if (dataSource.type == MediaDataSourceType.asset) {
         final assetUrl = dataSource.videoSource!.startsWith("asset://")
@@ -427,6 +437,7 @@ class MediaPlayerController {
 
   /// 播放视频
   Future<void> play({bool repeat = false}) async {
+    if (_isDisposed) return;
     // repeat为true，将从头播放
     if (repeat) {
       mediaPlayer.seek(Duration.zero);
@@ -456,6 +467,8 @@ class MediaPlayerController {
         if (!isHorizontalMove) {
           await mediaPlayer.stream.buffer.first;
         }
+        if (_isDisposed) return;
+        
         await mediaPlayer.seek(position);
 
         _startHideTimer();
@@ -607,6 +620,9 @@ class MediaPlayerController {
       try {
         final dio = Dio();
         final response = await dio.get(url);
+        
+        if (_isDisposed) return;
+        
         if (response.data != null && response.data.toString().isNotEmpty) {
           // 再次检查是否被切换
           if (selectedCaption.value?.s3Address != url) return;
@@ -623,6 +639,7 @@ class MediaPlayerController {
       retryCount++;
       if (retryCount < maxRetries) {
         await Future.delayed(const Duration(seconds: 2));
+        if (_isDisposed) return;
       }
     }
 
@@ -882,6 +899,7 @@ class MediaPlayerController {
   }
 
   Future<void> dispose() async {
+    _isDisposed = true;
     try {
       _hideTimer?.cancel();
       _rewindTimer?.cancel();

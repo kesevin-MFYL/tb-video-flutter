@@ -18,6 +18,10 @@ import 'package:video_player/video_player.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 class PlayerController {
+  /// 是否已销毁
+  bool _isDisposed = false;
+  bool get isDisposed => _isDisposed;
+
   /// 播放器
   VideoPlayerController? playerController;
 
@@ -201,6 +205,7 @@ class PlayerController {
 
   /// 配置播放器
   Future<void> _createVideoController(MediaDataSource dataSource, Duration initVideoPosition) async {
+    if (_isDisposed) return;
     try {
       final originalUrl = dataSource.videoSource!.toOriginUrl();
       if (originalUrl.startsWith('http') || originalUrl.startsWith('https')) {
@@ -212,6 +217,8 @@ class PlayerController {
       }
 
       await playerController?.initialize();
+
+      if (_isDisposed) return;
 
       isInitialized.value = true;
       // 获取视频总时长
@@ -233,6 +240,7 @@ class PlayerController {
 
   /// 配置预览播放器
   Future<void> _createPreviewController(MediaDataSource dataSource, Duration initVideoPosition) async {
+    if (_isDisposed) return;
     try {
       previewPlayer ??= Player(configuration: const PlayerConfiguration(bufferSize: 2 * 1024 * 1024));
       previewPlayer?.setVolume(0.0);
@@ -246,6 +254,8 @@ class PlayerController {
       await previewPP.setProperty('vid', '1'); // Enable video
       await previewPP.setProperty('aid', 'no'); // Disable audio
       await previewPP.setProperty('sid', 'no'); // Disable subtitles
+
+      if (_isDisposed) return;
 
       if (dataSource.type == MediaDataSourceType.asset) {
         final assetUrl = dataSource.videoSource!.startsWith("asset://")
@@ -268,6 +278,7 @@ class PlayerController {
     // 字幕列表
     List<CaptionEntity> captionList = const [],
   }) async {
+    if (_isDisposed) return;
     try {
       // 每次配置时先移除监听
       removeListeners();
@@ -374,6 +385,7 @@ class PlayerController {
 
   /// 播放视频
   Future<void> play({bool repeat = false}) async {
+    if (_isDisposed) return;
     try {
       if (playerController == null) return;
       // repeat为true，将从头播放
@@ -576,6 +588,9 @@ class PlayerController {
       try {
         final dio = Dio();
         final response = await dio.get(url);
+        
+        if (_isDisposed) return;
+        
         if (response.data != null && response.data.toString().isNotEmpty) {
           // 再次检查是否被切换
           if (selectedCaption.value?.s3Address != url) return;
@@ -593,6 +608,7 @@ class PlayerController {
       retryCount++;
       if (retryCount < maxRetries) {
         await Future.delayed(const Duration(seconds: 2));
+        if (_isDisposed) return;
       }
     }
 
@@ -972,6 +988,7 @@ class PlayerController {
   }
 
   Future<void> dispose() async {
+    _isDisposed = true;
     try {
       _hideTimer?.cancel();
       _rewindTimer?.cancel();
