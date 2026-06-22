@@ -41,13 +41,14 @@ class SwitchManager {
       _getCloak(),
       _getFirebaseRemoteConfig(),
     ]).then((List<bool> result) {
+      if (canToB.value) return;
+      commonDebugPrint("SwitchManager final canToB: $canToB (cloakAllow: ${result[0]}, remoteAllow: ${result[1]})");
       // 共同判断 canToB 的值，只有黑名单允许且 RemoteConfig 允许，才可跳转B页面
       canToB.value = result[0] && result[1];
 
       if (canToB.value) {
         Storage.setCanToB(canToB.value);
       }
-      commonDebugPrint("SwitchManager final canToB: $canToB (cloakAllow: ${result[0]}, remoteAllow: ${result[1]})");
     });
   }
 

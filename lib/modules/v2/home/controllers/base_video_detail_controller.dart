@@ -20,7 +20,7 @@ import 'package:get/get.dart';
 
 import '../../../../widget/page_status/multi_status_view.dart';
 
-class BaseVideoDetailController extends BaseController with GetSingleTickerProviderStateMixin, MediaOperateMixin {
+class BaseVideoDetailController extends BaseController with GetTickerProviderStateMixin, MediaOperateMixin {
   TabController? tabController;
 
   /// 详情状态
@@ -139,7 +139,12 @@ class BaseVideoDetailController extends BaseController with GetSingleTickerProvi
 
       if (seasonList.isEmpty) {
         episodeStatusType.value = MultiStatusType.statusEmpty;
-        tabController ??= TabController(length: 0, vsync: this);
+        if (tabController != null && tabController!.length != 0) {
+          tabController!.dispose();
+          tabController = TabController(length: 0, vsync: this);
+        } else {
+          tabController ??= TabController(length: 0, vsync: this);
+        }
         return;
       }
 
@@ -167,7 +172,12 @@ class BaseVideoDetailController extends BaseController with GetSingleTickerProvi
         captionList = selectEpisode.value?.captionList ?? [];
       }
 
-      tabController ??= TabController(length: seasonList.length, vsync: this);
+      if (tabController != null && tabController!.length != seasonList.length) {
+        tabController!.dispose();
+        tabController = TabController(length: seasonList.length, vsync: this);
+      } else {
+        tabController ??= TabController(length: seasonList.length, vsync: this);
+      }
       tabController?.index = initialIndex == -1 ? 0 : initialIndex;
 
       // 如果是多开窗口 每次单独获取每季下的所有季

@@ -49,6 +49,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
 
   late StreamSubscription<EventBusModel> _playVideoSubscription;
   late StreamSubscription<bool> _fullScreenStatusSubscription;
+  late StreamSubscription<Orientation> _orientationSubscription;
 
   bool pageClosed = false;
 
@@ -683,9 +684,19 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
         enterFullScreen();
       } else {
         exitFullScreen();
-      }
-      if (!isFullScreen) {
         controller.closeBottomSheet();
+      }
+    });
+
+    _orientationSubscription = controller.mediaPlayerController.currentOrientation.listen((Orientation orientation) {
+      if (orientation == Orientation.landscape) {
+        enterFullScreen();
+      } else {
+        exitFullScreen();
+        controller.closeBottomSheet();
+        if (controller.isSideSeasonsDialogOpen || controller.isSubtitleSettingsDialogOpen) {
+          Get.back();
+        }
       }
     });
   }
@@ -718,6 +729,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
     controller.mediaPlayerController.pause();
     _playVideoSubscription.cancel();
     _fullScreenStatusSubscription.cancel();
+    _orientationSubscription.cancel();
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
@@ -754,12 +766,6 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
     if (pageClosed) return;
     final orientation = MediaQueryData.fromView(View.of(context)).orientation;
     controller.mediaPlayerController.currentOrientation.value = orientation;
-    if (orientation == Orientation.portrait) {
-      if (controller.isSideSeasonsDialogOpen || controller.isSubtitleSettingsDialogOpen) {
-        Get.back();
-      }
-      controller.closeBottomSheet();
-    }
   }
 
   // 生命周期监听
@@ -782,6 +788,8 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _playVideoSubscription.cancel();
+    _fullScreenStatusSubscription.cancel();
+    _orientationSubscription.cancel();
     VideoDetailPage.routeObserver.unsubscribe(this);
     // 恢复竖屏
     SystemChrome.setPreferredOrientations([
