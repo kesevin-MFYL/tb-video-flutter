@@ -424,6 +424,12 @@ class BaseVideoDetailController extends BaseController with GetTickerProviderSta
     videoType = VideoType.instance(mediaType);
     mediaHistoryEntity = Storage.getViewedMediaById(mediaId);
     mediaPlayerController.setRecrodAction(null);
+
+    // Clear old data to prevent mixing data from previous media
+    seasonList.clear();
+    episodeList.clear();
+    episodeListCache.clear();
+
     getDataFromServer();
   }
 

@@ -51,7 +51,7 @@ class CommonIndicatorTabBar extends StatefulWidget {
   State<CommonIndicatorTabBar> createState() => _CommonIndicatorTabBarState();
 }
 
-class _CommonIndicatorTabBarState extends State<CommonIndicatorTabBar> with SingleTickerProviderStateMixin {
+class _CommonIndicatorTabBarState extends State<CommonIndicatorTabBar> with TickerProviderStateMixin {
   late TabController _tabController;
   final currentIndex = 0.obs;
 
@@ -67,6 +67,22 @@ class _CommonIndicatorTabBarState extends State<CommonIndicatorTabBar> with Sing
     if (currentIndex.value != _tabController.index) {
       currentIndex.value = _tabController.index;
       widget.onChanged?.call(_tabController.index);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant CommonIndicatorTabBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.tabController != oldWidget.tabController) {
+      _tabController.removeListener(_handleTabSelection);
+      _tabController = widget.tabController ?? TabController(length: widget.tabs.length, vsync: this);
+      currentIndex.value = _tabController.index;
+      _tabController.addListener(_handleTabSelection);
+    } else if (widget.tabController == null && widget.tabs.length != oldWidget.tabs.length) {
+      _tabController.removeListener(_handleTabSelection);
+      _tabController = TabController(length: widget.tabs.length, vsync: this);
+      currentIndex.value = _tabController.index;
+      _tabController.addListener(_handleTabSelection);
     }
   }
 

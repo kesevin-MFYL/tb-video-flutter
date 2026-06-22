@@ -15,13 +15,21 @@ class TabPageView extends StatefulWidget {
   State<TabPageView> createState() => _TabPageViewState();
 }
 
-class _TabPageViewState extends State<TabPageView> with SingleTickerProviderStateMixin {
+class _TabPageViewState extends State<TabPageView> with TickerProviderStateMixin {
   late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: widget.mediaList.length, vsync: this);
+  }
+
+  @override
+  void didUpdateWidget(covariant TabPageView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.mediaList.length != oldWidget.mediaList.length) {
+      _tabController = TabController(length: widget.mediaList.length, vsync: this);
+    }
   }
 
   @override

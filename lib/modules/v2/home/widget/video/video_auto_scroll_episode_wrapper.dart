@@ -1,5 +1,6 @@
 import 'package:editvideo/models/episode_entity.dart';
 import 'package:editvideo/modules/v2/home/controllers/video_detail_controller.dart';
+import 'package:editvideo/widget/media/model/media_data_source.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -40,7 +41,19 @@ class _VideoAutoScrollEpisodeWrapperState extends State<VideoAutoScrollEpisodeWr
     // Initial scroll after build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.controller.selectEpisode.value != null) {
-        _scrollToEpisode(widget.controller.selectEpisode.value!);
+        if (widget.controller.videoType == VideoType.tv) {
+          if (widget.controller.selectSeason != null) {
+            final tabIndex = widget.controller.tabController?.index ?? 0;
+            final seasonIndex = widget.controller.seasonList.indexOf(widget.controller.selectSeason.value!);
+            if (tabIndex == seasonIndex) {
+              _scrollToEpisode(widget.controller.selectEpisode.value!);
+            } else {
+              _scrollController.jumpTo(0);
+            }
+          }
+        } else {
+          _scrollToEpisode(widget.controller.selectEpisode.value!);
+        }
       }
     });
   }
@@ -74,7 +87,19 @@ class _VideoAutoScrollEpisodeWrapperState extends State<VideoAutoScrollEpisodeWr
     if (oldWidget.episodeList != widget.episodeList) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (widget.controller.selectEpisode.value != null) {
-          _scrollToEpisode(widget.controller.selectEpisode.value!);
+          if (widget.controller.videoType == VideoType.tv) {
+            if (widget.controller.selectSeason != null) {
+              final tabIndex = widget.controller.tabController?.index ?? 0;
+              final seasonIndex = widget.controller.seasonList.indexOf(widget.controller.selectSeason.value!);
+              if (tabIndex == seasonIndex) {
+                _scrollToEpisode(widget.controller.selectEpisode.value!);
+              } else {
+                _scrollController.jumpTo(0);
+              }
+            }
+          } else {
+            _scrollToEpisode(widget.controller.selectEpisode.value!);
+          }
         }
       });
     }
