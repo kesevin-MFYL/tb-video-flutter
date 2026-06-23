@@ -995,6 +995,7 @@ class PlayerController {
 
   Future<void> dispose() async {
     _isDisposed = true;
+    isInitialized.value = false;
     try {
       _hideTimer?.cancel();
       _rewindTimer?.cancel();
