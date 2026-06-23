@@ -55,30 +55,11 @@ class LaunchController extends GetxController {
   }
 
   Future<void> _initializeAppAndAds() async {
-    // 1. 初始化 RemoteConfig 设置
+    // 拉取firebase远程配置
+    RemoteConfigManager().fetchAndActivateConfig();
+
+    // 初始化 RemoteConfig 设置
     await RemoteConfigManager().initialize();
-
-    // 2. 拉取远端配置
-    RemoteConfigManager().fetchAndActivateConfig().then((updated) {
-      if (updated) {
-        debugPrint("Remote config updated.");
-      } else {
-        debugPrint("Remote config fetchAndActivate called, but no update.");
-      }
-
-      // 无论是否有更新，都尝试将 RemoteConfig 中的数据转换为 AdConfig 对象
-      bool isSuccess = RemoteConfigManager().parseAndCacheConfig();
-      final config = RemoteConfigManager().config;
-
-      if (isSuccess && config != null) {
-        commonDebugPrint("Remote config: Reloading all ads with updated config.");
-        AdManager.instance.loadAd('open', config.open);
-        AdManager.instance.loadAd('behavior', config.behavior);
-        AdManager.instance.loadAd('NVhome', config.nvhome);
-      }
-    });
-
-    SwitchManager.instance.excutePage();
 
     // // 3. 收集隐私合规 (UMP) 并初始化 MobileAds
     //todo GDPR权限检查
@@ -156,6 +137,7 @@ class LaunchController extends GetxController {
   void _navigateToMain() {
     if (_hasNavigatedToMain) return;
     _hasNavigatedToMain = true;
+    SwitchManager.instance.excutePage();
     _checkAdTimer?.cancel();
     _progressTimer?.cancel();
     Get.offAllNamed(SwitchManager.instance.canToB.value ? Routes.mainB : Routes.mainA);

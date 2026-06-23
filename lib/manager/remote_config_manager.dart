@@ -134,8 +134,8 @@ class RemoteConfigManager {
     await _remoteConfig.setDefaults({'ad_json_and': _defaultAdRulesJson});
 
     // 2. 同步初始化一次内存中的 _config 对象，确保在 fetchAndActivate 之前业务层也能读取到
-    _config = _getDefaultAdConfig();
-    
+    parseAndCacheConfig();
+
     // 监听实时更新（Firebase 远端下发了新配置）
     _listenForUpdates();
   }
@@ -169,12 +169,28 @@ class RemoteConfigManager {
   }
 
   // 拉取并激活配置，返回是否拉取并解析成功
-  Future<bool> fetchAndActivateConfig() async {
+  void fetchAndActivateConfig() async {
     try {
-      return await _remoteConfig.fetchAndActivate();
+      commonDebugPrint("Firebase: 拉取远端配置");
+      _remoteConfig.fetchAndActivate().then((updated) {
+        if (updated) {
+          debugPrint("Remote config updated.");
+        } else {
+          debugPrint("Remote config fetchAndActivate called, but no update.");
+        }
+
+        // 无论是否有更新，都尝试将 RemoteConfig 中的数据转换为 AdConfig 对象
+        bool isSuccess = parseAndCacheConfig();
+
+        if (isSuccess && _config != null) {
+          commonDebugPrint("Remote config: Reloading all ads with updated config.");
+          AdManager.instance.loadAd('open', _config!.open);
+          AdManager.instance.loadAd('behavior', _config!.behavior);
+          AdManager.instance.loadAd('NVhome', _config!.nvhome);
+        }
+      });
     } catch (e) {
-      commonDebugPrint("Remote config fetch error: $e");
-      return false;
+      commonDebugPrint("Firebase: 拉取远端配置失败: $e");
     }
   }
 

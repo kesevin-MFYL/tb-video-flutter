@@ -4,7 +4,6 @@ import 'package:dio/dio.dart';
 import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/config/network/api/common_api.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
-import 'package:editvideo/manager/remote_config_manager.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/storage.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
@@ -29,26 +28,17 @@ class SwitchManager {
   Future<void> excutePage() async {
     if (canToB.value) return;
 
-    RemoteConfigManager().fetchAndActivateConfig().then((updated) async {
-      await checkCloak();
-    });
-
-    await checkCloak();
-  }
-
-  Future checkCloak() async {
     await Future.wait([
       _getCloak(),
-      _getFirebaseRemoteConfig(),
+      _checkAllow(),
     ]).then((List<bool> result) {
-      if (canToB.value) return;
-      commonDebugPrint("SwitchManager final canToB: $canToB (cloakAllow: ${result[0]}, remoteAllow: ${result[1]})");
       // 共同判断 canToB 的值，只有黑名单允许且 RemoteConfig 允许，才可跳转B页面
       canToB.value = result[0] && result[1];
 
       if (canToB.value) {
         Storage.setCanToB(canToB.value);
       }
+      commonDebugPrint("SwitchManager final canToB: $canToB (cloakAllow: ${result[0]}, remoteAllow: ${result[1]})");
     });
   }
 
@@ -69,18 +59,12 @@ class SwitchManager {
     }
   }
 
-  /// 异步获取并解析 Firebase Remote Config 的各项开关配置。
-  /// 
   /// 主要包含以下几个维度的判断：
   /// 1. `movix_reffer_clo`：全局黑名单控制。为 'close' 时直接拦截。
   /// 2. `movix_cloak_add`：模拟器和 VPN 屏蔽控制。为 'open' 且当前环境触发命中时进行拦截。
   /// 3. `movix_country_cloak`：区域屏蔽控制。当下发配置包含当前设备的国家或省市时进行拦截。
   ///
   /// 所有条件均通过后，将 [remoteAllow] 置为 true。
-  Future<bool> _getFirebaseRemoteConfig() async {
-    return await _checkAllow();
-  }
-
   Future<bool> _checkAllow() async {
     final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.instance;
     String movixRefferClo = remoteConfig.getString('movix_reffer_clo').isEmptyString() ? 'all' : remoteConfig.getString('movix_reffer_clo');
