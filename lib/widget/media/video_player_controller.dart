@@ -187,6 +187,8 @@ class PlayerController {
   /// 当前播放的原始视频URL
   String? currentVideoUrl;
 
+  int _dataSourceGeneration = 0;
+
   // 获取实例 传参
   PlayerController({
     // 默认自动播放
@@ -206,22 +208,27 @@ class PlayerController {
   }
 
   /// 配置播放器
-  Future<void> _createVideoController(MediaDataSource dataSource, Duration initVideoPosition) async {
+  Future<void> _createVideoController(MediaDataSource dataSource, Duration initVideoPosition, int generation) async {
     if (_isDisposed) return;
     try {
+      VideoPlayerController? controller;
       final originalUrl = dataSource.videoSource!.toOriginUrl();
       if (originalUrl.startsWith('http') || originalUrl.startsWith('https')) {
-        playerController = VideoPlayerController.networkUrl(dataSource.videoSource!.toLocalUri());
+        controller = VideoPlayerController.networkUrl(dataSource.videoSource!.toLocalUri());
       } else if (originalUrl.startsWith('assets/')) {
-        playerController = VideoPlayerController.asset(dataSource.videoSource!);
+        controller = VideoPlayerController.asset(dataSource.videoSource!);
       } else {
-        playerController = VideoPlayerController.file(File(dataSource.videoSource!));
+        controller = VideoPlayerController.file(File(dataSource.videoSource!));
       }
 
-      await playerController?.initialize();
+      await controller.initialize();
 
-      if (_isDisposed) return;
+      if (_isDisposed || generation != _dataSourceGeneration) {
+        await controller.dispose();
+        return;
+      }
 
+      playerController = controller;
       isInitialized.value = true;
       // 获取视频总时长
       totalDuration.value = playerController!.value.duration;
@@ -235,36 +242,49 @@ class PlayerController {
         }
       }
     } catch (e) {
-      hasError.value = true;
+      if (generation == _dataSourceGeneration) {
+        hasError.value = true;
+      }
       commonDebugPrint('PlayerController _createVideoController error: $e');
     }
   }
 
   /// 配置预览播放器
-  Future<void> _createPreviewController(MediaDataSource dataSource, Duration initVideoPosition) async {
+  Future<void> _createPreviewController(MediaDataSource dataSource, Duration initVideoPosition, int generation) async {
     if (_isDisposed) return;
     try {
-      previewPlayer ??= Player(configuration: const PlayerConfiguration(bufferSize: 2 * 1024 * 1024));
-      previewPlayer?.setVolume(0.0);
+      final pPlayer = Player(configuration: const PlayerConfiguration(bufferSize: 2 * 1024 * 1024));
+      pPlayer.setVolume(0.0);
 
-      previewVideoController ??= VideoController(previewPlayer!);
+      final pVideoController = VideoController(pPlayer);
 
       // 配置预览Player
-      var previewPP = previewPlayer!.platform as NativePlayer;
+      var previewPP = pPlayer.platform as NativePlayer;
       await previewPP.setProperty('vid', '1'); // Enable video
       await previewPP.setProperty('aid', 'no'); // Disable audio
       await previewPP.setProperty('sid', 'no'); // Disable subtitles
 
-      if (_isDisposed) return;
+      if (_isDisposed || generation != _dataSourceGeneration) {
+        await pPlayer.dispose();
+        return;
+      }
 
       if (dataSource.type == MediaDataSourceType.asset) {
         final assetUrl = dataSource.videoSource!.startsWith("asset://")
             ? dataSource.videoSource!
             : "asset://${dataSource.videoSource!}";
-        await previewPlayer!.open(Media(assetUrl, httpHeaders: dataSource.httpHeaders), play: false);
+        await pPlayer.open(Media(assetUrl, httpHeaders: dataSource.httpHeaders), play: false);
       } else {
-        await previewPlayer!.open(Media(dataSource.videoSource!, httpHeaders: dataSource.httpHeaders), play: false);
+        await pPlayer.open(Media(dataSource.videoSource!, httpHeaders: dataSource.httpHeaders), play: false);
       }
+
+      if (_isDisposed || generation != _dataSourceGeneration) {
+        await pPlayer.dispose();
+        return;
+      }
+
+      previewPlayer = pPlayer;
+      previewVideoController = pVideoController;
     } catch (e) {
       commonDebugPrint('PlayerController _createPreviewController error: $e');
     }
@@ -279,11 +299,14 @@ class PlayerController {
     List<CaptionEntity> captionList = const [],
   }) async {
     if (_isDisposed) return;
+    final int generation = ++_dataSourceGeneration;
+
     try {
       // 每次配置时先移除监听
       removeListeners();
       // 重置配置
       await resetConfig();
+      if (_isDisposed || generation != _dataSourceGeneration) return;
 
       videoType.value = dataSource.videoType;
 
@@ -326,10 +349,12 @@ class PlayerController {
       hasError.value = false;
 
       // 配置Player
-      await _createVideoController(dataSource, initVideoPosition);
+      await _createVideoController(dataSource, initVideoPosition, generation);
+      if (_isDisposed || generation != _dataSourceGeneration) return;
 
       // 配置预览Player
-      await _createPreviewController(dataSource, initVideoPosition);
+      await _createPreviewController(dataSource, initVideoPosition, generation);
+      if (_isDisposed || generation != _dataSourceGeneration) return;
 
       // 添加监听
       addListeners();
@@ -337,7 +362,9 @@ class PlayerController {
       // 配置字幕
       await initSubtitles();
     } catch (err) {
-      hasError.value = true;
+      if (generation == _dataSourceGeneration) {
+        hasError.value = true;
+      }
       commonDebugPrint('PlayerController setDataSource error: $err');
     }
   }
@@ -969,11 +996,15 @@ class PlayerController {
 
       isInitialized.value = false;
 
-      await playerController?.dispose();
-      await previewPlayer?.dispose();
+      final oldPlayerController = playerController;
+      final oldPreviewPlayer = previewPlayer;
+
       playerController = null;
       previewPlayer = null;
       previewVideoController = null;
+
+      await oldPlayerController?.dispose();
+      await oldPreviewPlayer?.dispose();
 
       // 是否已提交视频信息
       _hasSubmittedVideo = false;
@@ -995,6 +1026,7 @@ class PlayerController {
 
   Future<void> dispose() async {
     _isDisposed = true;
+    _dataSourceGeneration++; // 取消任何正在进行的初始化
     isInitialized.value = false;
     try {
       _hideTimer?.cancel();
@@ -1010,12 +1042,16 @@ class PlayerController {
 
       removeListeners();
 
-      await playerController?.dispose();
-      await previewPlayer?.dispose();
+      final oldPlayerController = playerController;
+      final oldPreviewPlayer = previewPlayer;
 
       playerController = null;
       previewPlayer = null;
       previewVideoController = null;
+
+      await oldPlayerController?.dispose();
+      await oldPreviewPlayer?.dispose();
+
     } catch (err) {
       commonDebugPrint('PlayerController dispose error: $err');
     }
