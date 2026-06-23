@@ -258,19 +258,19 @@ class PlayerController {
   Future<void> _createPreviewController(MediaDataSource dataSource, Duration initVideoPosition, int generation) async {
     if (_isDisposed) return;
     try {
-      final pPlayer = Player(configuration: const PlayerConfiguration(bufferSize: 2 * 1024 * 1024));
-      pPlayer.setVolume(0.0);
+      if (previewPlayer == null) {
+        previewPlayer = Player(configuration: const PlayerConfiguration(bufferSize: 2 * 1024 * 1024));
+        previewPlayer?.setVolume(0.0);
+        previewVideoController = VideoController(previewPlayer!);
 
-      final pVideoController = VideoController(pPlayer);
-
-      // 配置预览Player
-      var previewPP = pPlayer.platform as NativePlayer;
-      await previewPP.setProperty('vid', '1'); // Enable video
-      await previewPP.setProperty('aid', 'no'); // Disable audio
-      await previewPP.setProperty('sid', 'no'); // Disable subtitles
+        // 配置预览Player
+        var previewPP = previewPlayer!.platform as NativePlayer;
+        await previewPP.setProperty('vid', '1'); // Enable video
+        await previewPP.setProperty('aid', 'no'); // Disable audio
+        await previewPP.setProperty('sid', 'no'); // Disable subtitles
+      }
 
       if (_isDisposed || generation != _dataSourceGeneration) {
-        await pPlayer.dispose();
         return;
       }
 
@@ -278,18 +278,10 @@ class PlayerController {
         final assetUrl = dataSource.videoSource!.startsWith("asset://")
             ? dataSource.videoSource!
             : "asset://${dataSource.videoSource!}";
-        await pPlayer.open(Media(assetUrl, httpHeaders: dataSource.httpHeaders), play: false);
+        await previewPlayer!.open(Media(assetUrl, httpHeaders: dataSource.httpHeaders), play: false);
       } else {
-        await pPlayer.open(Media(dataSource.videoSource!, httpHeaders: dataSource.httpHeaders), play: false);
+        await previewPlayer!.open(Media(dataSource.videoSource!, httpHeaders: dataSource.httpHeaders), play: false);
       }
-
-      if (_isDisposed || generation != _dataSourceGeneration) {
-        await pPlayer.dispose();
-        return;
-      }
-
-      previewPlayer = pPlayer;
-      previewVideoController = pVideoController;
     } catch (e) {
       commonDebugPrint('PlayerController _createPreviewController error: $e');
     }
@@ -1001,13 +993,15 @@ class PlayerController {
       isInitialized.value = false;
 
       final oldPlayer = playerController;
-      final oldPreview = previewPlayer;
-      playerController = null;
-      previewPlayer = null;
-      previewVideoController = null;
+      // DO NOT set playerController = null yet, keep it in the UI tree to consume frames
+      // previewPlayer and previewVideoController are kept and reused
       
       await oldPlayer?.dispose();
-      await oldPreview?.dispose();
+      
+      // Now the Android texture is completely destroyed, safe to remove from UI
+      if (playerController == oldPlayer) {
+        playerController = null;
+      }
 
       // 是否已提交视频信息
       _hasSubmittedVideo = false;
@@ -1053,12 +1047,19 @@ class PlayerController {
 
       final oldPlayer = playerController;
       final oldPreview = previewPlayer;
-      playerController = null;
-      previewPlayer = null;
-      previewVideoController = null;
+      // DO NOT set playerController = null yet, keep it in the UI tree to consume frames
+      // previewVideoController is also kept until oldPreview is disposed
       
       await oldPlayer?.dispose();
       await oldPreview?.dispose();
+      
+      if (playerController == oldPlayer) {
+        playerController = null;
+      }
+      if (previewPlayer == oldPreview) {
+        previewPlayer = null;
+        previewVideoController = null;
+      }
     } catch (err) {
       commonDebugPrint('PlayerController dispose error: $err');
     }

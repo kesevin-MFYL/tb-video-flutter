@@ -224,19 +224,34 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
         Center(
           child: Obx(() {
             final isInitialized = controller.mediaPlayerController.isInitialized.value;
-            return isInitialized
-                ? AspectRatio(
-                    aspectRatio: controller.mediaPlayerController.playerController!.value.aspectRatio,
-                    child: VideoPlayer(controller.mediaPlayerController.playerController!),
-                  )
-                : Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      loadingIndicator(size: 30, strokeWidth: 2),
-                      SizedBox(height: 6),
-                      CommonText.instance('loading....', 12),
-                    ],
-                  );
+            final playerCtrl = controller.mediaPlayerController.playerController;
+            return Stack(
+              alignment: Alignment.center,
+              children: [
+                // 只要 playerCtrl 不为空，就一直把它留在视图树上，避免底层解码器找不到 Surface 导致崩溃
+                if (playerCtrl != null)
+                  AspectRatio(
+                    aspectRatio: isInitialized ? playerCtrl.value.aspectRatio : 16 / 9,
+                    child: VideoPlayer(playerCtrl),
+                  ),
+                
+                // 如果还未初始化完成，盖上一层 loading
+                if (!isInitialized)
+                  Container(
+                    color: CommonColors.color060600,
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          loadingIndicator(size: 30, strokeWidth: 2),
+                          SizedBox(height: 6),
+                          CommonText.instance('loading....', 12),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            );
           }),
         ),
 
