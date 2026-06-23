@@ -150,6 +150,16 @@ class Storage {
     return _getStorage!.read<String?>(_kSessionId);
   }
 
+  static Future<void> _removeCacheByUrl(String url) async {
+    try {
+      final String path = url.split('?').first.toLowerCase();
+      final bool isMp4 = path.endsWith('.mp4');
+      await LruCacheSingleton().removeCacheByUrl(url, singleFile: isMp4);
+    } catch (e) {
+      // ignore
+    }
+  }
+
   // === 看过的media列表 ===
   static Future<void> addViewedMedia(MediaHistoryEntity media) async {
     List<MediaHistoryEntity> list = getViewedMedia();
@@ -157,11 +167,7 @@ class Storage {
     if (index != -1) {
       final oldMedia = list[index];
       if (oldMedia.videoUrl != null && oldMedia.videoUrl != media.videoUrl) {
-        try {
-          await LruCacheSingleton().removeCacheByUrl(oldMedia.videoUrl!);
-        } catch (e) {
-          // ignore
-        }
+        await _removeCacheByUrl(oldMedia.videoUrl!);
       }
       list[index] = media;
       // 存在则更新，并放到第一个位置
@@ -176,11 +182,7 @@ class Storage {
       list = list.sublist(0, 100);
       for (var item in removedItems) {
         if (item.videoUrl != null && item.videoUrl!.isNotEmpty) {
-          try {
-            await LruCacheSingleton().removeCacheByUrl(item.videoUrl!);
-          } catch (e) {
-            // ignore
-          }
+          await _removeCacheByUrl(item.videoUrl!);
         }
       }
     }
@@ -192,7 +194,7 @@ class Storage {
     List<MediaHistoryEntity> list = getViewedMedia();
     for (var item in itemsToRemove) {
       if (item.videoUrl != null && item.videoUrl!.isNotEmpty) {
-        await LruCacheSingleton().removeCacheByUrl(item.videoUrl!);
+        await _removeCacheByUrl(item.videoUrl!);
       }
     }
     list.removeWhere((e) => itemsToRemove.contains(e));
@@ -209,7 +211,7 @@ class Storage {
     try {
       final itemToRemove = list.firstWhere((e) => e.id == id);
       if (itemToRemove.videoUrl != null && itemToRemove.videoUrl!.isNotEmpty) {
-        await LruCacheSingleton().removeCacheByUrl(itemToRemove.videoUrl!);
+        await _removeCacheByUrl(itemToRemove.videoUrl!);
       }
     } catch (e) {
       // ignore
