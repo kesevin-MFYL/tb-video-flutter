@@ -989,6 +989,12 @@ class PlayerController {
 
   Future<void> resetConfig() async {
     try {
+      VideoProxy.downloadManager.cancelAllTask();
+    } catch (e) {
+      commonDebugPrint('PlayerController cancel cache task error: $e');
+    }
+
+    try {
       _rewindTimer?.cancel();
       _rewindTimer = null;
       _forwardTimer?.cancel();

@@ -278,6 +278,12 @@ class MediaPlayerController {
   }) async {
     if (_isDisposed) return;
     try {
+      try {
+        VideoProxy.downloadManager.cancelAllTask();
+      } catch (e) {
+        commonDebugPrint('MediaPlayerController cancel cache task error: $e');
+      }
+
       mediaDataStatus.status.value = MediaDataStatusType.loading;
 
       videoType.value = dataSource.videoType;
@@ -900,6 +906,12 @@ class MediaPlayerController {
 
   Future<void> dispose() async {
     _isDisposed = true;
+    try {
+      VideoProxy.downloadManager.cancelAllTask();
+    } catch (e) {
+      commonDebugPrint('MediaPlayerController cancel cache task error: $e');
+    }
+
     try {
       _hideTimer?.cancel();
       _rewindTimer?.cancel();
