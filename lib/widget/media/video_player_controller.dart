@@ -231,17 +231,23 @@ class PlayerController {
       playerController = controller;
 
       isInitialized.value = true;
-      // 获取视频总时长
-      totalDuration.value = playerController!.value.duration;
-      // 自动播放视频
-      if (autoPlay) {
-        if (initVideoPosition.inSeconds >= totalDuration.value.inSeconds) {
-          play(repeat: true);
-        } else {
-          seekTo(initVideoPosition);
-          play();
+      
+      // 等待下一帧 UI 渲染完成（Texture 组件挂载到树上并开始消费 SurfaceTexture），再执行播放
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_isDisposed || playerController == null) return;
+        
+        // 获取视频总时长
+        totalDuration.value = playerController!.value.duration;
+        // 自动播放视频
+        if (autoPlay) {
+          if (initVideoPosition.inSeconds >= totalDuration.value.inSeconds) {
+            play(repeat: true);
+          } else {
+            seekTo(initVideoPosition);
+            play();
+          }
         }
-      }
+      });
     } catch (e) {
       hasError.value = true;
       commonDebugPrint('PlayerController _createVideoController error: $e');

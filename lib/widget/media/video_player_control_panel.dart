@@ -780,7 +780,10 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
         alignment: Alignment.center,
         child: AnimatedOpacity(
           curve: Curves.easeInOut,
-          opacity: mediaPlayerController.isSliderMoving.value ? 1.0 : 0.0,
+          // MUST NOT be exactly 0.0, otherwise Flutter skips painting the Texture widget,
+          // causing the media_kit Player to fill up the SurfaceTexture buffer and crash
+          // with "Already acquired max frames".
+          opacity: mediaPlayerController.isSliderMoving.value ? 1.0 : 0.01,
           duration: const Duration(milliseconds: 150),
           child: IgnorePointer(
             ignoring: !mediaPlayerController.isSliderMoving.value,
