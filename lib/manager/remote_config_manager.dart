@@ -170,7 +170,12 @@ class RemoteConfigManager {
 
   // 拉取并激活配置，返回是否拉取并解析成功
   Future<bool> fetchAndActivateConfig() async {
-    return await _remoteConfig.fetchAndActivate();
+    try {
+      return await _remoteConfig.fetchAndActivate();
+    } catch (e) {
+      commonDebugPrint("Remote config fetch error: $e");
+      return false;
+    }
   }
 
   bool parseAndCacheConfig() {
