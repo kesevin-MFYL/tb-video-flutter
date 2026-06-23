@@ -18,8 +18,6 @@ import 'package:video_player/video_player.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 class PlayerController {
-  int _dataSourceGeneration = 0;
-
   /// 是否已销毁
   bool _isDisposed = false;
 
@@ -208,46 +206,34 @@ class PlayerController {
   }
 
   /// 配置播放器
-  Future<void> _createVideoController(MediaDataSource dataSource, Duration initVideoPosition, int generation) async {
+  Future<void> _createVideoController(MediaDataSource dataSource, Duration initVideoPosition) async {
     if (_isDisposed) return;
     try {
-      VideoPlayerController? controller;
       final originalUrl = dataSource.videoSource!.toOriginUrl();
       if (originalUrl.startsWith('http') || originalUrl.startsWith('https')) {
-        controller = VideoPlayerController.networkUrl(dataSource.videoSource!.toLocalUri());
+        playerController = VideoPlayerController.networkUrl(dataSource.videoSource!.toLocalUri());
       } else if (originalUrl.startsWith('assets/')) {
-        controller = VideoPlayerController.asset(dataSource.videoSource!);
+        playerController = VideoPlayerController.asset(dataSource.videoSource!);
       } else {
-        controller = VideoPlayerController.file(File(dataSource.videoSource!));
+        playerController = VideoPlayerController.file(File(dataSource.videoSource!));
       }
 
-      await controller.initialize();
+      await playerController?.initialize();
 
-      if (_isDisposed || generation != _dataSourceGeneration) {
-        await controller.dispose();
-        return;
-      }
-      
-      playerController = controller;
+      if (_isDisposed) return;
 
       isInitialized.value = true;
-      
-      // 等待下一帧 UI 渲染完成（Texture 组件挂载到树上并开始消费 SurfaceTexture），再执行播放
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_isDisposed || playerController == null) return;
-        
-        // 获取视频总时长
-        totalDuration.value = playerController!.value.duration;
-        // 自动播放视频
-        if (autoPlay) {
-          if (initVideoPosition.inSeconds >= totalDuration.value.inSeconds) {
-            play(repeat: true);
-          } else {
-            seekTo(initVideoPosition);
-            play();
-          }
+      // 获取视频总时长
+      totalDuration.value = playerController!.value.duration;
+      // 自动播放视频
+      if (autoPlay) {
+        if (initVideoPosition.inSeconds >= totalDuration.value.inSeconds) {
+          play(repeat: true);
+        } else {
+          seekTo(initVideoPosition);
+          play();
         }
-      });
+      }
     } catch (e) {
       hasError.value = true;
       commonDebugPrint('PlayerController _createVideoController error: $e');
@@ -255,24 +241,21 @@ class PlayerController {
   }
 
   /// 配置预览播放器
-  Future<void> _createPreviewController(MediaDataSource dataSource, Duration initVideoPosition, int generation) async {
+  Future<void> _createPreviewController(MediaDataSource dataSource, Duration initVideoPosition) async {
     if (_isDisposed) return;
     try {
-      if (previewPlayer == null) {
-        previewPlayer = Player(configuration: const PlayerConfiguration(bufferSize: 2 * 1024 * 1024));
-        previewPlayer?.setVolume(0.0);
-        previewVideoController = VideoController(previewPlayer!);
+      previewPlayer ??= Player(configuration: const PlayerConfiguration(bufferSize: 2 * 1024 * 1024));
+      previewPlayer?.setVolume(0.0);
 
-        // 配置预览Player
-        var previewPP = previewPlayer!.platform as NativePlayer;
-        await previewPP.setProperty('vid', '1'); // Enable video
-        await previewPP.setProperty('aid', 'no'); // Disable audio
-        await previewPP.setProperty('sid', 'no'); // Disable subtitles
-      }
+      previewVideoController ??= VideoController(previewPlayer!);
 
-      if (_isDisposed || generation != _dataSourceGeneration) {
-        return;
-      }
+      // // 配置预览Player
+      // var previewPP = previewPlayer!.platform as NativePlayer;
+      // await previewPP.setProperty('vid', '1'); // Enable video
+      // await previewPP.setProperty('aid', 'no'); // Disable audio
+      // await previewPP.setProperty('sid', 'no'); // Disable subtitles
+
+      if (_isDisposed) return;
 
       if (dataSource.type == MediaDataSourceType.asset) {
         final assetUrl = dataSource.videoSource!.startsWith("asset://")
@@ -296,13 +279,9 @@ class PlayerController {
     List<CaptionEntity> captionList = const [],
   }) async {
     if (_isDisposed) return;
-    final int generation = ++_dataSourceGeneration;
     try {
-      // 每次配置时先移除监听
-      removeListeners();
       // 重置配置
       await resetConfig();
-      if (_isDisposed || generation != _dataSourceGeneration) return;
 
       videoType.value = dataSource.videoType;
 
@@ -345,10 +324,10 @@ class PlayerController {
       hasError.value = false;
 
       // 配置Player
-      await _createVideoController(dataSource, initVideoPosition, generation);
+      await _createVideoController(dataSource, initVideoPosition);
 
       // 配置预览Player
-      await _createPreviewController(dataSource, initVideoPosition, generation);
+      await _createPreviewController(dataSource, initVideoPosition);
 
       // 添加监听
       addListeners();
@@ -983,25 +962,22 @@ class PlayerController {
     try {
       VideoProxy.downloadManager.cancelAllTask();
 
+      // 每次配置时先移除监听
+      removeListeners();
+
+      await playerController?.pause();
+      await playerController?.dispose();
+      await previewPlayer?.dispose();
+      playerController = null;
+      previewPlayer = null;
+      previewVideoController = null;
+
       _rewindTimer?.cancel();
       _rewindTimer = null;
       _forwardTimer?.cancel();
       _forwardTimer = null;
 
-      // MUST pause before UI removes the video widget to avoid Surface crash
-      await playerController?.pause();
       isInitialized.value = false;
-
-      final oldPlayer = playerController;
-      // DO NOT set playerController = null yet, keep it in the UI tree to consume frames
-      // previewPlayer and previewVideoController are kept and reused
-      
-      await oldPlayer?.dispose();
-      
-      // Now the Android texture is completely destroyed, safe to remove from UI
-      if (playerController == oldPlayer) {
-        playerController = null;
-      }
 
       // 是否已提交视频信息
       _hasSubmittedVideo = false;
@@ -1023,13 +999,20 @@ class PlayerController {
 
   Future<void> dispose() async {
     try {
+      _isDisposed = true;
+
       VideoProxy.downloadManager.cancelAllTask();
 
-      _isDisposed = true;
-      _dataSourceGeneration++;
-      
-      // MUST pause before UI removes the video widget to avoid Surface crash
+      // 每次配置时先移除监听
+      removeListeners();
+
       await playerController?.pause();
+      await playerController?.dispose();
+      await previewPlayer?.dispose();
+      playerController = null;
+      previewPlayer = null;
+      previewVideoController = null;
+
       isInitialized.value = false;
 
       _hideTimer?.cancel();
@@ -1042,24 +1025,6 @@ class PlayerController {
       recordAction = null;
       submitVideoAction = null;
       checkHasNextPlayAction = null;
-
-      removeListeners();
-
-      final oldPlayer = playerController;
-      final oldPreview = previewPlayer;
-      // DO NOT set playerController = null yet, keep it in the UI tree to consume frames
-      // previewVideoController is also kept until oldPreview is disposed
-      
-      await oldPlayer?.dispose();
-      await oldPreview?.dispose();
-      
-      if (playerController == oldPlayer) {
-        playerController = null;
-      }
-      if (previewPlayer == oldPreview) {
-        previewPlayer = null;
-        previewVideoController = null;
-      }
     } catch (err) {
       commonDebugPrint('PlayerController dispose error: $err');
     }
