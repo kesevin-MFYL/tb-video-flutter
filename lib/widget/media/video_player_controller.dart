@@ -20,6 +20,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 class PlayerController {
   /// 是否已销毁
   bool _isDisposed = false;
+
   bool get isDisposed => _isDisposed;
 
   /// 播放器
@@ -108,6 +109,7 @@ class PlayerController {
 
   /// 是否正在全屏
   final isFullScreen = false.obs;
+
   bool get isFullscreen => isFullScreen.value || currentOrientation.value == Orientation.landscape;
 
   /// 是否有下一集
@@ -245,9 +247,7 @@ class PlayerController {
       previewPlayer ??= Player(configuration: const PlayerConfiguration(bufferSize: 2 * 1024 * 1024));
       previewPlayer?.setVolume(0.0);
 
-      previewVideoController ??= VideoController(
-        previewPlayer!,
-      );
+      previewVideoController ??= VideoController(previewPlayer!);
 
       // 配置预览Player
       var previewPP = previewPlayer!.platform as NativePlayer;
@@ -283,7 +283,7 @@ class PlayerController {
       // 每次配置时先移除监听
       removeListeners();
       // 重置配置
-      resetConfig();
+      await resetConfig();
 
       videoType.value = dataSource.videoType;
 
@@ -455,7 +455,8 @@ class PlayerController {
         if (playerController != null) {
           int resultMs = playerController!.value.position.inMilliseconds - (fastSeconds * 1000);
           if (resultMs < 0) resultMs = 0;
-          if (resultMs > playerController!.value.duration.inMilliseconds) resultMs = playerController!.value.duration.inMilliseconds;
+          if (resultMs > playerController!.value.duration.inMilliseconds)
+            resultMs = playerController!.value.duration.inMilliseconds;
           seekTo(Duration(milliseconds: resultMs));
           play();
         }
@@ -484,7 +485,8 @@ class PlayerController {
         if (playerController != null) {
           int resultMs = playerController!.value.position.inMilliseconds + (fastSeconds * 1000);
           if (resultMs < 0) resultMs = 0;
-          if (resultMs > playerController!.value.duration.inMilliseconds) resultMs = playerController!.value.duration.inMilliseconds;
+          if (resultMs > playerController!.value.duration.inMilliseconds)
+            resultMs = playerController!.value.duration.inMilliseconds;
           seekTo(Duration(milliseconds: resultMs));
           play();
         }
@@ -505,6 +507,7 @@ class PlayerController {
     await StatusBarControlPlus.setHidden(true, animation: StatusBarAnimation.FADE);
     if (!isFullscreen && status) {
       isFullScreen.value = true;
+
       /// 进入全屏
       await enterFullScreen();
       await landScape();
@@ -574,7 +577,7 @@ class PlayerController {
     commonDebugPrint('PlayerController: 设置的字幕url地址-$url');
     _parsedSubtitles.clear();
     subTitle.value = '';
-    
+
     int retryCount = 0;
     const maxRetries = 5;
 
@@ -588,9 +591,9 @@ class PlayerController {
       try {
         final dio = Dio();
         final response = await dio.get(url);
-        
+
         if (_isDisposed) return;
-        
+
         if (response.data != null && response.data.toString().isNotEmpty) {
           // 再次检查是否被切换
           if (selectedCaption.value?.s3Address != url) return;
@@ -667,18 +670,18 @@ class PlayerController {
     List<String> currentTextLines = [];
 
     // 匹配如 00:00:01,000 或 00:01.000 的时间格式，兼容 SRT 和 WebVTT 格式，包括1-3位的毫秒
-    final timeRegExp = RegExp(r'((?:\d{1,2}:)?\d{1,2}:\d{1,2}[.,]\d{1,3})\s*-->\s*((?:\d{1,2}:)?\d{1,2}:\d{1,2}[.,]\d{1,3})');
+    final timeRegExp = RegExp(
+      r'((?:\d{1,2}:)?\d{1,2}:\d{1,2}[.,]\d{1,3})\s*-->\s*((?:\d{1,2}:)?\d{1,2}:\d{1,2}[.,]\d{1,3})',
+    );
 
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i].trim();
 
       if (line.isEmpty) {
         if (currentStartTime != null && currentEndTime != null && currentTextLines.isNotEmpty) {
-          subtitles.add(SubtitleItem(
-            startTime: currentStartTime,
-            endTime: currentEndTime,
-            text: currentTextLines.join('\n'),
-          ));
+          subtitles.add(
+            SubtitleItem(startTime: currentStartTime, endTime: currentEndTime, text: currentTextLines.join('\n')),
+          );
         }
         currentStartTime = null;
         currentEndTime = null;
@@ -689,11 +692,9 @@ class PlayerController {
       final match = timeRegExp.firstMatch(line);
       if (match != null) {
         if (currentStartTime != null && currentEndTime != null && currentTextLines.isNotEmpty) {
-          subtitles.add(SubtitleItem(
-            startTime: currentStartTime,
-            endTime: currentEndTime,
-            text: currentTextLines.join('\n'),
-          ));
+          subtitles.add(
+            SubtitleItem(startTime: currentStartTime, endTime: currentEndTime, text: currentTextLines.join('\n')),
+          );
           currentTextLines = [];
         }
         currentStartTime = _parseTime(match.group(1)!);
@@ -706,11 +707,9 @@ class PlayerController {
     }
 
     if (currentStartTime != null && currentEndTime != null && currentTextLines.isNotEmpty) {
-      subtitles.add(SubtitleItem(
-        startTime: currentStartTime,
-        endTime: currentEndTime,
-        text: currentTextLines.join('\n'),
-      ));
+      subtitles.add(
+        SubtitleItem(startTime: currentStartTime, endTime: currentEndTime, text: currentTextLines.join('\n')),
+      );
     }
 
     return subtitles;
@@ -814,7 +813,7 @@ class PlayerController {
 
   void _videoPlayerListener() {
     if (!isInitialized.value || playerController == null) return;
-    
+
     try {
       final value = playerController!.value;
       final pos = value.position;
@@ -825,7 +824,6 @@ class PlayerController {
           currentPosition.value = pos;
         }
       }
-
 
       _updateSubtitle(currentPosition.value);
 
@@ -962,29 +960,37 @@ class PlayerController {
     _statusChangedListeners.remove(listener);
   }
 
-  void resetConfig() {
-    _rewindTimer?.cancel();
-    _rewindTimer = null;
-    _forwardTimer?.cancel();
-    _forwardTimer = null;
+  Future<void> resetConfig() async {
+    try {
+      _rewindTimer?.cancel();
+      _rewindTimer = null;
+      _forwardTimer?.cancel();
+      _forwardTimer = null;
 
-    playerController?.dispose();
-    playerController = null;
-    isInitialized.value = false;
+      isInitialized.value = false;
 
-    // 是否已提交视频信息
-    _hasSubmittedVideo = false;
-    // 缓存状态，初始化为true，避免开始播放前的灰色等待时间
-    isBuffering.value = false;
-    // 缓存进度
-    bufferedDuration.value = Duration.zero;
-    // 当前进度
-    currentPosition.value = Duration.zero;
-    // 上一次的播放时间
-    _lastPositionSeconds = 0;
-    _needRecordImmediately = true;
-    subTitle.value = '';
-    _parsedSubtitles.clear();
+      await playerController?.dispose();
+      await previewPlayer?.dispose();
+      playerController = null;
+      previewPlayer = null;
+      previewVideoController = null;
+
+      // 是否已提交视频信息
+      _hasSubmittedVideo = false;
+      // 缓存状态，初始化为true，避免开始播放前的灰色等待时间
+      isBuffering.value = false;
+      // 缓存进度
+      bufferedDuration.value = Duration.zero;
+      // 当前进度
+      currentPosition.value = Duration.zero;
+      // 上一次的播放时间
+      _lastPositionSeconds = 0;
+      _needRecordImmediately = true;
+      subTitle.value = '';
+      _parsedSubtitles.clear();
+    } catch (e) {
+      commonDebugPrint('PlayerController resetConfig error: $e');
+    }
   }
 
   Future<void> dispose() async {
@@ -1020,9 +1026,5 @@ class SubtitleItem {
   final Duration endTime;
   final String text;
 
-  SubtitleItem({
-    required this.startTime,
-    required this.endTime,
-    required this.text,
-  });
+  SubtitleItem({required this.startTime, required this.endTime, required this.text});
 }
