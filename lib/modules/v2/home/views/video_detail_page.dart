@@ -224,19 +224,20 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
         Center(
           child: Obx(() {
             final isInitialized = controller.mediaPlayerController.isInitialized.value;
-            return isInitialized
+            final player = controller.mediaPlayerController.playerController;
+            return isInitialized && player != null
                 ? AspectRatio(
-                    aspectRatio: controller.mediaPlayerController.playerController!.value.aspectRatio,
-                    child: VideoPlayer(controller.mediaPlayerController.playerController!),
-                  )
+              aspectRatio: player.value.aspectRatio,
+              child: VideoPlayer(player),
+            )
                 : Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      loadingIndicator(size: 30, strokeWidth: 2),
-                      SizedBox(height: 6),
-                      CommonText.instance('loading....', 12),
-                    ],
-                  );
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                loadingIndicator(size: 30, strokeWidth: 2),
+                SizedBox(height: 6),
+                CommonText.instance('loading....', 12),
+              ],
+            );
           }),
         ),
 
@@ -906,6 +907,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
   void lifecycleListener() {
     _playVideoSubscription = EventBusManager.instance.addObserver(EventBusName.playVideo, (value) async {
       if (controller.mediaPlayerController.isInitialized.value &&
+          controller.mediaPlayerController.playerController != null &&
           !controller.mediaPlayerController.playerController!.value.isPlaying) {
         controller.mediaPlayerController.play();
       }

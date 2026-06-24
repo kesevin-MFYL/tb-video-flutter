@@ -991,7 +991,7 @@ class PlayerController {
       isInitialized.value = false;
 
       // 4. 等待一帧，确保旧播放器从树中移除
-      await Future.delayed(Duration(milliseconds: 150));
+      await Future.delayed(Duration(milliseconds: 500));
 
       await oldPlayerController?.dispose();
       await oldPreviewPlayer?.dispose();
@@ -1047,7 +1047,7 @@ class PlayerController {
       isInitialized.value = false;
 
       // 4. 等待一帧，确保旧播放器从树中移除
-      await Future.delayed(Duration(milliseconds: 150));
+      await Future.delayed(Duration(milliseconds: 500));
 
       await oldPlayerController?.dispose();
       await oldPreviewPlayer?.dispose();
