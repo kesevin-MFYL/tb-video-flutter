@@ -224,20 +224,19 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
         Center(
           child: Obx(() {
             final isInitialized = controller.mediaPlayerController.isInitialized.value;
-            final player = controller.mediaPlayerController.playerController;
-            return isInitialized && player != null
+            return isInitialized
                 ? AspectRatio(
-              aspectRatio: player.value.aspectRatio,
-              child: VideoPlayer(player),
-            )
+                    aspectRatio: controller.mediaPlayerController.playerController!.value.aspectRatio,
+                    child: VideoPlayer(controller.mediaPlayerController.playerController!),
+                  )
                 : Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                loadingIndicator(size: 30, strokeWidth: 2),
-                SizedBox(height: 6),
-                CommonText.instance('loading....', 12),
-              ],
-            );
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      loadingIndicator(size: 30, strokeWidth: 2),
+                      SizedBox(height: 6),
+                      CommonText.instance('loading....', 12),
+                    ],
+                  );
           }),
         ),
 
@@ -829,7 +828,9 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
       } else {
         exitFullScreen();
         controller.closeBottomSheet();
-        if (controller.isSideSeasonsDialogOpen || controller.isSideAnimeDialogOpen || controller.isSubtitleSettingsDialogOpen) {
+        if (controller.isSideSeasonsDialogOpen ||
+            controller.isSideAnimeDialogOpen ||
+            controller.isSubtitleSettingsDialogOpen) {
           Get.back();
         }
       }
@@ -843,7 +844,9 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
       if (controller.isFullscreen) {
         // 非锁定的情况下，退出全屏
         if (!controller.mediaPlayerController.controlsLock.value) {
-          if (controller.isSideSeasonsDialogOpen || controller.isSideAnimeDialogOpen || controller.isSubtitleSettingsDialogOpen) {
+          if (controller.isSideSeasonsDialogOpen ||
+              controller.isSideAnimeDialogOpen ||
+              controller.isSubtitleSettingsDialogOpen) {
             Get.back();
           }
           controller.mediaPlayerController.triggerFullScreen(status: false);
@@ -865,10 +868,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
     _playVideoSubscription.cancel();
     _fullScreenStatusSubscription.cancel();
     _orientationSubscription.cancel();
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
     // controller.mediaPlayerController.clearSubtitleContent();
     super.didPushNext();
   }
@@ -907,7 +907,6 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
   void lifecycleListener() {
     _playVideoSubscription = EventBusManager.instance.addObserver(EventBusName.playVideo, (value) async {
       if (controller.mediaPlayerController.isInitialized.value &&
-          controller.mediaPlayerController.playerController != null &&
           !controller.mediaPlayerController.playerController!.value.isPlaying) {
         controller.mediaPlayerController.play();
       }
@@ -928,10 +927,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
     _orientationSubscription.cancel();
     VideoDetailPage.routeObserver.unsubscribe(this);
     // 恢复竖屏
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
     super.dispose();
   }
 }

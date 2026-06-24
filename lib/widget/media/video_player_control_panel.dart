@@ -14,8 +14,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:media_kit_video/media_kit_video.dart';
 import 'package:screen_brightness/screen_brightness.dart';
-import 'package:video_player/video_player.dart';
 
 /// 播放器控制面板
 class VideoPlayerControlPanel extends StatefulWidget {
@@ -296,7 +296,7 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
                     subTitle,
                     isFullScreen ? 16 : 12,
                     color: CommonColors.white.withOpacity(0.9),
-                    strutStyle: StrutStyle(forceStrutHeight: true, height: isFullScreen ? 1.3 : 1.1,  leading: 0),
+                    strutStyle: StrutStyle(forceStrutHeight: true, height: isFullScreen ? 1.3 : 1.1, leading: 0),
                     textAlign: TextAlign.center,
                     fontWeight: CommonFontWeight.medium,
                   ),
@@ -750,8 +750,7 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
                   if (mediaPlayerController.fastAssets.isNotEmpty)
                     Image.asset(mediaPlayerController.fastAssets, width: 16, height: 16),
 
-                  if (mediaPlayerController.fastAssets.isNotEmpty)
-                    SizedBox(width: 8),
+                  if (mediaPlayerController.fastAssets.isNotEmpty) SizedBox(width: 8),
 
                   CommonText.instance(
                     '${mediaPlayerController.fastTips} ${mediaPlayerController.fastSeconds}s',
@@ -786,20 +785,22 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // if (mediaPlayerController.previewPlayer != null && mediaPlayerController.previewPlayer!.value.isInitialized)
-                //   Container(
-                //     width: isFullScreen ? 130 : 90,
-                //     height: isFullScreen ? 73 : 51,
-                //     margin: const EdgeInsets.only(bottom: 8),
-                //     decoration: BoxDecoration(color: CommonColors.color333333, borderRadius: BorderRadius.circular(12)),
-                //     child: ClipRRect(
-                //       borderRadius: BorderRadius.circular(12),
-                //       child: AspectRatio(
-                //         aspectRatio: mediaPlayerController.previewPlayer!.value.aspectRatio,
-                //         child: VideoPlayer(mediaPlayerController.previewPlayer!),
-                //       ),
-                //     ),
-                //   ),
+                if (mediaPlayerController.previewVideoController != null)
+                  Container(
+                    width: isFullScreen ? 130 : 90,
+                    height: isFullScreen ? 73 : 51,
+                    margin: const EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(color: CommonColors.color333333, borderRadius: BorderRadius.circular(12)),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Video(
+                        controller: mediaPlayerController.previewVideoController!,
+                        controls: NoVideoControls,
+                        fill: CommonColors.color333333,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
                 Container(
                   height: 40,
                   padding: const EdgeInsets.symmetric(horizontal: 12.0),
