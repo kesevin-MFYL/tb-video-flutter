@@ -965,22 +965,40 @@ class PlayerController {
       // 每次配置时先移除监听
       removeListeners();
 
-      await playerController?.pause();
-      await playerController?.dispose();
-      await previewPlayer?.dispose();
-      playerController = null;
-      previewPlayer = null;
-      previewVideoController = null;
-
       _rewindTimer?.cancel();
       _rewindTimer = null;
       _forwardTimer?.cancel();
       _forwardTimer = null;
 
-      isInitialized.value = false;
-
       // 是否已提交视频信息
       _hasSubmittedVideo = false;
+      _needRecordImmediately = true;
+      subTitle.value = '';
+      _parsedSubtitles.clear();
+
+      // 1. 立即暂停旧视频
+      await playerController?.pause();
+
+      // 2. 保存旧控制器引用
+      final oldPlayerController = playerController;
+      final oldPreviewPlayer = previewPlayer;
+
+      // 3. 先设置为 null，触发 UI 重建移除旧播放器
+      playerController = null;
+      previewPlayer = null;
+      previewVideoController = null;
+
+      isInitialized.value = false;
+
+      // 4. 等待一帧，确保旧播放器从树中移除
+      await Future.delayed(Duration(milliseconds: 150));
+
+      await oldPlayerController?.dispose();
+      await oldPreviewPlayer?.dispose();
+
+      // 6. 等待解码器彻底释放（Oppo 需要更多时间）
+      await Future.delayed(Duration(milliseconds: 300));
+
       // 缓存状态，初始化为true，避免开始播放前的灰色等待时间
       isBuffering.value = false;
       // 缓存进度
@@ -989,9 +1007,6 @@ class PlayerController {
       currentPosition.value = Duration.zero;
       // 上一次的播放时间
       _lastPositionSeconds = 0;
-      _needRecordImmediately = true;
-      subTitle.value = '';
-      _parsedSubtitles.clear();
     } catch (e) {
       commonDebugPrint('PlayerController resetConfig error: $e');
     }
@@ -1006,15 +1021,6 @@ class PlayerController {
       // 每次配置时先移除监听
       removeListeners();
 
-      await playerController?.pause();
-      await playerController?.dispose();
-      await previewPlayer?.dispose();
-      playerController = null;
-      previewPlayer = null;
-      previewVideoController = null;
-
-      isInitialized.value = false;
-
       _hideTimer?.cancel();
       _rewindTimer?.cancel();
       _rewindTimer = null;
@@ -1025,6 +1031,29 @@ class PlayerController {
       recordAction = null;
       submitVideoAction = null;
       checkHasNextPlayAction = null;
+
+      // 1. 立即暂停旧视频
+      await playerController?.pause();
+
+      // 2. 保存旧控制器引用
+      final oldPlayerController = playerController;
+      final oldPreviewPlayer = previewPlayer;
+
+      // 3. 先设置为 null，触发 UI 重建移除旧播放器
+      playerController = null;
+      previewPlayer = null;
+      previewVideoController = null;
+
+      isInitialized.value = false;
+
+      // 4. 等待一帧，确保旧播放器从树中移除
+      await Future.delayed(Duration(milliseconds: 150));
+
+      await oldPlayerController?.dispose();
+      await oldPreviewPlayer?.dispose();
+
+      // 6. 等待解码器彻底释放（Oppo 需要更多时间）
+      await Future.delayed(Duration(milliseconds: 300));
     } catch (err) {
       commonDebugPrint('PlayerController dispose error: $err');
     }
