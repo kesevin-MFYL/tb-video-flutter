@@ -268,9 +268,6 @@ class PlayerController {
   }) async {
     if (_isDisposed) return;
     try {
-      // 重置配置
-      await resetConfig();
-
       videoType.value = dataSource.videoType;
 
       this.captionList.value = captionList;
@@ -969,22 +966,16 @@ class PlayerController {
 
       // 2. 保存旧控制器引用
       final oldPlayerController = playerController;
-      // final oldPreviewPlayer = previewPlayer;
 
       // 3. 先设置为 null，触发 UI 重建移除旧播放器
       playerController = null;
-      // previewPlayer = null;
-
       isInitialized.value = false;
 
-      // 4. 等待一帧，确保旧播放器从树中移除
-      await Future.delayed(Duration(milliseconds: 500));
-
+      // 4. 先销毁旧控制器，让底层正常释放Surface资源，以减少 BufferQueue has been abandoned 警告
       await oldPlayerController?.dispose();
-      // await oldPreviewPlayer?.dispose();
 
-      // 6. 等待解码器彻底释放（Oppo 需要更多时间）
-      await Future.delayed(Duration(milliseconds: 300));
+      // 5. 等待解码器彻底释放
+      await Future.delayed(const Duration(milliseconds: 300));
 
       // 缓存状态，初始化为true，避免开始播放前的灰色等待时间
       isBuffering.value = false;

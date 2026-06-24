@@ -419,6 +419,7 @@ class BaseVideoDetailController extends BaseController with GetTickerProviderSta
   /// 切换播放
   void changePlay({required int mediaId, required int mediaType}) async {
     EasyLoading.show();
+    await mediaPlayerController.resetConfig();
     this.mediaId = mediaId;
     this.mediaType = mediaType;
     videoType = VideoType.instance(mediaType);
