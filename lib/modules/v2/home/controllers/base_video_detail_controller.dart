@@ -95,8 +95,10 @@ class BaseVideoDetailController extends BaseController with GetTickerProviderSta
 
   void getDataFromServer() {
     Future.wait([_getMediaDetail(), _getMediaRecommend(), _getTvSeasons()]).then((list) {
+      if (EasyLoading.isShow) {
+        EasyLoading.dismiss();
+      }
       updateMediaAndTitle();
-      EasyLoading.dismiss();
     });
   }
 
@@ -281,8 +283,8 @@ class BaseVideoDetailController extends BaseController with GetTickerProviderSta
 
   /// 重置播放器和更新标题
   void updateMediaAndTitle() {
-    openMediaData();
     updateTitle();
+    openMediaData();
     update();
   }
 
