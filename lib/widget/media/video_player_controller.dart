@@ -11,8 +11,6 @@ import 'dart:async';
 import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:get/get.dart';
-import 'package:media_kit/media_kit.dart';
-import 'package:media_kit_video/media_kit_video.dart';
 import 'package:status_bar_control_plus/status_bar_control_plus.dart';
 import 'package:video_player/video_player.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -27,10 +25,7 @@ class PlayerController {
   VideoPlayerController? playerController;
 
   /// 预览播放器 (用于进度条滑动时显示缩略图)
-  Player? previewPlayer;
-
-  /// 预览视频控制器
-  VideoController? previewVideoController;
+  // VideoPlayerController? previewPlayer;
 
   final isInitialized = false.obs;
   final hasError = false.obs;
@@ -241,34 +236,27 @@ class PlayerController {
   }
 
   /// 配置预览播放器
-  Future<void> _createPreviewController(MediaDataSource dataSource, Duration initVideoPosition) async {
-    if (_isDisposed) return;
-    try {
-      previewPlayer ??= Player(configuration: const PlayerConfiguration(bufferSize: 2 * 1024 * 1024));
-      previewPlayer?.setVolume(0.0);
-
-      previewVideoController ??= VideoController(previewPlayer!);
-
-      // // 配置预览Player
-      // var previewPP = previewPlayer!.platform as NativePlayer;
-      // await previewPP.setProperty('vid', '1'); // Enable video
-      // await previewPP.setProperty('aid', 'no'); // Disable audio
-      // await previewPP.setProperty('sid', 'no'); // Disable subtitles
-
-      if (_isDisposed) return;
-
-      if (dataSource.type == MediaDataSourceType.asset) {
-        final assetUrl = dataSource.videoSource!.startsWith("asset://")
-            ? dataSource.videoSource!
-            : "asset://${dataSource.videoSource!}";
-        await previewPlayer!.open(Media(assetUrl, httpHeaders: dataSource.httpHeaders), play: false);
-      } else {
-        await previewPlayer!.open(Media(dataSource.videoSource!, httpHeaders: dataSource.httpHeaders), play: false);
-      }
-    } catch (e) {
-      commonDebugPrint('PlayerController _createPreviewController error: $e');
-    }
-  }
+  // Future<void> _createPreviewController(MediaDataSource dataSource, Duration initVideoPosition) async {
+  //   if (_isDisposed) return;
+  //   try {
+  //     final originalUrl = dataSource.videoSource!.toOriginUrl();
+  //     if (originalUrl.startsWith('http') || originalUrl.startsWith('https')) {
+  //       previewPlayer = VideoPlayerController.networkUrl(dataSource.videoSource!.toLocalUri(), httpHeaders: dataSource.httpHeaders ?? {});
+  //     } else if (originalUrl.startsWith('assets/')) {
+  //       previewPlayer = VideoPlayerController.asset(dataSource.videoSource!);
+  //     } else {
+  //       previewPlayer = VideoPlayerController.file(File(dataSource.videoSource!));
+  //     }
+  //
+  //     await previewPlayer?.initialize();
+  //
+  //     if (_isDisposed) return;
+  //
+  //     await previewPlayer?.setVolume(0.0);
+  //   } catch (e) {
+  //     commonDebugPrint('PlayerController _createPreviewController error: $e');
+  //   }
+  // }
 
   /// 设置数据源
   Future<void> setDataSource(
@@ -327,7 +315,7 @@ class PlayerController {
       await _createVideoController(dataSource, initVideoPosition);
 
       // 配置预览Player
-      await _createPreviewController(dataSource, initVideoPosition);
+      // await _createPreviewController(dataSource, initVideoPosition);
 
       // 添加监听
       addListeners();
@@ -354,7 +342,7 @@ class PlayerController {
   }
 
   void seekPreview(Duration position) {
-    previewPlayer?.seek(position);
+    // previewPlayer?.seekTo(position);
   }
 
   /// 切换操作栏状态
@@ -981,12 +969,11 @@ class PlayerController {
 
       // 2. 保存旧控制器引用
       final oldPlayerController = playerController;
-      final oldPreviewPlayer = previewPlayer;
+      // final oldPreviewPlayer = previewPlayer;
 
       // 3. 先设置为 null，触发 UI 重建移除旧播放器
       playerController = null;
-      previewPlayer = null;
-      previewVideoController = null;
+      // previewPlayer = null;
 
       isInitialized.value = false;
 
@@ -994,7 +981,7 @@ class PlayerController {
       await Future.delayed(Duration(milliseconds: 500));
 
       await oldPlayerController?.dispose();
-      await oldPreviewPlayer?.dispose();
+      // await oldPreviewPlayer?.dispose();
 
       // 6. 等待解码器彻底释放（Oppo 需要更多时间）
       await Future.delayed(Duration(milliseconds: 300));
@@ -1037,12 +1024,11 @@ class PlayerController {
 
       // 2. 保存旧控制器引用
       final oldPlayerController = playerController;
-      final oldPreviewPlayer = previewPlayer;
+      // final oldPreviewPlayer = previewPlayer;
 
       // 3. 先设置为 null，触发 UI 重建移除旧播放器
       playerController = null;
-      previewPlayer = null;
-      previewVideoController = null;
+      // previewPlayer = null;
 
       isInitialized.value = false;
 
@@ -1050,7 +1036,7 @@ class PlayerController {
       await Future.delayed(Duration(milliseconds: 500));
 
       await oldPlayerController?.dispose();
-      await oldPreviewPlayer?.dispose();
+      // await oldPreviewPlayer?.dispose();
 
       // 6. 等待解码器彻底释放（Oppo 需要更多时间）
       await Future.delayed(Duration(milliseconds: 300));
