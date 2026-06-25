@@ -1,5 +1,6 @@
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/generated/assets.dart';
+import 'package:editvideo/manager/admob/native_ad_manager.dart';
 import 'package:editvideo/modules/launch/controllers/launch_controller.dart';
 import 'package:editvideo/utils/common_values.dart';
 import 'package:editvideo/utils/text_extension.dart';
@@ -7,6 +8,7 @@ import 'package:editvideo/widget/page_base.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class LaunchPage extends StatelessWidget {
   const LaunchPage({super.key});
@@ -16,6 +18,40 @@ class LaunchPage extends StatelessWidget {
     return GetBuilder<LaunchController>(
       init: LaunchController(),
       builder: (logic) {
+        if (logic.isShowingNativeAd && logic.nativeAdScenario != null) {
+          final nativeAd = NativeAdManager.instance.getNativeAd(logic.nativeAdScenario!);
+          if (nativeAd != null) {
+            return Scaffold(
+              backgroundColor: CommonColors.color060600,
+              body: Stack(
+                children: [
+                  AdWidget(ad: nativeAd),
+                  Positioned(
+                    top: safeAreaTopDistance(40.h),
+                    right: 20.w,
+                    child: GestureDetector(
+                      onTap: () {
+                        logic.closeNativeAd();
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.5),
+                          borderRadius: BorderRadius.circular(16.r),
+                        ),
+                        child: Text(
+                          '跳过',
+                          style: TextStyle(color: Colors.white, fontSize: 14.sp),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+        }
+
         return PageBase(
           hasAppBar: false,
           child: Stack(

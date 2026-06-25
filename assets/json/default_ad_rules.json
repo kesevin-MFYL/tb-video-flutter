@@ -39,12 +39,46 @@
       "placementid": "ca-app-pub-3940256099942544/1033173712"
     }
   ],
-  "NVhome": [
+  "play_middle": [
+    {
+      "adsource": "admob",
+      "adweight": 2,
+      "adtype": "native",
+      "placementid": "ca-app-pub-3940256099942544/2247696110"
+    },
     {
       "adsource": "admob",
       "adweight": 1,
       "adtype": "native",
       "placementid": "ca-app-pub-3940256099942544/2247696110"
+    }
+  ],
+  "pause": [
+    {
+      "adsource": "admob",
+      "adweight": 2,
+      "adtype": "native",
+      "placementid": "ca-app-pub-3940256099942544/2247696110"
+    },
+    {
+      "adsource": "admob",
+      "adweight": 1,
+      "adtype": "native",
+      "placementid": "ca-app-pub-3940256099942544/2247696110"
+    }
+  ],
+  "level_h": [
+    {
+      "adsource": "admob",
+      "adweight": 1,
+      "adtype": "native",
+      "placementid": "ca-app-pub-3940256099942544/2247696110"
+    },
+    {
+      "adsource": "admob",
+      "adweight": 2,
+      "adtype": "interstitial",
+      "placementid": "ca-app-pub-3940256099942544/1033173712"
     }
   ]
 }

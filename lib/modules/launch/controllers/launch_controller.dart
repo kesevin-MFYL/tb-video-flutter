@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/manager/admob/ad_manager.dart';
+import 'package:editvideo/manager/admob/native_ad_manager.dart';
 import 'package:editvideo/manager/admob/consent_manager.dart';
 import 'package:editvideo/manager/remote_config_manager.dart';
 import 'package:editvideo/manager/switch_manager.dart';
 import 'package:editvideo/routes/app_routes.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -98,42 +98,71 @@ class LaunchController extends GetxController {
     AdManager.instance.loadAd('behavior2', config.behavior2);
     AdManager.instance.loadAd('NVhome', config.nvhome);
 
-    // 6. 尝试轮询展示 open 广告
-    _tryShowOpenAd();
-    // }
+    // 6. 尝试轮询展示广告
+    _tryShowAd();
   }
 
-  void _tryShowOpenAd() {
-    // 循环检查 open 场景广告是否准备就绪，每隔 500 毫秒检查一次，直到超时
+  String? _showNativeAdScenario;
+  bool get isShowingNativeAd => _showNativeAdScenario != null;
+  String? get nativeAdScenario => _showNativeAdScenario;
+
+  void _tryShowAd() {
+    // 循环检查广告是否准备就绪，每隔 500 毫秒检查一次，直到超时
     _checkAdTimer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
       if (_hasNavigatedToMain) {
         timer.cancel();
         return;
       }
 
-      if (AdManager.instance.isAdAvailable('open')) {
-        // 取消检查定时器，因为我们要开始展示广告了
-        timer.cancel();
-        _progressTimer?.cancel();
-
-        // 发现广告时，瞬间将进度条填满
-        progress = 1.0;
-        update();
-
-        commonDebugPrint('LaunchController: Open ad is ready. Showing ad.');
-        AdManager.instance.showAdIfAvailable(
-          'open',
-          onAdDismissed: () {
-            commonDebugPrint('LaunchController: Open ad dismissed. Navigating to main.');
-            // 在原生全屏广告关闭时，给 Flutter 渲染一点恢复的缓冲时间（比如 100 毫秒）
-            // 否则可能会因为原生转场动画和 GetX 路由切换同时发生而导致界面僵死或延迟
-            // Future.delayed(const Duration(milliseconds: 100), () {
-            _navigateToMain();
-            // });
-          },
-        );
+      if (AdManager.instance.isAdAvailable('level_h')) {
+        _handleAdReady('level_h', timer);
+      } else if (!AdManager.instance.isAdLoading('level_h')) {
+        if (AdManager.instance.isAdAvailable('open')) {
+          _handleAdReady('open', timer);
+        } else if (!AdManager.instance.isAdLoading('open')) {
+          // level_h 和 open 均已加载失败，可以考虑提前进入主页，但此处交由 7 秒超时处理也可以
+        }
       }
     });
+  }
+
+  void _handleAdReady(String scenario, Timer timer) {
+    timer.cancel();
+    _progressTimer?.cancel();
+    progress = 1.0;
+    update();
+
+    if (NativeAdManager.instance.isAdLoaded(scenario)) {
+      commonDebugPrint('LaunchController: Native ad is ready for $scenario. Showing in LaunchPage.');
+      _showNativeAdScenario = scenario;
+      update();
+    } else {
+      commonDebugPrint('LaunchController: Other ad is ready for $scenario. Showing ad.');
+      AdManager.instance.showAdIfAvailable(
+        scenario,
+        onAdDismissed: () {
+          commonDebugPrint('LaunchController: Ad dismissed. Navigating to main.');
+          _navigateToMain();
+        },
+      );
+    }
+  }
+
+  void closeNativeAd() {
+    if (_showNativeAdScenario != null) {
+      NativeAdManager.instance.disposeAd(_showNativeAdScenario!);
+
+      // Reload ad for next time
+      final config = RemoteConfigManager().config;
+      if (config != null) {
+        if (nativeAdScenario == 'level_h') {
+          AdManager.instance.loadAd('level_h', config.levelH);
+        } else if (nativeAdScenario == 'open') {
+          AdManager.instance.loadAd('open', config.open);
+        }
+      }
+    }
+    _navigateToMain();
   }
 
   void _navigateToMain() {

@@ -131,6 +131,11 @@ class AdManager {
         NativeAdManager.instance.isAdLoaded(scenario);
   }
 
+  /// 检查指定场景的广告配置队列是否正在加载中
+  bool isAdLoading(String scenario) {
+    return _isScenarioLoading[scenario] ?? false;
+  }
+
   /// 展示指定场景的广告
   ///
   /// 调用该方法时，调度器会检查内部哪个具体的广告管理器加载成功了，并调用其展示方法。

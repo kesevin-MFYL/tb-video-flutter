@@ -99,20 +99,20 @@ class HomeBController extends BaseController with MediaOperateMixin {
   }
 
   void mediaTap(MediaItemEntity mediaItem, SectionType sectionType) {
-    Get.to(TestPage());
-    // if (sectionType == SectionType.mediaList || sectionType == SectionType.topPicks) {
-    //   // 单片，进入视频播放页
-    //   toMediaDetailSinglePage(mediaId: mediaItem.id, mediaType: mediaItem.type);
-    // } else if (sectionType == SectionType.imdbList) {
-    //   // 合集，进入合集二级页
-    //   Get.toNamed(Routes.imdbListSubPage, arguments: mediaItem);
-    // } else if (sectionType == SectionType.imdbInterest) {
-    //   // 进入分类详情页
-    //   Get.toNamed(Routes.interestDetailPage, arguments: mediaItem);
-    // } else if (sectionType == SectionType.streamingMedia) {
-    //   // 渠道，进入视频播放页
-    //   toMediaDetailSinglePage(mediaId: mediaItem.id, mediaType: mediaItem.type);
-    // }
+    // Get.to(TestPage());
+    if (sectionType == SectionType.mediaList || sectionType == SectionType.topPicks) {
+      // 单片，进入视频播放页
+      toMediaDetailSinglePage(mediaId: mediaItem.id, mediaType: mediaItem.type);
+    } else if (sectionType == SectionType.imdbList) {
+      // 合集，进入合集二级页
+      Get.toNamed(Routes.imdbListSubPage, arguments: mediaItem);
+    } else if (sectionType == SectionType.imdbInterest) {
+      // 进入分类详情页
+      Get.toNamed(Routes.interestDetailPage, arguments: mediaItem);
+    } else if (sectionType == SectionType.streamingMedia) {
+      // 渠道，进入视频播放页
+      toMediaDetailSinglePage(mediaId: mediaItem.id, mediaType: mediaItem.type);
+    }
   }
 
   ///跳转搜索
