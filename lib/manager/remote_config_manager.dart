@@ -40,6 +40,10 @@ class AdConfig {
   final List<AdItem> open;
   final List<AdItem> behavior;
   final List<AdItem> nvhome;
+  final List<AdItem> levelH;
+  final List<AdItem> behavior2;
+  final List<AdItem> playMiddle;
+  final List<AdItem> pause;
 
   AdConfig({
     required this.showCount,
@@ -51,6 +55,10 @@ class AdConfig {
     required this.open,
     required this.behavior,
     required this.nvhome,
+    required this.levelH,
+    required this.behavior2,
+    required this.playMiddle,
+    required this.pause,
   });
 
   factory AdConfig.fromJson(Map<String, dynamic> json) {
@@ -72,6 +80,10 @@ class AdConfig {
       open: parseAndSort(json['open'] as List<dynamic>?),
       behavior: parseAndSort(json['behavior'] as List<dynamic>?),
       nvhome: parseAndSort(json['NVhome'] as List<dynamic>?),
+      levelH: parseAndSort(json['level_h'] as List<dynamic>?),
+      behavior2: parseAndSort(json['behavior2'] as List<dynamic>?),
+      playMiddle: parseAndSort(json['play_middle'] as List<dynamic>?),
+      pause: parseAndSort(json['pause'] as List<dynamic>?),
     );
   }
 
@@ -86,6 +98,10 @@ class AdConfig {
       'open': open.map((e) => e.toJson()).toList(),
       'behavior': behavior.map((e) => e.toJson()).toList(),
       'NVhome': nvhome.map((e) => e.toJson()).toList(),
+      'level_h': levelH.map((e) => e.toJson()).toList(),
+      'behavior2': behavior2.map((e) => e.toJson()).toList(),
+      'play_middle': playMiddle.map((e) => e.toJson()).toList(),
+      'pause': pause.map((e) => e.toJson()).toList(),
     };
   }
 }
@@ -155,8 +171,10 @@ class RemoteConfigManager {
 
           if (isSuccess && _config != null) {
             commonDebugPrint("Remote config: Reloading all ads with updated config.");
+            AdManager.instance.loadAd('level_h', _config!.levelH);
             AdManager.instance.loadAd('open', _config!.open);
             AdManager.instance.loadAd('behavior', _config!.behavior);
+            AdManager.instance.loadAd('behavior2', _config!.behavior2);
             AdManager.instance.loadAd('NVhome', _config!.nvhome);
           }
         } else if(event.updatedKeys.contains('movix_reffer_clo') || event.updatedKeys.contains('movix_cloak_add') || event.updatedKeys.contains('movix_country_cloak')) {
@@ -184,8 +202,10 @@ class RemoteConfigManager {
 
         if (isSuccess && _config != null) {
           commonDebugPrint("Remote config: Reloading all ads with updated config.");
+          AdManager.instance.loadAd('level_h', _config!.levelH);
           AdManager.instance.loadAd('open', _config!.open);
           AdManager.instance.loadAd('behavior', _config!.behavior);
+          AdManager.instance.loadAd('behavior2', _config!.behavior2);
           AdManager.instance.loadAd('NVhome', _config!.nvhome);
         }
       });
@@ -240,6 +260,10 @@ class RemoteConfigManager {
         open: [],
         behavior: [],
         nvhome: [],
+        levelH: [],
+        behavior2: [],
+        playMiddle: [],
+        pause: [],
       );
     }
   }

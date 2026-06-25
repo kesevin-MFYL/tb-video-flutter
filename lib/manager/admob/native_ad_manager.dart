@@ -75,6 +75,7 @@ class NativeAdManager {
 
     final ad = NativeAd(
       adUnitId: item.placementid,
+      factoryId: 'adFactoryExample',
       listener: NativeAdListener(
         onAdLoaded: (ad) {
           commonDebugPrint('测试日志：场景$scenario--拉取广告成功-广告类型:${item.adtype}--广告id: ${item.placementid}--优先级：${item.adweight}');
@@ -117,35 +118,35 @@ class NativeAdManager {
       ),
       request: const AdRequest(),
       // 配置原生广告的 UI 样式模板
-      nativeTemplateStyle: NativeTemplateStyle(
-        templateType: templateType,
-        mainBackgroundColor: Colors.white,
-        cornerRadius: 10.0,
-        callToActionTextStyle: NativeTemplateTextStyle(
-          textColor: Colors.white,
-          backgroundColor: Colors.blue,
-          style: NativeTemplateFontStyle.monospace,
-          size: 16.0,
-        ),
-        primaryTextStyle: NativeTemplateTextStyle(
-          textColor: Colors.black,
-          backgroundColor: Colors.white,
-          style: NativeTemplateFontStyle.italic,
-          size: 16.0,
-        ),
-        secondaryTextStyle: NativeTemplateTextStyle(
-          textColor: Colors.black,
-          backgroundColor: Colors.white,
-          style: NativeTemplateFontStyle.bold,
-          size: 16.0,
-        ),
-        tertiaryTextStyle: NativeTemplateTextStyle(
-          textColor: Colors.black,
-          backgroundColor: Colors.white,
-          style: NativeTemplateFontStyle.normal,
-          size: 16.0,
-        ),
-      ),
+      // nativeTemplateStyle: NativeTemplateStyle(
+      //   templateType: templateType,
+      //   mainBackgroundColor: Colors.white,
+      //   cornerRadius: 10.0,
+      //   callToActionTextStyle: NativeTemplateTextStyle(
+      //     textColor: Colors.white,
+      //     backgroundColor: Colors.blue,
+      //     style: NativeTemplateFontStyle.monospace,
+      //     size: 16.0,
+      //   ),
+      //   primaryTextStyle: NativeTemplateTextStyle(
+      //     textColor: Colors.black,
+      //     backgroundColor: Colors.white,
+      //     style: NativeTemplateFontStyle.italic,
+      //     size: 16.0,
+      //   ),
+      //   secondaryTextStyle: NativeTemplateTextStyle(
+      //     textColor: Colors.black,
+      //     backgroundColor: Colors.white,
+      //     style: NativeTemplateFontStyle.bold,
+      //     size: 16.0,
+      //   ),
+      //   tertiaryTextStyle: NativeTemplateTextStyle(
+      //     textColor: Colors.black,
+      //     backgroundColor: Colors.white,
+      //     style: NativeTemplateFontStyle.normal,
+      //     size: 16.0,
+      //   ),
+      // ),
     );
 
     // 发起网络请求加载广告数据

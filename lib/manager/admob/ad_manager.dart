@@ -2,6 +2,7 @@ import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/manager/admob/app_open_ad_manager.dart';
 import 'package:editvideo/manager/admob/interstitial_ad_manager.dart';
 import 'package:editvideo/manager/admob/native_ad_manager.dart';
+import 'package:editvideo/manager/admob/reward_ad_manager.dart';
 import 'package:editvideo/manager/remote_config_manager.dart';
 import 'package:flutter/material.dart';
 
@@ -65,6 +66,7 @@ class AdManager {
     AppOpenAdManager.instance.disposeAd(scenario);
     InterstitialAdManager.instance.disposeAd(scenario);
     NativeAdManager.instance.disposeAd(scenario);
+    RewardAdManager.instance.disposeAd(scenario);
     
     // 从优先级最高（index = 0）的配置项开始尝试加载
     _loadAdFromItems(scenario, adItems, 0);
@@ -107,6 +109,9 @@ class AdManager {
       case 'interstitial':
         InterstitialAdManager.instance.loadAdItem(scenario, currentItem, onFailed: onFailed, onSuccess: onSuccess);
         break;
+      case 'rewarded':
+        RewardAdManager.instance.loadAdItem(scenario, currentItem, onFailed: onFailed, onSuccess: onSuccess);
+        break;
       case 'native':
         NativeAdManager.instance.loadAdItem(scenario, currentItem, onFailed: onFailed, onSuccess: onSuccess);
         break;
@@ -122,6 +127,7 @@ class AdManager {
   bool isAdAvailable(String scenario) {
     return AppOpenAdManager.instance.isAdAvailable(scenario) ||
         InterstitialAdManager.instance.isAdAvailable(scenario) ||
+        RewardAdManager.instance.isAdAvailable(scenario) ||
         NativeAdManager.instance.isAdLoaded(scenario);
   }
 
@@ -189,6 +195,14 @@ class AdManager {
     else if (InterstitialAdManager.instance.isAdAvailable(scenario)) {
       _isAnyFullScreenAdShowing = true;
       InterstitialAdManager.instance.showAdIfAvailable(
+        scenario,
+        onAdDismissed: reloadNext,
+      );
+    }
+    // 其次尝试展示激励广告
+    else if (RewardAdManager.instance.isAdAvailable(scenario)) {
+      _isAnyFullScreenAdShowing = true;
+      RewardAdManager.instance.showAdIfAvailable(
         scenario,
         onAdDismissed: reloadNext,
       );

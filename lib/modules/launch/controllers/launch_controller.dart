@@ -92,8 +92,10 @@ class LaunchController extends GetxController {
 
     // 5. 根据配置分别加载各个场景的广告
     final config = RemoteConfigManager().config!;
+    AdManager.instance.loadAd('level_h', config.levelH);
     AdManager.instance.loadAd('open', config.open);
     AdManager.instance.loadAd('behavior', config.behavior);
+    AdManager.instance.loadAd('behavior2', config.behavior2);
     AdManager.instance.loadAd('NVhome', config.nvhome);
 
     // 6. 尝试轮询展示 open 广告
