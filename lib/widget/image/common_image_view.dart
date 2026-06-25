@@ -1,8 +1,7 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/widget/button/common_button.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class CommonImageView extends StatelessWidget {
 
@@ -19,6 +18,8 @@ class CommonImageView extends StatelessWidget {
     this.onPress,
     this.placeholder,
     this.errorWidget,
+    this.memCacheWidth,
+    this.memCacheHeight,
   });
 
   CommonImageView.normal({
@@ -34,6 +35,8 @@ class CommonImageView extends StatelessWidget {
     this.placeholder,
     String? placeholderName,
     this.errorWidget,
+    this.memCacheWidth,
+    this.memCacheHeight,
   }) {
     this.placeholderName = placeholderName ?? Assets.commonIconVideoError;
   }
@@ -52,6 +55,10 @@ class CommonImageView extends StatelessWidget {
 
   final void Function(String? imageUrl)? onPress;
 
+  // 避免加载过大尺寸的图片导致内存爆炸，通过memCache设置上限
+  final int? memCacheWidth;
+  final int? memCacheHeight;
+
   @override
   Widget build(BuildContext context) {
     final errorWidget = Center(
@@ -63,6 +70,19 @@ class CommonImageView extends StatelessWidget {
       ),
     );
     final isValidUrl = imageUrl != null && imageUrl!.isNotEmpty;
+    
+    // 如果没有指定 memCache 并且指定了宽度或高度，自动计算合适的 memCache (假设设备像素比为3)
+    int? cacheWidth = memCacheWidth;
+    int? cacheHeight = memCacheHeight;
+    if (cacheWidth == null && cacheHeight == null) {
+      if (width != null && width! > 0 && width != double.infinity) {
+        cacheWidth = (width! * 3).toInt();
+      }
+      if (height != null && height! > 0 && height != double.infinity) {
+        cacheHeight = (height! * 3).toInt();
+      }
+    }
+
     final Widget content = CachedNetworkImage(
       cacheKey: cacheKey,
       imageUrl: imageUrl ?? '',
@@ -72,6 +92,8 @@ class CommonImageView extends StatelessWidget {
       width: width,
       height: height,
       fit: fit,
+      memCacheWidth: cacheWidth,
+      memCacheHeight: cacheHeight,
       placeholder: placeholder,
       errorWidget: this.errorWidget ?? (context,url,error)=> errorWidget,
       errorListener: (error) {},

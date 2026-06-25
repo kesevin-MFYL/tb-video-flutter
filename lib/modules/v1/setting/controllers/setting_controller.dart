@@ -1,9 +1,9 @@
 import 'dart:io';
+import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:editvideo/base/base_controller.dart';
 import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/widget/bottom_sheet/delete_bottom_sheet.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_video_caching/flutter_video_caching.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';

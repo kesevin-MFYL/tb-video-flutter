@@ -51,7 +51,6 @@ class MediaListSubPage extends GetView<MediaListSubController> {
                       var mediaItem = controller.mediaList[index];
                       return MediaCell(
                         mediaItem: mediaItem,
-                        itemWidth: double.infinity,
                         imageHeight: 165.w,
                         action: (mediaItem) {
                           controller.toMediaDetailSinglePage(mediaId: mediaItem.id, mediaType: mediaItem.type);
