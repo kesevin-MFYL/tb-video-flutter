@@ -10,6 +10,7 @@ class Storage {
   static const _kSavedMemories = '_saved_memories_key';
   static const _kDraftMemories = '_draft_memories_key';
   static const _kAdRulesConfig = '_ad_rules_config_key';
+  static const _kAdClickConfig = '_ad_click_config_key';
   static const _kHasPlayVideo = '_has_play_video_key';
   static const _kSessionId = '_session_id_key';
   static const _kSearchHistory = '_search_history_key';
@@ -139,6 +140,15 @@ class Storage {
 
   static String? getAdRulesConfig() {
     return _getStorage!.read<String?>(_kAdRulesConfig);
+  }
+
+  // === 全屏原生广告误点配置 ===
+  static Future<void> saveAdClickConfig(String configJson) async {
+    return _getStorage!.write(_kAdClickConfig, configJson);
+  }
+
+  static String? getAdClickConfig() {
+    return _getStorage!.read<String?>(_kAdClickConfig);
   }
 
   // === Session ID ===

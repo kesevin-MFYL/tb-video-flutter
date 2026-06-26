@@ -1,6 +1,7 @@
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/config/log/logger_config.dart';
 import 'package:editvideo/firebase_options.dart';
+import 'package:editvideo/manager/remote_config_manager.dart';
 import 'package:editvideo/manager/switch_manager.dart';
 import 'package:editvideo/utils/storage.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -52,6 +53,8 @@ class AppManager {
     _configLoading();
 
     SwitchManager.instance.initialize();
+
+    RemoteConfigManager().remoteConfig.fetchAndActivate();
   }
 
   void _configLoading() {

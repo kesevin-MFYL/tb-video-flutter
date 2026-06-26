@@ -8,7 +8,6 @@ import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/models/media_history_entity.dart';
 import 'package:editvideo/modules/v2/main/controllers/main_b_controller.dart';
 import 'package:editvideo/routes/app_routes.dart';
-import 'package:editvideo/test_page.dart';
 import 'package:editvideo/utils/storage.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:get/get.dart';
@@ -99,7 +98,6 @@ class HomeBController extends BaseController with MediaOperateMixin {
   }
 
   void mediaTap(MediaItemEntity mediaItem, SectionType sectionType) {
-    // Get.to(TestPage());
     if (sectionType == SectionType.mediaList || sectionType == SectionType.topPicks) {
       // 单片，进入视频播放页
       toMediaDetailSinglePage(mediaId: mediaItem.id, mediaType: mediaItem.type);
