@@ -27,6 +27,14 @@ class AdManager {
   /// 标记当前是否全局正在展示某个全屏广告（防止重叠展示）
   bool _isAnyFullScreenAdShowing = false;
 
+  /// 手动标记当前是否有原生全屏广告等正在展示
+  void markAdShowing(bool isShowing) {
+    _isAnyFullScreenAdShowing = isShowing;
+  }
+
+  /// 获取当前是否有任何全屏广告正在展示
+  bool get isAnyAdShowing => _isAnyFullScreenAdShowing;
+
   /// 记录上一次全局展示全屏广告（open/interstitial）的时间戳
   DateTime? _lastFullScreenAdShowTime;
 
@@ -140,9 +148,9 @@ class AdManager {
   ///
   /// 调用该方法时，调度器会检查内部哪个具体的广告管理器加载成功了，并调用其展示方法。
   /// **注意**：原生广告（NativeAd）通常是作为 Widget 嵌入 UI 中的，不适用此弹窗展示方法。
-  void showAdIfAvailable(String scenario, {VoidCallback? onAdDismissed}) {
-    // 检查是否有广告正在展示（主要是 open 和 behavior 场景互斥）
-    if ((scenario == 'open' || scenario == 'behavior') && _isAnyFullScreenAdShowing) {
+  void showAdIfAvailable(String scenario, {VoidCallback? onAdDismissed, bool ignoreInterval = false}) {
+    // 检查是否有广告正在展示，实现互斥关系（任何场景均受限，防止广告重叠）
+    if (_isAnyFullScreenAdShowing) {
       commonDebugPrint('AdManager: Cannot show $scenario ad. Another full screen ad is already showing.');
       return;
     }
@@ -160,18 +168,20 @@ class AdManager {
 
     // 检查不同广告位展示间隔时间 (differentInterval)
     // 根据需求，同一/不同广告位的全局间隔统一使用 RemoteConfig 中的 differentInterval（默认 30s）
-    // 仅全屏广告（open/interstitial）受此限制
-    final config = RemoteConfigManager().config;
-    final int intervalSeconds = config?.differentInterval ?? 30;
+    // 仅全屏广告受此限制，双广告展示策略中可使用 ignoreInterval 绕过此限制
+    if (!ignoreInterval) {
+      final config = RemoteConfigManager().config;
+      final int intervalSeconds = config?.differentInterval ?? 30;
 
-    if (_lastFullScreenAdShowTime != null) {
-      final elapsed = DateTime.now().difference(_lastFullScreenAdShowTime!);
-      if (elapsed.inSeconds < intervalSeconds) {
-        commonDebugPrint(
-          'AdManager: Cannot show full screen ad yet. Only ${elapsed.inSeconds}s elapsed, need ${intervalSeconds}s.',
-        );
-        if (onAdDismissed != null) onAdDismissed();
-        return;
+      if (_lastFullScreenAdShowTime != null) {
+        final elapsed = DateTime.now().difference(_lastFullScreenAdShowTime!);
+        if (elapsed.inSeconds < intervalSeconds) {
+          commonDebugPrint(
+            'AdManager: Cannot show full screen ad yet. Only ${elapsed.inSeconds}s elapsed, need ${intervalSeconds}s.',
+          );
+          if (onAdDismissed != null) onAdDismissed();
+          return;
+        }
       }
     }
 

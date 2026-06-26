@@ -21,6 +21,12 @@ class AppLifecycleReactor {
   void _onAppStateChanged(AppState appState) {
     commonDebugPrint('New AppState state: $appState');
     if (appState == AppState.foreground) {
+      // 如果当前已有任何全屏或原生广告正在展示，切前台时不再展示热启动广告
+      if (AdManager.instance.isAnyAdShowing) {
+        commonDebugPrint('AdManager: app从后台切换回前台，但当前已有广告正在展示，跳过热启动广告');
+        return;
+      }
+
       String? scenarioToShow;
       if (AdManager.instance.isAdAvailable('level_h')) {
         scenarioToShow = 'level_h';
@@ -30,17 +36,18 @@ class AppLifecycleReactor {
 
       if (scenarioToShow != null) {
         if (NativeAdManager.instance.isAdLoaded(scenarioToShow)) {
-          commonDebugPrint('app从后台切换回前台，展示原生全屏广告：$scenarioToShow');
+          commonDebugPrint('AdManager: app从后台切换回前台，展示原生全屏广告：$scenarioToShow');
           _showNativeAdDialog(scenarioToShow);
         } else {
-          commonDebugPrint('app从后台切换回前台，展示广告：$scenarioToShow');
+          commonDebugPrint('AdManager: app从后台切换回前台，展示广告：$scenarioToShow');
           AdManager.instance.showAdIfAvailable(scenarioToShow, onAdDismissed: () {
-            commonDebugPrint('app从后台切换回前台，关闭广告事件');
+            commonDebugPrint('AdManager: app从后台切换回前台，关闭广告事件');
             EventBusManager.instance.post(EventBusName.playVideo);
           });
         }
+      } else {
+        commonDebugPrint('AdManager: app从后台切换回前台，没有可用广告');
       }
-      commonDebugPrint('app从后台切换回前台，没有可用广告');
     }
   }
 
@@ -49,6 +56,8 @@ class AppLifecycleReactor {
     if (nativeAd == null) {
       return;
     }
+
+    AdManager.instance.markAdShowing(true);
 
     Get.dialog(
       PopScope(
@@ -64,8 +73,9 @@ class AppLifecycleReactor {
                 child: GestureDetector(
                   onTap: () {
                     Get.back();
+                    AdManager.instance.markAdShowing(false);
                     NativeAdManager.instance.disposeAd(scenario);
-                    commonDebugPrint('app从后台切换回前台，关闭原生广告');
+                    commonDebugPrint('AdManager: app从后台切换回前台，关闭原生广告');
                     EventBusManager.instance.post(EventBusName.playVideo);
                     
                     // Reload ad for next time

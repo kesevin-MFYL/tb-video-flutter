@@ -135,6 +135,7 @@ class LaunchController extends GetxController {
     if (NativeAdManager.instance.isAdLoaded(scenario)) {
       commonDebugPrint('LaunchController: Native ad is ready for $scenario. Showing in LaunchPage.');
       _showNativeAdScenario = scenario;
+      AdManager.instance.markAdShowing(true);
       update();
     } else {
       commonDebugPrint('LaunchController: Other ad is ready for $scenario. Showing ad.');
@@ -151,6 +152,7 @@ class LaunchController extends GetxController {
   void closeNativeAd() {
     if (_showNativeAdScenario != null) {
       NativeAdManager.instance.disposeAd(_showNativeAdScenario!);
+      AdManager.instance.markAdShowing(false);
 
       // Reload ad for next time
       final config = RemoteConfigManager().config;
