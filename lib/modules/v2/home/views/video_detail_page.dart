@@ -17,6 +17,7 @@ import 'package:editvideo/utils/common_ui.dart';
 import 'package:editvideo/utils/common_values.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/text_extension.dart';
+import 'package:editvideo/manager/admob/native_ad_manager.dart';
 import 'package:editvideo/widget/button/common_button.dart';
 import 'package:editvideo/widget/image/common_image_view.dart';
 import 'package:editvideo/widget/media/model/media_data_source.dart';
@@ -31,6 +32,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 /// 影片详情 单窗口播放视频
 class VideoDetailPage extends StatefulWidget {
@@ -88,6 +90,40 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
       tag: isMultiOpen ? '$mediaId' : null,
       builder: (controller) {
         return Obx(() {
+          if (controller.isShowingNativeAd && controller.nativeAdScenario != null) {
+            final nativeAd = NativeAdManager.instance.getNativeAd(controller.nativeAdScenario!);
+            if (nativeAd != null) {
+              return Scaffold(
+                backgroundColor: CommonColors.color060600,
+                body: Stack(
+                  children: [
+                    AdWidget(ad: nativeAd),
+                    Positioned(
+                      top: safeAreaTopDistance(40.h),
+                      right: 20.w,
+                      child: GestureDetector(
+                        onTap: () {
+                          controller.closeNativeAd();
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(16.r),
+                          ),
+                          child: Text(
+                            '跳过',
+                            style: TextStyle(color: Colors.white, fontSize: 14.sp),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+          }
+
           final isFullscreen = controller.isFullscreen;
           return PopScope(
             canPop: !isFullscreen,

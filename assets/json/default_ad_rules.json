@@ -39,6 +39,20 @@
       "placementid": "ca-app-pub-3940256099942544/1033173712"
     }
   ],
+  "behavior2": [
+    {
+      "adsource": "admob",
+      "adweight": 1,
+      "adtype": "interstitial",
+      "placementid": "ca-app-pub-3940256099942544/1033173712"
+    },
+    {
+      "adsource": "admob",
+      "adweight": 2,
+      "adtype": "native",
+      "placementid": "ca-app-pub-3940256099942544/2247696110"
+    }
+  ],
   "play_middle": [
     {
       "adsource": "admob",

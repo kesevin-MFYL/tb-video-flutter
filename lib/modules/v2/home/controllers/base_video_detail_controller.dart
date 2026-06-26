@@ -14,13 +14,14 @@ import 'package:editvideo/utils/storage.dart';
 import 'package:editvideo/utils/video_cache_utils.dart';
 import 'package:editvideo/widget/media/model/media_data_source.dart';
 import 'package:editvideo/widget/media/video_player_controller.dart';
+import 'package:editvideo/mixin/video_ad_mixin.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 
 import '../../../../widget/page_status/multi_status_view.dart';
 
-class BaseVideoDetailController extends BaseController with GetTickerProviderStateMixin, MediaOperateMixin {
+class BaseVideoDetailController extends BaseController with GetTickerProviderStateMixin, MediaOperateMixin, VideoAdMixin {
   TabController? tabController;
 
   /// 详情状态
@@ -284,8 +285,14 @@ class BaseVideoDetailController extends BaseController with GetTickerProviderSta
   /// 重置播放器和更新标题
   void updateMediaAndTitle() {
     updateTitle();
-    openMediaData();
+    bool didShowAd = tryShowDualAds();
+    openMediaData(isReload: false, autoPlay: !didShowAd);
     update();
+  }
+
+  @override
+  void allAdClosed() {
+    mediaPlayerController.play();
   }
 
   /// 修改标题
@@ -297,9 +304,10 @@ class BaseVideoDetailController extends BaseController with GetTickerProviderSta
     );
   }
 
-  void openMediaData({bool isReload = false}) async {
+  void openMediaData({bool isReload = false, bool autoPlay = true}) async {
     try {
       /// 注册播放器记录事件
+      mediaPlayerController.autoPlay = autoPlay;
       mediaPlayerController.setRecrodAction(saveMedia);
       final lastPosition = mediaPlayerController.currentPosition.value;
       if (videoType == VideoType.video) {
