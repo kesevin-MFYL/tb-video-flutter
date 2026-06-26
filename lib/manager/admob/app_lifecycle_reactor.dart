@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/manager/admob/ad_manager.dart';
@@ -59,6 +60,31 @@ class AppLifecycleReactor {
 
     AdManager.instance.markAdShowing(true);
 
+    late StreamSubscription<EventBusModel> closeNativeAdSubscription;
+    
+    void closeDialog() {
+      Get.back();
+      AdManager.instance.markAdShowing(false);
+      NativeAdManager.instance.disposeAd(scenario);
+      commonDebugPrint('AdManager: app从后台切换回前台，关闭原生广告');
+      EventBusManager.instance.post(EventBusName.playVideo);
+      closeNativeAdSubscription.cancel();
+      
+      // Reload ad for next time
+      final config = RemoteConfigManager().config;
+      if (config != null) {
+        if (scenario == 'level_h') {
+          AdManager.instance.loadAd('level_h', config.levelH);
+        } else if (scenario == 'open') {
+          AdManager.instance.loadAd('open', config.open);
+        }
+      }
+    }
+
+    closeNativeAdSubscription = EventBusManager.instance.addObserver(EventBusName.closeNativeAd, (value) async {
+      closeDialog();
+    });
+
     Get.dialog(
       PopScope(
         canPop: false,
@@ -72,21 +98,7 @@ class AppLifecycleReactor {
                 right: 20,
                 child: GestureDetector(
                   onTap: () {
-                    Get.back();
-                    AdManager.instance.markAdShowing(false);
-                    NativeAdManager.instance.disposeAd(scenario);
-                    commonDebugPrint('AdManager: app从后台切换回前台，关闭原生广告');
-                    EventBusManager.instance.post(EventBusName.playVideo);
-                    
-                    // Reload ad for next time
-                    final config = RemoteConfigManager().config;
-                    if (config != null) {
-                      if (scenario == 'level_h') {
-                        AdManager.instance.loadAd('level_h', config.levelH);
-                      } else if (scenario == 'open') {
-                        AdManager.instance.loadAd('open', config.open);
-                      }
-                    }
+                    closeDialog();
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),

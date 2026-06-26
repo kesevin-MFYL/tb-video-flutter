@@ -51,6 +51,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
   late bool isMultiOpen;
 
   late StreamSubscription<EventBusModel> _playVideoSubscription;
+  late StreamSubscription<EventBusModel> _closeNativeAdSubscription;
   late StreamSubscription<bool> _fullScreenStatusSubscription;
   late StreamSubscription<Orientation> _orientationSubscription;
 
@@ -947,6 +948,9 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
         controller.mediaPlayerController.play();
       }
     });
+    _closeNativeAdSubscription = EventBusManager.instance.addObserver(EventBusName.closeNativeAd, (value) async {
+      controller.closeNativeAd();
+    });
   }
 
   @override
@@ -959,6 +963,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _playVideoSubscription.cancel();
+    _closeNativeAdSubscription.cancel();
     _fullScreenStatusSubscription.cancel();
     _orientationSubscription.cancel();
     VideoDetailPage.routeObserver.unsubscribe(this);

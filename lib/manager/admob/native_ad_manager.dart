@@ -2,7 +2,9 @@ import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/manager/admob/consent_manager.dart';
 import 'package:editvideo/manager/remote_config_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:editvideo/manager/event_manager.dart';
 
 /// 原生广告（Native Ad）管理器
 ///
@@ -16,7 +18,18 @@ class NativeAdManager {
 
   factory NativeAdManager() => instance;
 
-  NativeAdManager._internal();
+  NativeAdManager._internal() {
+    _initMethodChannel();
+  }
+
+  void _initMethodChannel() {
+    const MethodChannel channel = MethodChannel('tbvideo/native_ad');
+    channel.setMethodCallHandler((call) async {
+      if (call.method == 'closeNativeAd') {
+        EventBusManager.instance.post(EventBusName.closeNativeAd);
+      }
+    });
+  }
 
   /// 缓存每个场景加载成功的原生广告实例
   final Map<String, NativeAd> _nativeAds = {};

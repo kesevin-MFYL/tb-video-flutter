@@ -23,30 +23,10 @@ class LaunchPage extends StatelessWidget {
           if (nativeAd != null) {
             return Scaffold(
               backgroundColor: CommonColors.color060600,
-              body: Stack(
-                children: [
-                  AdWidget(ad: nativeAd),
-                  Positioned(
-                    top: safeAreaTopDistance(40.h),
-                    right: 20.w,
-                    child: GestureDetector(
-                      onTap: () {
-                        logic.closeNativeAd();
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(16.r),
-                        ),
-                        child: Text(
-                          '跳过',
-                          style: TextStyle(color: Colors.white, fontSize: 14.sp),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+              body: SizedBox(
+                width: double.infinity,
+                height: double.infinity,
+                child: AdWidget(ad: nativeAd),
               ),
             );
           }
@@ -79,7 +59,12 @@ class LaunchPage extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 12.h),
-                    CommonText.instance('Loading...', 14.sp, color: CommonColors.white.withOpacity(0.5), fontWeight: CommonFontWeight.medium),
+                    CommonText.instance(
+                      'Loading...',
+                      14.sp,
+                      color: CommonColors.white.withOpacity(0.5),
+                      fontWeight: CommonFontWeight.medium,
+                    ),
                   ],
                 ),
               ),

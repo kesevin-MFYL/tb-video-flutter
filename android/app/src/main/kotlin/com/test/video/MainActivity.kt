@@ -16,14 +16,19 @@ import io.flutter.plugins.googlemobileads.GoogleMobileAdsPlugin.NativeAdFactory
 
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "tbvideo/app_retain"
+    private val NATIVE_AD_CHANNEL = "tbvideo/native_ad"
+    lateinit var nativeAdChannel: MethodChannel
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         flutterEngine.plugins.add(GoogleMobileAdsPlugin())
         super.configureFlutterEngine(flutterEngine)
+        
+        nativeAdChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, NATIVE_AD_CHANNEL)
+
         GoogleMobileAdsPlugin.registerNativeAdFactory(
             flutterEngine,
             "adFactoryExample",
-            NativeAdFactoryExample(layoutInflater))
+            NativeAdFactoryExample(layoutInflater, nativeAdChannel))
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             if (call.method == "sendToBackground") {
@@ -42,13 +47,20 @@ class MainActivity : FlutterActivity() {
 
 class NativeAdFactoryExample: NativeAdFactory {
   private var layoutInflater: LayoutInflater
+  private var channel: MethodChannel
 
-  constructor(layoutInflater: LayoutInflater) {
+  constructor(layoutInflater: LayoutInflater, channel: MethodChannel) {
     this.layoutInflater = layoutInflater
+    this.channel = channel
   }
 
   override fun createNativeAd(nativeAd: NativeAd?, customOptions: MutableMap<String, Any>?): NativeAdView {
     val adView = layoutInflater.inflate(R.layout.my_native_ad, null) as NativeAdView
+
+    val closeBtn = adView.findViewById<ImageView>(R.id.ad_close_btn)
+    closeBtn.setOnClickListener {
+        channel.invokeMethod("closeNativeAd", null)
+    }
 
     // 广告媒体
     adView.mediaView = adView.findViewById(R.id.ad_media)

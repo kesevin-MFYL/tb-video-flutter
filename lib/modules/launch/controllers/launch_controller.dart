@@ -5,6 +5,7 @@ import 'package:editvideo/manager/admob/native_ad_manager.dart';
 import 'package:editvideo/manager/admob/consent_manager.dart';
 import 'package:editvideo/manager/remote_config_manager.dart';
 import 'package:editvideo/manager/switch_manager.dart';
+import 'package:editvideo/manager/event_manager.dart';
 import 'package:editvideo/routes/app_routes.dart';
 import 'package:get/get.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -14,6 +15,7 @@ class LaunchController extends GetxController {
   var _hasNavigatedToMain = false;
   Timer? _checkAdTimer;
   Timer? _progressTimer;
+  late StreamSubscription<EventBusModel> _closeNativeAdSubscription;
 
   // 进度条的进度值 (0.0 到 1.0)
   double progress = 0.0;
@@ -30,6 +32,9 @@ class LaunchController extends GetxController {
     super.onInit();
     _startProgressTimer();
     _initializeAppAndAds();
+    _closeNativeAdSubscription = EventBusManager.instance.addObserver(EventBusName.closeNativeAd, (value) async {
+      closeNativeAd();
+    });
   }
 
   void _startProgressTimer() {
@@ -178,6 +183,7 @@ class LaunchController extends GetxController {
 
   @override
   void onClose() {
+    _closeNativeAdSubscription.cancel();
     _checkAdTimer?.cancel();
     _progressTimer?.cancel();
     super.onClose();
