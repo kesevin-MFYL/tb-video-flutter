@@ -192,6 +192,7 @@ mixin VideoAdMixin on GetxController {
       if (scenario == 'behavior2') AdManager.instance.loadAd('behavior2', config.behavior2);
       if (scenario == 'level_h') AdManager.instance.loadAd('level_h', config.levelH);
       if (scenario == 'pause') AdManager.instance.loadAd('pause', config.pause);
+      if (scenario == 'play_middle') AdManager.instance.loadAd('play_middle', config.playMiddle);
     }
   }
 }

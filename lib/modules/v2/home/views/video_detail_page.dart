@@ -271,11 +271,12 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
           ),
         ),
 
-        // Pause Ad
+        // Pause Ad / Play Middle Ad
         Center(
           child: Obx(() {
-            if (controller.isShowingPauseAd.value) {
-              final nativeAd = NativeAdManager.instance.getNativeAd('pause');
+            if (controller.isShowingPauseAd.value || controller.isShowingPlayMiddleAd.value) {
+              final scenario = controller.isShowingPauseAd.value ? 'pause' : 'play_middle';
+              final nativeAd = NativeAdManager.instance.getNativeAd(scenario);
               if (nativeAd != null) {
                 final isFullscreen = controller.mediaPlayerController.isFullscreen;
                 double adWidth = 300.0;

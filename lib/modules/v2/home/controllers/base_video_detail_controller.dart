@@ -14,6 +14,8 @@ import 'package:editvideo/utils/storage.dart';
 import 'package:editvideo/utils/video_cache_utils.dart';
 import 'package:editvideo/widget/media/model/media_data_source.dart';
 import 'package:editvideo/manager/admob/native_ad_manager.dart';
+import 'package:editvideo/manager/admob/ad_manager.dart';
+import 'package:editvideo/manager/remote_config_manager.dart';
 import 'package:editvideo/widget/media/model/media_player_status.dart';
 import 'package:editvideo/widget/media/video_player_controller.dart';
 import 'package:editvideo/mixin/video_ad_mixin.dart';
@@ -80,6 +82,15 @@ class BaseVideoDetailController extends BaseController with GetTickerProviderSta
   /// 是否正在显示暂停广告
   final isShowingPauseAd = false.obs;
 
+  /// 是否正在显示PlayPoint中间广告（横屏）
+  final isShowingPlayMiddleAd = false.obs;
+
+  /// 是否触发了PlayPoint节点（用于防止pause广告重复触发）
+  final isShowingPlayPointAd = false.obs;
+
+  /// 上一次触发广告的时间节点索引
+  int _lastPlayPointAdIndex = 0;
+
   @override
   void onInit() {
     super.onInit();
@@ -87,19 +98,83 @@ class BaseVideoDetailController extends BaseController with GetTickerProviderSta
       if (status == MediaPlayerStatusType.paused) {
         if (!mediaPlayerController.isBuffering.value &&
             mediaPlayerController.currentPosition.value.inSeconds > 0 &&
-            mediaPlayerController.currentPosition.value < mediaPlayerController.totalDuration.value) {
-          showPauseAd();
+            mediaPlayerController.currentPosition.value < mediaPlayerController.totalDuration.value || !mediaPlayerController.isSliderMoving.value) {
+          if (!isShowingPlayPointAd.value) {
+            showPauseAd();
+          }
         }
       } else if (status == MediaPlayerStatusType.playing) {
         closePauseAd();
+        closePlayMiddleAd();
+      }
+    });
+
+    ever(mediaPlayerController.currentPosition, (Duration position) {
+      if (mediaPlayerController.isSliderMoving.value) return;
+
+      final config = RemoteConfigManager().config;
+      if (config != null && config.playPointTime > 0) {
+        // 当前播放进度秒数
+        int currentSeconds = position.inSeconds;
+        // 如果正好到达了 playPointTime 的整数倍节点（并且不是0）
+        if (currentSeconds > 0 && currentSeconds % config.playPointTime == 0) {
+          int currentIndex = currentSeconds ~/ config.playPointTime;
+          // 防止同一秒内多次触发，必须大于上一次触发的节点索引
+          if (currentIndex > _lastPlayPointAdIndex) {
+            _lastPlayPointAdIndex = currentIndex;
+            _triggerPlayPointAd();
+          }
+        } else {
+          // 如果当前时间不到 playPointTime，或者是跨越了但并非“正好等于”，则只更新索引以便后续可以触发更大的节点
+          int currentIndex = currentSeconds ~/ config.playPointTime;
+          if (currentIndex < _lastPlayPointAdIndex) {
+            _lastPlayPointAdIndex = currentIndex;
+          }
+        }
       }
     });
 
     ever(mediaPlayerController.isSliderMoving, (isMoving) {
       if (isMoving) {
         closePauseAd();
+        closePlayMiddleAd();
+      } else {
+        // 拖动结束时，只需重置 _lastPlayPointAdIndex 到当前位置，不触发广告
+        final position = mediaPlayerController.currentPosition.value;
+        final config = RemoteConfigManager().config;
+        if (config != null && config.playPointTime > 0) {
+          _lastPlayPointAdIndex = position.inSeconds ~/ config.playPointTime;
+        }
       }
     });
+  }
+
+  void _triggerPlayPointAd() {
+    if (mediaPlayerController.isFullscreen) {
+      if (NativeAdManager.instance.isAdLoaded('play_middle')) {
+        isShowingPlayPointAd.value = true;
+        mediaPlayerController.pause();
+        isShowingPlayMiddleAd.value = true;
+      }
+    } else {
+      bool canShow = AdManager.instance.isAdAvailable('level_h') ||
+          AdManager.instance.isAdAvailable('behavior') ||
+          AdManager.instance.isAdAvailable('behavior2');
+      if (canShow) {
+        isShowingPlayPointAd.value = true;
+        mediaPlayerController.pause();
+        tryShowDualAds();
+      }
+    }
+  }
+
+  void closePlayMiddleAd() {
+    if (isShowingPlayMiddleAd.value) {
+      isShowingPlayMiddleAd.value = false;
+      isShowingPlayPointAd.value = false;
+      NativeAdManager.instance.disposeAd('play_middle');
+      requestAd('play_middle');
+    }
   }
 
   @override
@@ -309,6 +384,7 @@ class BaseVideoDetailController extends BaseController with GetTickerProviderSta
   /// 选择剧集
   void chooseEpisode(EpisodeEntity episode) {
     closePauseAd();
+    closePlayMiddleAd();
     if (videoType == VideoType.tv) {
       if (tabController == null || tabController!.index >= seasonList.length) return;
 
@@ -344,6 +420,7 @@ class BaseVideoDetailController extends BaseController with GetTickerProviderSta
 
   @override
   void allAdClosed() {
+    isShowingPlayPointAd.value = false;
     mediaPlayerController.play();
   }
 
@@ -407,6 +484,7 @@ class BaseVideoDetailController extends BaseController with GetTickerProviderSta
   /// 当前视频播放完毕或手动切换，播放下一个视频
   void nextPlay() async {
     closePauseAd();
+    closePlayMiddleAd();
     // 影片播放完毕
     if (videoType == VideoType.video) {
       if (recommendList.isNotEmpty) {
