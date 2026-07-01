@@ -92,6 +92,9 @@ class AppLifecycleReactor {
       closeDialog();
     });
 
+    // 原生全屏展示前先暂停播放
+    EventBusManager.instance.post(EventBusName.pauseVideo);
+
     Get.dialog(
       PopScope(
         canPop: false,

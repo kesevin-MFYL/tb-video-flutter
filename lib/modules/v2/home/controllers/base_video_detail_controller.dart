@@ -25,7 +25,8 @@ import 'package:get/get.dart';
 
 import '../../../../widget/page_status/multi_status_view.dart';
 
-class BaseVideoDetailController extends BaseController with GetTickerProviderStateMixin, MediaOperateMixin, VideoAdMixin {
+class BaseVideoDetailController extends BaseController
+    with GetTickerProviderStateMixin, MediaOperateMixin, VideoAdMixin {
   TabController? tabController;
 
   /// 详情状态
@@ -98,7 +99,8 @@ class BaseVideoDetailController extends BaseController with GetTickerProviderSta
       if (status == MediaPlayerStatusType.paused) {
         if (!mediaPlayerController.isBuffering.value &&
             mediaPlayerController.currentPosition.value.inSeconds > 0 &&
-            mediaPlayerController.currentPosition.value < mediaPlayerController.totalDuration.value || !mediaPlayerController.isSliderMoving.value) {
+            mediaPlayerController.currentPosition.value < mediaPlayerController.totalDuration.value &&
+            !mediaPlayerController.isSliderMoving.value) {
           if (!isShowingPlayPointAd.value) {
             showPauseAd();
           }
@@ -149,34 +151,6 @@ class BaseVideoDetailController extends BaseController with GetTickerProviderSta
     });
   }
 
-  void _triggerPlayPointAd() {
-    if (mediaPlayerController.isFullscreen) {
-      if (NativeAdManager.instance.isAdLoaded('play_middle')) {
-        isShowingPlayPointAd.value = true;
-        mediaPlayerController.pause();
-        isShowingPlayMiddleAd.value = true;
-      }
-    } else {
-      bool canShow = AdManager.instance.isAdAvailable('level_h') ||
-          AdManager.instance.isAdAvailable('behavior') ||
-          AdManager.instance.isAdAvailable('behavior2');
-      if (canShow) {
-        isShowingPlayPointAd.value = true;
-        mediaPlayerController.pause();
-        tryShowDualAds();
-      }
-    }
-  }
-
-  void closePlayMiddleAd() {
-    if (isShowingPlayMiddleAd.value) {
-      isShowingPlayMiddleAd.value = false;
-      isShowingPlayPointAd.value = false;
-      NativeAdManager.instance.disposeAd('play_middle');
-      requestAd('play_middle');
-    }
-  }
-
   @override
   void onClose() {
     if (isShowingPauseAd.value) {
@@ -185,17 +159,50 @@ class BaseVideoDetailController extends BaseController with GetTickerProviderSta
     super.onClose();
   }
 
+  /// 显示暂停的原生广告
   void showPauseAd() {
     if (NativeAdManager.instance.isAdLoaded('pause')) {
       isShowingPauseAd.value = true;
     }
   }
 
+  /// 关闭暂停的原生广告
   void closePauseAd() {
     if (isShowingPauseAd.value) {
       isShowingPauseAd.value = false;
       NativeAdManager.instance.disposeAd('pause');
       requestAd('pause');
+    }
+  }
+
+  /// 触发播放中节点的原生广告
+  void _triggerPlayPointAd() {
+    if (mediaPlayerController.isFullscreen) {
+      if (NativeAdManager.instance.isAdLoaded('play_middle')) {
+        isShowingPlayPointAd.value = true;
+        mediaPlayerController.pause();
+        isShowingPlayMiddleAd.value = true;
+      }
+    } else {
+      bool canShow =
+          AdManager.instance.isAdAvailable('level_h') ||
+              AdManager.instance.isAdAvailable('behavior') ||
+              AdManager.instance.isAdAvailable('behavior2');
+      if (canShow) {
+        isShowingPlayPointAd.value = true;
+        mediaPlayerController.pause();
+        tryShowDualAds();
+      }
+    }
+  }
+
+  /// 关闭播放中节点的原生广告
+  void closePlayMiddleAd() {
+    if (isShowingPlayMiddleAd.value) {
+      isShowingPlayMiddleAd.value = false;
+      isShowingPlayPointAd.value = false;
+      NativeAdManager.instance.disposeAd('play_middle');
+      requestAd('play_middle');
     }
   }
 
@@ -421,7 +428,11 @@ class BaseVideoDetailController extends BaseController with GetTickerProviderSta
   @override
   void allAdClosed() {
     isShowingPlayPointAd.value = false;
-    mediaPlayerController.play();
+    if (mediaPlayerController.firstLoad && mediaHistoryEntity != null && mediaHistoryEntity!.currentDuration != null) {
+      mediaPlayerController.rePlay();
+    } else {
+      mediaPlayerController.play();
+    }
   }
 
   /// 修改标题

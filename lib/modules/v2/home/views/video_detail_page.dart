@@ -50,6 +50,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
   late int mediaId;
   late bool isMultiOpen;
 
+  late StreamSubscription<EventBusModel> _pauseVideoSubscription;
   late StreamSubscription<EventBusModel> _playVideoSubscription;
   late StreamSubscription<EventBusModel> _closeNativeAdSubscription;
   late StreamSubscription<bool> _fullScreenStatusSubscription;
@@ -94,12 +95,15 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
           if (controller.isShowingNativeAd && controller.nativeAdScenario != null) {
             final nativeAd = NativeAdManager.instance.getNativeAd(controller.nativeAdScenario!);
             if (nativeAd != null) {
-              return Scaffold(
-                backgroundColor: CommonColors.color060600,
-                body: SizedBox(
-                  width: double.infinity,
-                  height: double.infinity,
-                  child: AdWidget(ad: nativeAd),
+              return PopScope(
+                canPop: false,
+                child: Scaffold(
+                  backgroundColor: CommonColors.color060600,
+                  body: SizedBox(
+                    width: double.infinity,
+                    height: double.infinity,
+                    child: AdWidget(ad: nativeAd),
+                  ),
                 ),
               );
             }
@@ -910,6 +914,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
     pageClosed = true;
     controller.mediaPlayerController.removeStatusLister(playerListener);
     controller.mediaPlayerController.pause();
+    _pauseVideoSubscription.cancel();
     _playVideoSubscription.cancel();
     _fullScreenStatusSubscription.cancel();
     _orientationSubscription.cancel();
@@ -950,6 +955,11 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
 
   // 生命周期监听
   void lifecycleListener() {
+    _pauseVideoSubscription = EventBusManager.instance.addObserver(EventBusName.pauseVideo, (value) async {
+      Future.delayed(Duration(milliseconds: 350)).then((_){
+        controller.mediaPlayerController.pause();
+      });
+    });
     _playVideoSubscription = EventBusManager.instance.addObserver(EventBusName.playVideo, (value) async {
       if (controller.mediaPlayerController.isInitialized.value &&
           !controller.mediaPlayerController.playerController!.value.isPlaying) {
@@ -970,6 +980,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _pauseVideoSubscription.cancel();
     _playVideoSubscription.cancel();
     _closeNativeAdSubscription.cancel();
     _fullScreenStatusSubscription.cancel();

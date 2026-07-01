@@ -44,6 +44,8 @@ class PlayerController {
   /// 是否自动播放 默认开启
   var autoPlay = true;
 
+  var initVideoPosition = Duration.zero;
+
   /// 默认播放速度
   var defaultSpeed = 1.0;
 
@@ -283,9 +285,12 @@ class PlayerController {
       // 重置配置
       await resetConfig();
 
+      this.initVideoPosition = initVideoPosition;
+
       videoType.value = dataSource.videoType;
 
       this.captionList.value = captionList;
+
 
       if (dataSource.videoSource.isEmptyString()) {
         hasError.value = true;
@@ -396,6 +401,15 @@ class PlayerController {
       _startHideTimer();
     } catch (e) {
       commonDebugPrint('PlayerController play error: $e');
+    }
+  }
+
+  Future<void> rePlay() async {
+    if (initVideoPosition.inSeconds >= totalDuration.value.inSeconds) {
+      play(repeat: true);
+    } else {
+      seekTo(initVideoPosition);
+      play();
     }
   }
 

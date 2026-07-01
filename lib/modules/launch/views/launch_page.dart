@@ -21,12 +21,15 @@ class LaunchPage extends StatelessWidget {
         if (logic.isShowingNativeAd && logic.nativeAdScenario != null) {
           final nativeAd = NativeAdManager.instance.getNativeAd(logic.nativeAdScenario!);
           if (nativeAd != null) {
-            return Scaffold(
-              backgroundColor: CommonColors.color060600,
-              body: SizedBox(
-                width: double.infinity,
-                height: double.infinity,
-                child: AdWidget(ad: nativeAd),
+            return PopScope(
+              canPop: false,
+              child: Scaffold(
+                backgroundColor: CommonColors.color060600,
+                body: SizedBox(
+                  width: double.infinity,
+                  height: double.infinity,
+                  child: AdWidget(ad: nativeAd),
+                ),
               ),
             );
           }

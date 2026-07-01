@@ -1,7 +1,9 @@
 import 'package:editvideo/manager/admob/ad_manager.dart';
 import 'package:editvideo/manager/admob/native_ad_manager.dart';
+import 'package:editvideo/manager/event_manager.dart';
 import 'package:editvideo/manager/remote_config_manager.dart';
 import 'package:editvideo/config/log/logger.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 mixin VideoAdMixin on GetxController {
@@ -147,6 +149,11 @@ mixin VideoAdMixin on GetxController {
     commonDebugPrint('VideoAdMixin: 将要渲染原生全屏广告控件 - $scenario');
     _showNativeAdScenario = scenario;
     AdManager.instance.markAdShowing(true);
+    // 原生全屏展示前先暂停播放
+    EventBusManager.instance.post(EventBusName.pauseVideo);
+
+    // 锁定竖屏
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
     update();
   }
 
@@ -159,6 +166,7 @@ mixin VideoAdMixin on GetxController {
       _showNativeAdScenario = null;
       AdManager.instance.markAdShowing(false);
       AdManager.instance.updateLastAdShowTime();
+      SystemChrome.setPreferredOrientations([]);
       update();
 
       // 原生广告关闭后，需要重新拉取新的广告
