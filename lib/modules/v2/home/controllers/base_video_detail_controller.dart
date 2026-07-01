@@ -13,6 +13,8 @@ import 'package:editvideo/models/season_entity.dart';
 import 'package:editvideo/utils/storage.dart';
 import 'package:editvideo/utils/video_cache_utils.dart';
 import 'package:editvideo/widget/media/model/media_data_source.dart';
+import 'package:editvideo/manager/admob/native_ad_manager.dart';
+import 'package:editvideo/widget/media/model/media_player_status.dart';
 import 'package:editvideo/widget/media/video_player_controller.dart';
 import 'package:editvideo/mixin/video_ad_mixin.dart';
 import 'package:flutter/material.dart';
@@ -75,6 +77,53 @@ class BaseVideoDetailController extends BaseController with GetTickerProviderSta
   /// 选中的集
   final selectEpisode = Rx<EpisodeEntity?>(null);
 
+  /// 是否正在显示暂停广告
+  final isShowingPauseAd = false.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    mediaPlayerController.addStatusLister((status) {
+      if (status == MediaPlayerStatusType.paused) {
+        if (!mediaPlayerController.isBuffering.value &&
+            mediaPlayerController.currentPosition.value.inSeconds > 0 &&
+            mediaPlayerController.currentPosition.value < mediaPlayerController.totalDuration.value) {
+          showPauseAd();
+        }
+      } else if (status == MediaPlayerStatusType.playing) {
+        closePauseAd();
+      }
+    });
+
+    ever(mediaPlayerController.isSliderMoving, (isMoving) {
+      if (isMoving) {
+        closePauseAd();
+      }
+    });
+  }
+
+  @override
+  void onClose() {
+    if (isShowingPauseAd.value) {
+      NativeAdManager.instance.disposeAd('pause');
+    }
+    super.onClose();
+  }
+
+  void showPauseAd() {
+    if (NativeAdManager.instance.isAdLoaded('pause')) {
+      isShowingPauseAd.value = true;
+    }
+  }
+
+  void closePauseAd() {
+    if (isShowingPauseAd.value) {
+      isShowingPauseAd.value = false;
+      NativeAdManager.instance.disposeAd('pause');
+      requestAd('pause');
+    }
+  }
+
   @override
   void handArguments(arguments) {
     if (arguments != null && arguments is Map<String, dynamic>) {
@@ -91,6 +140,8 @@ class BaseVideoDetailController extends BaseController with GetTickerProviderSta
 
   @override
   void fetchData() {
+    // 进入播放页后开始请求播放暂停广告
+    requestAd('pause');
     getDataFromServer();
   }
 
@@ -257,6 +308,7 @@ class BaseVideoDetailController extends BaseController with GetTickerProviderSta
 
   /// 选择剧集
   void chooseEpisode(EpisodeEntity episode) {
+    closePauseAd();
     if (videoType == VideoType.tv) {
       if (tabController == null || tabController!.index >= seasonList.length) return;
 
@@ -354,6 +406,7 @@ class BaseVideoDetailController extends BaseController with GetTickerProviderSta
 
   /// 当前视频播放完毕或手动切换，播放下一个视频
   void nextPlay() async {
+    closePauseAd();
     // 影片播放完毕
     if (videoType == VideoType.video) {
       if (recommendList.isNotEmpty) {

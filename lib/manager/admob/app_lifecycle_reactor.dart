@@ -90,30 +90,10 @@ class AppLifecycleReactor {
         canPop: false,
         child: Material(
           color: CommonColors.color060600,
-          child: Stack(
-            children: [
-              AdWidget(ad: nativeAd),
-              Positioned(
-                top: 40,
-                right: 20,
-                child: GestureDetector(
-                  onTap: () {
-                    closeDialog();
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Text(
-                      '跳过',
-                      style: TextStyle(color: Colors.white, fontSize: 14),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+          child: SizedBox(
+            width: double.infinity,
+            height: double.infinity,
+            child: AdWidget(ad: nativeAd),
           ),
         ),
       ),

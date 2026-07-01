@@ -1,3 +1,4 @@
+import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/manager/admob/consent_manager.dart';
 import 'package:editvideo/manager/remote_config_manager.dart';
@@ -33,15 +34,19 @@ class NativeAdManager {
 
   /// 缓存每个场景加载成功的原生广告实例
   final Map<String, NativeAd> _nativeAds = {};
+
   /// 记录每个场景是否已成功加载原生广告
   final Map<String, bool> _isAdLoadedMap = {};
+
   /// 记录每个场景是否正在加载原生广告中，防止重复发起请求
   final Map<String, bool> _isAdLoadingMap = {};
 
   /// 缓存每个场景对应的加载成功回调，供 UI 层监听并重绘 Widget
   final Map<String, Function(String scenario)> onAdLoadedCallbacks = {};
+
   /// 缓存每个场景对应的加载失败回调，供 UI 层处理异常情况
   final Map<String, Function(String scenario, LoadAdError error)> onAdFailedCallbacks = {};
+
   /// 缓存每个场景对应的广告关闭回调，供外部重新发起加载或做其他处理
   final Map<String, Function(String scenario)> onCloseCallbacks = {};
 
@@ -80,7 +85,9 @@ class NativeAdManager {
     // }
 
     if (isAdLoading(scenario)) {
-      commonDebugPrint('NativeAdManager: NativeAd for scenario $scenario is already loading. Ignored duplicate request.');
+      commonDebugPrint(
+        'NativeAdManager: NativeAd for scenario $scenario is already loading. Ignored duplicate request.',
+      );
       return;
     }
 
@@ -88,24 +95,28 @@ class NativeAdManager {
 
     final ad = NativeAd(
       adUnitId: item.placementid,
-      factoryId: 'adFactoryExample',
+      factoryId: (scenario == 'play_middle' || scenario == 'pause') ? null : 'adFactoryExample',
       listener: NativeAdListener(
         onAdLoaded: (ad) {
-          commonDebugPrint('测试日志：场景$scenario--拉取广告成功-广告类型:${item.adtype}--广告id: ${item.placementid}--优先级：${item.adweight}');
+          commonDebugPrint(
+            '测试日志：场景$scenario--拉取广告成功-广告类型:${item.adtype}--广告id: ${item.placementid}--优先级：${item.adweight}',
+          );
           commonDebugPrint('NativeAdManager: NativeAd ${item.placementid} loaded for scenario: $scenario.');
           // 加载成功，记录广告实例和可用状态
           _nativeAds[scenario] = ad as NativeAd;
           _isAdLoadedMap[scenario] = true;
           _isAdLoadingMap[scenario] = false;
           onSuccess(); // 通知调度器该场景加载流程已成功闭环
-          
+
           // 通知 UI 层广告已加载完毕，可以提取并渲染了
           if (onAdLoadedCallbacks.containsKey(scenario)) {
             onAdLoadedCallbacks[scenario]!(scenario);
           }
         },
         onAdFailedToLoad: (ad, error) {
-          commonDebugPrint('NativeAdManager: NativeAd ${item.placementid} failed to load for scenario $scenario: $error');
+          commonDebugPrint(
+            'NativeAdManager: NativeAd ${item.placementid} failed to load for scenario $scenario: $error',
+          );
           // 加载失败，释放废弃实例
           ad.dispose();
           _isAdLoadingMap[scenario] = false;
@@ -115,7 +126,9 @@ class NativeAdManager {
         onAdClicked: (ad) {},
         onAdImpression: (ad) {},
         onAdClosed: (ad) {
-          commonDebugPrint('测试日志：场景$scenario--广告被关闭-广告类型:${item.adtype}--广告id: ${item.placementid}--优先级：${item.adweight}');
+          commonDebugPrint(
+            '测试日志：场景$scenario--广告被关闭-广告类型:${item.adtype}--广告id: ${item.placementid}--优先级：${item.adweight}',
+          );
           commonDebugPrint('NativeAdManager: NativeAd ${item.placementid} closed for scenario: $scenario');
           // // 原生广告被关闭/销毁时，释放掉已经被关闭的广告
           // disposeAd(scenario);
@@ -131,35 +144,11 @@ class NativeAdManager {
       ),
       request: const AdRequest(),
       // 配置原生广告的 UI 样式模板
-      // nativeTemplateStyle: NativeTemplateStyle(
-      //   templateType: templateType,
-      //   mainBackgroundColor: Colors.white,
-      //   cornerRadius: 10.0,
-      //   callToActionTextStyle: NativeTemplateTextStyle(
-      //     textColor: Colors.white,
-      //     backgroundColor: Colors.blue,
-      //     style: NativeTemplateFontStyle.monospace,
-      //     size: 16.0,
-      //   ),
-      //   primaryTextStyle: NativeTemplateTextStyle(
-      //     textColor: Colors.black,
-      //     backgroundColor: Colors.white,
-      //     style: NativeTemplateFontStyle.italic,
-      //     size: 16.0,
-      //   ),
-      //   secondaryTextStyle: NativeTemplateTextStyle(
-      //     textColor: Colors.black,
-      //     backgroundColor: Colors.white,
-      //     style: NativeTemplateFontStyle.bold,
-      //     size: 16.0,
-      //   ),
-      //   tertiaryTextStyle: NativeTemplateTextStyle(
-      //     textColor: Colors.black,
-      //     backgroundColor: Colors.white,
-      //     style: NativeTemplateFontStyle.normal,
-      //     size: 16.0,
-      //   ),
-      // ),
+      nativeTemplateStyle: (scenario == 'play_middle' || scenario == 'pause')
+          ? NativeTemplateStyle(
+              templateType: templateType,
+            )
+          : null,
     );
 
     // 发起网络请求加载广告数据

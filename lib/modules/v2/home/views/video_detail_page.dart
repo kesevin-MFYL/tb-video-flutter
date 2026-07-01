@@ -96,30 +96,10 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
             if (nativeAd != null) {
               return Scaffold(
                 backgroundColor: CommonColors.color060600,
-                body: Stack(
-                  children: [
-                    AdWidget(ad: nativeAd),
-                    Positioned(
-                      top: safeAreaTopDistance(40.h),
-                      right: 20.w,
-                      child: GestureDetector(
-                        onTap: () {
-                          controller.closeNativeAd();
-                        },
-                        child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.5),
-                            borderRadius: BorderRadius.circular(16.r),
-                          ),
-                          child: Text(
-                            '跳过',
-                            style: TextStyle(color: Colors.white, fontSize: 14.sp),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                body: SizedBox(
+                  width: double.infinity,
+                  height: double.infinity,
+                  child: AdWidget(ad: nativeAd),
                 ),
               );
             }
@@ -289,6 +269,33 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
               controller.openMediaData(isReload: true);
             },
           ),
+        ),
+
+        // Pause Ad
+        Center(
+          child: Obx(() {
+            if (controller.isShowingPauseAd.value) {
+              final nativeAd = NativeAdManager.instance.getNativeAd('pause');
+              if (nativeAd != null) {
+                final isFullscreen = controller.mediaPlayerController.isFullscreen;
+                double adWidth = 300.0;
+                double adHeight = 250.0;
+
+                if (!isFullscreen) {
+                  double scale = controller.videoHeight / MediaQuery.sizeOf(context).width;
+                  adWidth = 300.0 * scale;
+                  adHeight = 250.0 * scale;
+                }
+
+                return SizedBox(
+                  width: adWidth,
+                  height: adHeight,
+                  child: AdWidget(ad: nativeAd),
+                );
+              }
+            }
+            return const SizedBox();
+          }),
         ),
       ],
     );
