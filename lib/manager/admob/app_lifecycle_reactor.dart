@@ -28,6 +28,12 @@ class AppLifecycleReactor {
         return;
       }
 
+      // 判断是否在时间间隔内
+      if (!AdManager.instance.canShowAdBasedOnInterval()) {
+        commonDebugPrint('AdManager: app从后台切换回前台，但在广告全局间隔内，跳过热启动广告');
+        return;
+      }
+
       String? scenarioToShow;
       if (AdManager.instance.isAdAvailable('level_h')) {
         scenarioToShow = 'level_h';
@@ -66,6 +72,7 @@ class AppLifecycleReactor {
       Get.back();
       AdManager.instance.markAdShowing(false);
       NativeAdManager.instance.disposeAd(scenario);
+      AdManager.instance.updateLastAdShowTime();
       commonDebugPrint('AdManager: app从后台切换回前台，关闭原生广告');
       EventBusManager.instance.post(EventBusName.playVideo);
       closeNativeAdSubscription.cancel();

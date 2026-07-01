@@ -158,6 +158,7 @@ mixin VideoAdMixin on GetxController {
       NativeAdManager.instance.disposeAd(scenario);
       _showNativeAdScenario = null;
       AdManager.instance.markAdShowing(false);
+      AdManager.instance.updateLastAdShowTime();
       update();
 
       // 原生广告关闭后，需要重新拉取新的广告

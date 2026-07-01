@@ -170,18 +170,9 @@ class AdManager {
     // 根据需求，同一/不同广告位的全局间隔统一使用 RemoteConfig 中的 differentInterval（默认 30s）
     // 仅全屏广告受此限制，双广告展示策略中可使用 ignoreInterval 绕过此限制
     if (!ignoreInterval) {
-      final config = RemoteConfigManager().config;
-      final int intervalSeconds = config?.differentInterval ?? 30;
-
-      if (_lastFullScreenAdShowTime != null) {
-        final elapsed = DateTime.now().difference(_lastFullScreenAdShowTime!);
-        if (elapsed.inSeconds < intervalSeconds) {
-          commonDebugPrint(
-            'AdManager: Cannot show full screen ad yet. Only ${elapsed.inSeconds}s elapsed, need ${intervalSeconds}s.',
-          );
-          if (onAdDismissed != null) onAdDismissed();
-          return;
-        }
+      if (!canShowAdBasedOnInterval()) {
+        if (onAdDismissed != null) onAdDismissed();
+        return;
       }
     }
 
@@ -190,7 +181,7 @@ class AdManager {
       _isAnyFullScreenAdShowing = false;
       if (isClosed) {
         commonDebugPrint('测试日志：场景$scenario下的广告已关闭--重新拉取广告');
-        _lastFullScreenAdShowTime = DateTime.now();
+        updateLastAdShowTime();
       }
       if (onAdDismissed != null) onAdDismissed();
       if (_scenarioAdItems.containsKey(scenario) && _scenarioAdItems[scenario]!.isNotEmpty) {
@@ -228,4 +219,25 @@ class AdManager {
       if (onAdDismissed != null) onAdDismissed();
     }
   }
+
+  /// 检查是否满足广告展示的时间间隔
+  bool canShowAdBasedOnInterval() {
+    final config = RemoteConfigManager().config;
+    final int intervalSeconds = config?.differentInterval ?? 30;
+
+    if (_lastFullScreenAdShowTime != null) {
+      final elapsed = DateTime.now().difference(_lastFullScreenAdShowTime!);
+      if (elapsed.inSeconds < intervalSeconds) {
+        commonDebugPrint('AdManager: 展示间隔未满足。仅经过 ${elapsed.inSeconds}s，需要 ${intervalSeconds}s.');
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /// 更新全屏广告的最后展示/关闭时间
+  void updateLastAdShowTime() {
+    _lastFullScreenAdShowTime = DateTime.now();
+  }
+
 }

@@ -158,6 +158,7 @@ class LaunchController extends GetxController {
     if (_showNativeAdScenario != null) {
       NativeAdManager.instance.disposeAd(_showNativeAdScenario!);
       AdManager.instance.markAdShowing(false);
+      AdManager.instance.updateLastAdShowTime();
 
       // Reload ad for next time
       final config = RemoteConfigManager().config;
