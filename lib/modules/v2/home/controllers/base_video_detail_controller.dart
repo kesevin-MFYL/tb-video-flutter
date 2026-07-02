@@ -20,6 +20,7 @@ import 'package:editvideo/widget/media/model/media_player_status.dart';
 import 'package:editvideo/widget/media/video_player_controller.dart';
 import 'package:editvideo/mixin/video_ad_mixin.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 
@@ -79,6 +80,10 @@ class BaseVideoDetailController extends BaseController
 
   /// 选中的集
   final selectEpisode = Rx<EpisodeEntity?>(null);
+
+  /// 退出拦截状态
+  final canExit = false.obs;
+  bool isExitingPage = false;
 
   /// 是否正在显示暂停广告
   final isShowingPauseAd = false.obs;
@@ -184,14 +189,10 @@ class BaseVideoDetailController extends BaseController
         isShowingPlayMiddleAd.value = true;
       }
     } else {
-      bool canShow =
-          AdManager.instance.isAdAvailable('level_h') ||
-              AdManager.instance.isAdAvailable('behavior') ||
-              AdManager.instance.isAdAvailable('behavior2');
-      if (canShow) {
+      bool hasAd = tryShowDualAds();
+      if (hasAd) {
         isShowingPlayPointAd.value = true;
         mediaPlayerController.pause();
-        tryShowDualAds();
       }
     }
   }
@@ -204,6 +205,36 @@ class BaseVideoDetailController extends BaseController
       NativeAdManager.instance.disposeAd('play_middle');
       requestAd('play_middle');
     }
+  }
+
+  void handleBack() {
+    if (mediaPlayerController.isFullscreen) {
+      mediaPlayerController.triggerFullScreen(status: false);
+      if (mediaPlayerController.controlsLock.value) {
+        mediaPlayerController.controlsLock.value = false;
+      }
+      return;
+    }
+
+    if (isExitingPage) return; // 防止重复触发
+
+    closePauseAd();
+    closePlayMiddleAd();
+
+    isExitingPage = true;
+    bool hasAd = tryShowDualAds();
+    if (hasAd) {
+      mediaPlayerController.pause();
+    } else {
+      exitPage();
+    }
+  }
+
+  void exitPage() {
+    canExit.value = true;
+    Future.microtask(() {
+      Get.back();
+    });
   }
 
   @override
@@ -427,6 +458,11 @@ class BaseVideoDetailController extends BaseController
 
   @override
   void allAdClosed() {
+    if (isExitingPage) {
+      exitPage();
+      return;
+    }
+    SystemChrome.setPreferredOrientations([]);
     isShowingPlayPointAd.value = false;
     if (mediaPlayerController.firstLoad && mediaHistoryEntity != null && mediaHistoryEntity!.currentDuration != null) {
       mediaPlayerController.rePlay();

@@ -6,6 +6,7 @@ import 'package:editvideo/config/log/logger.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
+/// 展示level_h，behavior，behavior2，包含原生全屏广告、插屏广告，激励广告
 mixin VideoAdMixin on GetxController {
   String? _showNativeAdScenario;
 
@@ -166,7 +167,6 @@ mixin VideoAdMixin on GetxController {
       _showNativeAdScenario = null;
       AdManager.instance.markAdShowing(false);
       AdManager.instance.updateLastAdShowTime();
-      SystemChrome.setPreferredOrientations([]);
       update();
 
       // 原生广告关闭后，需要重新拉取新的广告

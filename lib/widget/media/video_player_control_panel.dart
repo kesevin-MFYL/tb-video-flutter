@@ -27,6 +27,7 @@ class VideoPlayerControlPanel extends StatefulWidget {
     this.onShowSubtitleSettings,
     this.onNextPlay,
     this.onReload,
+    this.onBackAction,
   });
 
   final PlayerController controller;
@@ -35,6 +36,7 @@ class VideoPlayerControlPanel extends StatefulWidget {
   final VoidCallback? onChooseEpisode;
   final VoidCallback? onShowSubtitleSettings;
   final VoidCallback? onNextPlay;
+  final VoidCallback? onBackAction;
 
   @override
   State<VideoPlayerControlPanel> createState() => _VideoPlayerControlPanelState();
@@ -438,7 +440,7 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
                                 if (isFullScreen) {
                                   mediaPlayerController.triggerFullScreen(status: false);
                                 } else {
-                                  Get.back();
+                                  widget.onBackAction?.call();
                                 }
                               },
                               child: Image.asset(Assets.commonNavBack, width: 32, height: 32),

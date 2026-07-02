@@ -2,6 +2,7 @@ import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/generated/assets.dart';
 import 'package:editvideo/modules/common/controllers/search_controller.dart';
 import 'package:editvideo/modules/common/widget/search_media_cell.dart';
+import 'package:editvideo/utils/common_values.dart';
 import 'package:editvideo/utils/extension.dart';
 import 'package:editvideo/utils/text_extension.dart';
 import 'package:editvideo/widget/button/common_button.dart';
@@ -12,6 +13,8 @@ import 'package:editvideo/widget/search/common_search_bar.dart';
 import 'package:flutter/material.dart' hide SearchController;
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:editvideo/manager/admob/native_ad_manager.dart';
 
 class SearchPage extends GetView<SearchController> {
   const SearchPage({super.key});
@@ -21,73 +24,99 @@ class SearchPage extends GetView<SearchController> {
     return GetBuilder<SearchController>(
       init: SearchController(),
       builder: (controller) {
-        return PageBase(
-          hasAppBar: false,
-          child: Stack(
-            children: [
-              Container(
-                height: 128.w,
-                decoration: const BoxDecoration(
-                  image: DecorationImage(fit: BoxFit.cover, image: AssetImage(Assets.commonIconSearchBg)),
+        return Obx(() {
+          if (controller.isShowingNativeAd && controller.nativeAdScenario != null) {
+            final nativeAd = NativeAdManager.instance.getNativeAd(controller.nativeAdScenario!);
+            if (nativeAd != null) {
+              return PopScope(
+                canPop: false,
+                child: Scaffold(
+                  backgroundColor: CommonColors.color060600,
+                  body: SizedBox(
+                    width: double.infinity,
+                    height: double.infinity,
+                    child: AdWidget(ad: nativeAd),
+                  ),
                 ),
-              ),
-              SafeArea(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CommonSearchBar(
-                      controller: controller.textController,
-                      focusNode: controller.focusNode,
-                      prefixWidget: Obx(() {
-                        final showSearchResult = controller.showSearchResult.value;
-                        return showSearchResult
-                            ? const SizedBox()
-                            : CommonButton(
-                                minSize: 32.w,
-                                onPressed: Get.back,
-                                child: Image.asset(Assets.commonNavBack, width: 32.w, height: 32.w),
-                              );
-                      }),
-                      suffixWidget: Obx(() {
-                        final showSearchResult = controller.showSearchResult.value;
-                        return GestureDetector(
-                          onTap: () {
-                            if (showSearchResult) {
+              );
+            }
+          }
+
+          return PopScope(
+            canPop: controller.canExit.value,
+            onPopInvokedWithResult: (didPop, _) {
+              if (!didPop) {
+                controller.handleBack();
+              }
+            },
+            child: PageBase(
+              hasAppBar: false,
+              child: Stack(
+                children: [
+                  Container(
+                    height: 128.w,
+                    decoration: const BoxDecoration(
+                      image: DecorationImage(fit: BoxFit.cover, image: AssetImage(Assets.commonIconSearchBg)),
+                    ),
+                  ),
+                  SafeArea(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CommonSearchBar(
+                          controller: controller.textController,
+                          focusNode: controller.focusNode,
+                          prefixWidget: Obx(() {
+                            final showSearchResult = controller.showSearchResult.value;
+                            return showSearchResult
+                                ? const SizedBox()
+                                : CommonButton(
+                                    minSize: 32.w,
+                                    onPressed: controller.handleBack,
+                                    child: Image.asset(Assets.commonNavBack, width: 32.w, height: 32.w),
+                                  );
+                          }),
+                          suffixWidget: Obx(() {
+                            final showSearchResult = controller.showSearchResult.value;
+                            return GestureDetector(
+                              onTap: () {
+                                if (showSearchResult) {
+                                  controller.changeToHistory();
+                                } else {
+                                  controller.toSearch();
+                                }
+                              },
+                              child: showSearchResult
+                                  ? CommonText.instance('Cancel', 14.sp, fontWeight: CommonFontWeight.bold)
+                                  : Image.asset(Assets.commonIconSearch, width: 24.w, height: 24.w),
+                            );
+                          }),
+                          onChanged: (value) {
+                            if (value.trim().isEmpty) {
                               controller.changeToHistory();
                             } else {
-                              controller.toSearch();
+                              controller.getTriggerWords();
                             }
                           },
-                          child: showSearchResult
-                              ? CommonText.instance('Cancel', 14.sp, fontWeight: CommonFontWeight.bold)
-                              : Image.asset(Assets.commonIconSearch, width: 24.w, height: 24.w),
-                        );
-                      }),
-                      onChanged: (value) {
-                        if (value.trim().isEmpty) {
-                          controller.changeToHistory();
-                        } else {
-                          controller.getTriggerWords();
-                        }
-                      },
-                      onClearAction: controller.changeToHistory,
-                      onSearchAction: (value) {
-                        controller.toSearch();
-                      },
-                      onFocusChange: (value) {
-                        if (value && controller.showSearchResult.value) {
-                          controller.changeToTrigger();
-                        }
-                      },
+                          onClearAction: controller.changeToHistory,
+                          onSearchAction: (value) {
+                            controller.toSearch();
+                          },
+                          onFocusChange: (value) {
+                            if (value && controller.showSearchResult.value) {
+                              controller.changeToTrigger();
+                            }
+                          },
+                        ),
+                        Expanded(child: _buildContent()),
+                      ],
                     ),
-
-                    Expanded(child: _buildContent()),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        );
+            ),
+          );
+        });
       },
     );
   }
@@ -231,11 +260,7 @@ class SearchPage extends GetView<SearchController> {
       ),
     );
 
-    return Wrap(
-      spacing: spacing,
-      runSpacing: 16.w,
-      children: widgets,
-    );
+    return Wrap(spacing: spacing, runSpacing: 16.w, children: widgets);
   }
 
   Widget _buildHistoryItem(String text, double maxWidth) {
@@ -352,9 +377,13 @@ class SearchPage extends GetView<SearchController> {
           itemBuilder: (context, index) {
             final mediaItem = controller.mediaList[index];
             final keyword = controller.textController.text;
-            return SearchMediaCell(mediaItem: mediaItem, keyword: keyword, action: (item) {
-              controller.toMediaDetailSinglePage(mediaId: item.id, mediaType: item.type);
-            });
+            return SearchMediaCell(
+              mediaItem: mediaItem,
+              keyword: keyword,
+              action: (item) {
+                controller.toMediaDetailSinglePage(mediaId: item.id, mediaType: item.type);
+              },
+            );
           },
         ),
       ),

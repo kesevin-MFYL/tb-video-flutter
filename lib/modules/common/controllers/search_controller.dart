@@ -6,6 +6,7 @@ import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/config/network/api/home_api.dart';
 import 'package:editvideo/config/network/model/base_response.dart';
 import 'package:editvideo/generated/assets.dart';
+import 'package:editvideo/manager/event_manager.dart';
 import 'package:editvideo/mixin/media_operate_mixin.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/models/page_model.dart';
@@ -16,8 +17,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:editvideo/utils/storage.dart';
+import 'package:editvideo/manager/admob/ad_manager.dart';
+import 'package:editvideo/mixin/video_ad_mixin.dart';
 
-class SearchController extends BaseController with MediaOperateMixin {
+class SearchController extends BaseController with MediaOperateMixin, VideoAdMixin {
   final refreshController = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: true);
 
   Timer? _debounceTimer;
@@ -48,12 +51,24 @@ class SearchController extends BaseController with MediaOperateMixin {
   /// 显示搜索结果
   var showSearchResult = false.obs;
 
+  /// 控制页面是否可以退出
+  var canExit = false.obs;
+
+  late StreamSubscription<EventBusModel> _closeNativeAdSubscription;
+
   Future<void> onRefresh() async {
     search(textController.text, isRefresh: true);
   }
 
   Future<void> onLoadMore() async {
     search(textController.text, isRefresh: false);
+  }
+
+  @override
+  void handRegister() {
+    _closeNativeAdSubscription = EventBusManager.instance.addObserver(EventBusName.closeNativeAd, (value) async {
+      closeNativeAd();
+    });
   }
 
   @override
@@ -216,8 +231,28 @@ class SearchController extends BaseController with MediaOperateMixin {
     searchHistoryList.clear();
   }
 
+  void handleBack() {
+    bool hasAd = tryShowDualAds();
+    if (!hasAd) {
+      exitPage();
+    }
+  }
+
+  void exitPage() {
+    canExit.value = true;
+    Future.microtask(() {
+      Get.back();
+    });
+  }
+
+  @override
+  void allAdClosed() {
+    exitPage();
+  }
+
   @override
   void dispose() {
+    _closeNativeAdSubscription.cancel();
     _debounceTimer?.cancel();
     _cancelToken?.cancel();
     textController.dispose();

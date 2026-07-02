@@ -111,16 +111,10 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
 
           final isFullscreen = controller.isFullscreen;
           return PopScope(
-            canPop: !isFullscreen,
+            canPop: controller.canExit.value,
             onPopInvokedWithResult: (didPop, _) {
               if (!didPop) {
-                if (isFullscreen) {
-                  controller.mediaPlayerController.triggerFullScreen(status: false);
-                }
-                // 重置锁屏状态
-                if (controller.mediaPlayerController.controlsLock.value) {
-                  controller.mediaPlayerController.controlsLock.value = false;
-                }
+                controller.handleBack();
               }
             },
             child: Stack(
@@ -269,6 +263,9 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
             onChooseEpisode: controller.showRightTvSeasonsDialog,
             onShowSubtitleSettings: controller.showSubtitleSettingsDialog,
             onNextPlay: controller.nextPlay,
+            onBackAction: () {
+              controller.handleBack();
+            },
             onReload: () {
               controller.openMediaData(isReload: true);
             },
