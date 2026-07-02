@@ -166,6 +166,7 @@ class BaseVideoDetailController extends BaseController
 
   /// 显示暂停的原生广告
   void showPauseAd() {
+    if (isClosed || isExitingPage) return;
     if (NativeAdManager.instance.isAdLoaded('pause')) {
       isShowingPauseAd.value = true;
     }
@@ -182,6 +183,7 @@ class BaseVideoDetailController extends BaseController
 
   /// 触发播放中节点的原生广告
   void _triggerPlayPointAd() {
+    if (isClosed || isExitingPage) return;
     if (mediaPlayerController.isFullscreen) {
       if (NativeAdManager.instance.isAdLoaded('play_middle')) {
         isShowingPlayPointAd.value = true;
@@ -260,6 +262,7 @@ class BaseVideoDetailController extends BaseController
 
   void getDataFromServer() {
     Future.wait([_getMediaDetail(), _getMediaRecommend(), _getTvSeasons()]).then((list) {
+      if (isClosed || isExitingPage) return;
       if (EasyLoading.isShow) {
         EasyLoading.dismiss();
       }
@@ -450,6 +453,7 @@ class BaseVideoDetailController extends BaseController
 
   /// 重置播放器和更新标题
   void updateMediaAndTitle() {
+    if (isClosed || isExitingPage) return;
     updateTitle();
     bool didShowAd = tryShowDualAds();
     openMediaData(isReload: false, autoPlay: !didShowAd);
