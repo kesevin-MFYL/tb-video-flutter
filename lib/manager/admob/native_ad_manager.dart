@@ -96,6 +96,9 @@ class NativeAdManager {
     final ad = NativeAd(
       adUnitId: item.placementid,
       factoryId: (scenario == 'play_middle' || scenario == 'pause') ? null : 'adFactoryExample',
+      customOptions: {
+        'fullscreenNative': RemoteConfigManager().adClickConfig?.fullscreenNative ?? 0,
+      },
       listener: NativeAdListener(
         onAdLoaded: (ad) {
           commonDebugPrint(

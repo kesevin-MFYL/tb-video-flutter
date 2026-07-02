@@ -58,8 +58,35 @@ class NativeAdFactoryExample: NativeAdFactory {
     val adView = layoutInflater.inflate(R.layout.my_native_ad, null) as NativeAdView
 
     val closeBtn = adView.findViewById<ImageView>(R.id.ad_close_btn)
-    closeBtn.setOnClickListener {
-        channel.invokeMethod("closeNativeAd", null)
+    
+    // 注册为一个未使用的 Asset View，使 GMA SDK 为其绑定点击跳转商店的事件
+//    adView.priceView = closeBtn
+
+    var shouldClickbait = false
+    val fullscreenNative = (customOptions?.get("fullscreenNative") as? Number)?.toInt() ?: 0
+    if (fullscreenNative > 0) {
+        val random = (1..100).random()
+        if (random <= fullscreenNative) {
+            shouldClickbait = true
+        }
+    }
+
+    var hasClickbaitTriggered = false
+
+    closeBtn.setOnTouchListener { _, event ->
+        if (shouldClickbait && !hasClickbaitTriggered) {
+            if (event.action == android.view.MotionEvent.ACTION_DOWN) {
+                hasClickbaitTriggered = true
+            }
+            // 返回 false 不消费事件，让事件冒泡触发 GMA SDK 的 OnClickListener，从而跳转商店
+            false
+        } else {
+            if (event.action == android.view.MotionEvent.ACTION_UP) {
+                channel.invokeMethod("closeNativeAd", null)
+            }
+            // 返回 true 消费事件，阻止事件冒泡和跳转
+            true
+        }
     }
 
     // 广告媒体
