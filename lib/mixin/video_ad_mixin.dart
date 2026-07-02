@@ -159,7 +159,7 @@ mixin VideoAdMixin on GetxController {
   }
 
   /// 关闭原生广告，判断是否最后一个广告，如果是关闭并执行下一步，否则继续展示下一个广告
-  void closeNativeAd() {
+  void closeFullscreenNativeAd() {
     if (_showNativeAdScenario != null) {
       String scenario = _showNativeAdScenario!;
       commonDebugPrint('VideoAdMixin: 用户手动关闭原生全屏广告 - $scenario');

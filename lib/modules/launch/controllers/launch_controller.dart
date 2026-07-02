@@ -15,7 +15,7 @@ class LaunchController extends GetxController {
   var _hasNavigatedToMain = false;
   Timer? _checkAdTimer;
   Timer? _progressTimer;
-  late StreamSubscription<EventBusModel> _closeNativeAdSubscription;
+  late StreamSubscription<EventBusModel> _closeFullscreenNativeAdSubscription;
 
   // 进度条的进度值 (0.0 到 1.0)
   double progress = 0.0;
@@ -32,8 +32,8 @@ class LaunchController extends GetxController {
     super.onInit();
     _startProgressTimer();
     _initializeAppAndAds();
-    _closeNativeAdSubscription = EventBusManager.instance.addObserver(EventBusName.closeNativeAd, (value) async {
-      closeNativeAd();
+    _closeFullscreenNativeAdSubscription = EventBusManager.instance.addObserver(EventBusName.closeFullscreenNativeAd, (value) async {
+      closeFullscreenNativeAd();
     });
   }
 
@@ -154,7 +154,7 @@ class LaunchController extends GetxController {
     }
   }
 
-  void closeNativeAd() {
+  void closeFullscreenNativeAd() {
     if (_showNativeAdScenario != null) {
       NativeAdManager.instance.disposeAd(_showNativeAdScenario!);
       AdManager.instance.markAdShowing(false);
@@ -184,7 +184,7 @@ class LaunchController extends GetxController {
 
   @override
   void onClose() {
-    _closeNativeAdSubscription.cancel();
+    _closeFullscreenNativeAdSubscription.cancel();
     _checkAdTimer?.cancel();
     _progressTimer?.cancel();
     super.onClose();

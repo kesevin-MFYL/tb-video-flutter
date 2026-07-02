@@ -54,7 +54,7 @@ class SearchController extends BaseController with MediaOperateMixin, VideoAdMix
   /// 控制页面是否可以退出
   var canExit = false.obs;
 
-  late StreamSubscription<EventBusModel> _closeNativeAdSubscription;
+  late StreamSubscription<EventBusModel> _closeFullscreenNativeAdSubscription;
 
   Future<void> onRefresh() async {
     search(textController.text, isRefresh: true);
@@ -66,8 +66,8 @@ class SearchController extends BaseController with MediaOperateMixin, VideoAdMix
 
   @override
   void handRegister() {
-    _closeNativeAdSubscription = EventBusManager.instance.addObserver(EventBusName.closeNativeAd, (value) async {
-      closeNativeAd();
+    _closeFullscreenNativeAdSubscription = EventBusManager.instance.addObserver(EventBusName.closeFullscreenNativeAd, (value) async {
+      closeFullscreenNativeAd();
     });
   }
 
@@ -252,7 +252,7 @@ class SearchController extends BaseController with MediaOperateMixin, VideoAdMix
 
   @override
   void dispose() {
-    _closeNativeAdSubscription.cancel();
+    _closeFullscreenNativeAdSubscription.cancel();
     _debounceTimer?.cancel();
     _cancelToken?.cancel();
     textController.dispose();

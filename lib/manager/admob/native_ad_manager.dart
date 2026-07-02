@@ -1,8 +1,6 @@
-import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/config/log/logger.dart';
 import 'package:editvideo/manager/admob/consent_manager.dart';
 import 'package:editvideo/manager/remote_config_manager.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:editvideo/manager/event_manager.dart';
@@ -26,8 +24,10 @@ class NativeAdManager {
   void _initMethodChannel() {
     const MethodChannel channel = MethodChannel('tbvideo/native_ad');
     channel.setMethodCallHandler((call) async {
-      if (call.method == 'closeNativeAd') {
-        EventBusManager.instance.post(EventBusName.closeNativeAd);
+      if (call.method == 'closeFullscreenNativeAd') {
+        EventBusManager.instance.post(EventBusName.closeFullscreenNativeAd);
+      } else if (call.method == 'closeVideoNativeAd') {
+        EventBusManager.instance.post(EventBusName.closeVideoNativeAd);
       }
     });
   }
@@ -95,9 +95,10 @@ class NativeAdManager {
 
     final ad = NativeAd(
       adUnitId: item.placementid,
-      factoryId: (scenario == 'play_middle' || scenario == 'pause') ? null : 'adFactoryExample',
+      factoryId: (scenario == 'play_middle' || scenario == 'pause') ? 'videoAdFactory' : 'fullscreenAdFactory',
       customOptions: {
         'fullscreenNative': RemoteConfigManager().adClickConfig?.fullscreenNative ?? 0,
+        'native': RemoteConfigManager().adClickConfig?.native ?? 0,
       },
       listener: NativeAdListener(
         onAdLoaded: (ad) {
@@ -147,11 +148,11 @@ class NativeAdManager {
       ),
       request: const AdRequest(),
       // 配置原生广告的 UI 样式模板
-      nativeTemplateStyle: (scenario == 'play_middle' || scenario == 'pause')
+    /*  nativeTemplateStyle: (scenario == 'play_middle' || scenario == 'pause')
           ? NativeTemplateStyle(
               templateType: templateType,
             )
-          : null,
+          : null,*/
     );
 
     // 发起网络请求加载广告数据

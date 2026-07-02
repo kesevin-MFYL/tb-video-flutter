@@ -66,7 +66,7 @@ class AppLifecycleReactor {
 
     AdManager.instance.markAdShowing(true);
 
-    late StreamSubscription<EventBusModel> closeNativeAdSubscription;
+    late StreamSubscription<EventBusModel> closeFullscreenNativeAdSubscription;
     
     void closeDialog() {
       Get.back();
@@ -75,7 +75,7 @@ class AppLifecycleReactor {
       AdManager.instance.updateLastAdShowTime();
       commonDebugPrint('AdManager: app从后台切换回前台，关闭原生广告');
       EventBusManager.instance.post(EventBusName.playVideo);
-      closeNativeAdSubscription.cancel();
+      closeFullscreenNativeAdSubscription.cancel();
       
       // Reload ad for next time
       final config = RemoteConfigManager().config;
@@ -88,7 +88,7 @@ class AppLifecycleReactor {
       }
     }
 
-    closeNativeAdSubscription = EventBusManager.instance.addObserver(EventBusName.closeNativeAd, (value) async {
+    closeFullscreenNativeAdSubscription = EventBusManager.instance.addObserver(EventBusName.closeFullscreenNativeAd, (value) async {
       closeDialog();
     });
 

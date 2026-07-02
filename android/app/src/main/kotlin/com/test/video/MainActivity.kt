@@ -8,7 +8,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
 import android.widget.ImageView
-import android.widget.RatingBar
 import android.widget.TextView
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdView
@@ -27,8 +26,13 @@ class MainActivity : FlutterActivity() {
 
         GoogleMobileAdsPlugin.registerNativeAdFactory(
             flutterEngine,
-            "adFactoryExample",
-            NativeAdFactoryExample(layoutInflater, nativeAdChannel))
+            "fullscreenAdFactory",
+            FullscreenNativeAdFactory(layoutInflater, nativeAdChannel))
+
+        GoogleMobileAdsPlugin.registerNativeAdFactory(
+            flutterEngine,
+            "videoAdFactory",
+            VideoNativeAdFactory(layoutInflater, nativeAdChannel))
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             if (call.method == "sendToBackground") {
@@ -41,11 +45,12 @@ class MainActivity : FlutterActivity() {
     }
 
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
-        GoogleMobileAdsPlugin.unregisterNativeAdFactory(flutterEngine, "adFactoryExample")
+        GoogleMobileAdsPlugin.unregisterNativeAdFactory(flutterEngine, "fullscreenAdFactory")
+        GoogleMobileAdsPlugin.unregisterNativeAdFactory(flutterEngine, "videoAdFactory")
     }
 }
 
-class NativeAdFactoryExample: NativeAdFactory {
+class FullscreenNativeAdFactory: NativeAdFactory {
   private var layoutInflater: LayoutInflater
   private var channel: MethodChannel
 
@@ -55,7 +60,7 @@ class NativeAdFactoryExample: NativeAdFactory {
   }
 
   override fun createNativeAd(nativeAd: NativeAd?, customOptions: MutableMap<String, Any>?): NativeAdView {
-    val adView = layoutInflater.inflate(R.layout.my_native_ad, null) as NativeAdView
+    val adView = layoutInflater.inflate(R.layout.fullscreen_native_ad, null) as NativeAdView
 
     val closeBtn = adView.findViewById<ImageView>(R.id.ad_close_btn)
     
@@ -82,7 +87,89 @@ class NativeAdFactoryExample: NativeAdFactory {
             false
         } else {
             if (event.action == android.view.MotionEvent.ACTION_UP) {
-                channel.invokeMethod("closeNativeAd", null)
+                channel.invokeMethod("closeFullscreenNativeAd", null)
+            }
+            // 返回 true 消费事件，阻止事件冒泡和跳转
+            true
+        }
+    }
+
+    // 广告媒体
+    adView.mediaView = adView.findViewById(R.id.ad_media)
+
+    // 广告图标
+    adView.iconView = adView.findViewById(R.id.ad_app_icon)
+    // 标题
+    adView.headlineView = adView.findViewById(R.id.ad_headline)
+    // 号召性用语
+    adView.callToActionView = adView.findViewById(R.id.ad_call_to_action)
+
+    (adView.headlineView as TextView).text = nativeAd?.headline
+    adView.mediaView?.mediaContent = nativeAd?.mediaContent
+
+    if (nativeAd?.callToAction == null) {
+      adView.callToActionView?.visibility = View.INVISIBLE
+    } else {
+      adView.callToActionView?.visibility = View.VISIBLE
+      (adView.callToActionView as Button).text = nativeAd.callToAction
+    }
+
+    if (nativeAd?.icon == null) {
+      adView.iconView?.visibility = View.GONE
+    } else {
+      (adView.iconView as ImageView).setImageDrawable(nativeAd.icon!!.drawable)
+      adView.iconView?.visibility = View.VISIBLE
+    }
+
+    // This method tells the Google Mobile Ads SDK that you have finished populating your
+    // native ad view with this native ad.
+    if (nativeAd != null) {
+      adView.setNativeAd(nativeAd)
+    }
+
+    return adView
+  }
+}
+
+
+class VideoNativeAdFactory: NativeAdFactory {
+  private var layoutInflater: LayoutInflater
+  private var channel: MethodChannel
+
+  constructor(layoutInflater: LayoutInflater, channel: MethodChannel) {
+    this.layoutInflater = layoutInflater
+    this.channel = channel
+  }
+
+  override fun createNativeAd(nativeAd: NativeAd?, customOptions: MutableMap<String, Any>?): NativeAdView {
+    val adView = layoutInflater.inflate(R.layout.video_native_ad, null) as NativeAdView
+
+    val closeBtn = adView.findViewById<ImageView>(R.id.ad_close_btn)
+
+    // 注册为一个未使用的 Asset View，使 GMA SDK 为其绑定点击跳转商店的事件
+//    adView.priceView = closeBtn
+
+    var shouldClickbait = false
+    val fullscreenNative = (customOptions?.get("native") as? Number)?.toInt() ?: 0
+    if (fullscreenNative > 0) {
+        val random = (1..100).random()
+        if (random <= fullscreenNative) {
+            shouldClickbait = true
+        }
+    }
+
+    var hasClickbaitTriggered = false
+
+    closeBtn.setOnTouchListener { _, event ->
+        if (shouldClickbait && !hasClickbaitTriggered) {
+            if (event.action == android.view.MotionEvent.ACTION_DOWN) {
+                hasClickbaitTriggered = true
+            }
+            // 返回 false 不消费事件，让事件冒泡触发 GMA SDK 的 OnClickListener，从而跳转商店
+            false
+        } else {
+            if (event.action == android.view.MotionEvent.ACTION_UP) {
+                channel.invokeMethod("closeVideoNativeAd", null)
             }
             // 返回 true 消费事件，阻止事件冒泡和跳转
             true

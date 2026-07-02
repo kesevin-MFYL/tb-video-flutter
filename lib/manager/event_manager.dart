@@ -7,7 +7,8 @@ enum EventBusName {
   playVideo,
   historyEdit,
   historyRefresh,
-  closeNativeAd,
+  closeFullscreenNativeAd,
+  closeVideoNativeAd,
 }
 
 class EventBusModel {

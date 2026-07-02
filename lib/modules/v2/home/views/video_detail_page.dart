@@ -52,7 +52,8 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
 
   late StreamSubscription<EventBusModel> _pauseVideoSubscription;
   late StreamSubscription<EventBusModel> _playVideoSubscription;
-  late StreamSubscription<EventBusModel> _closeNativeAdSubscription;
+  late StreamSubscription<EventBusModel> _closeFullscreenNativeAdSubscription;
+  late StreamSubscription<EventBusModel> _closeVideoNativeAdSubscription;
   late StreamSubscription<bool> _fullScreenStatusSubscription;
   late StreamSubscription<Orientation> _orientationSubscription;
 
@@ -280,16 +281,19 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
               final nativeAd = NativeAdManager.instance.getNativeAd(scenario);
               if (nativeAd != null) {
                 final isFullscreen = controller.mediaPlayerController.isFullscreen;
-                double adWidth = 300.0;
-                double adHeight = 250.0;
+                double adWidth = 332.0;
+                double adHeight = 306.0;
 
-                if (!isFullscreen) {
-                  double scale = controller.videoHeight / MediaQuery.sizeOf(context).width;
-                  adWidth = 300.0 * scale;
-                  adHeight = 250.0 * scale;
-                }
+                // if (!isFullscreen) {
+                //   double scale = controller.videoHeight / MediaQuery.sizeOf(context).width;
+                //   adWidth = 300.0 * scale;
+                //   adHeight = 250.0 * scale;
+                // }
 
-                return SizedBox(
+                return Container(
+                  decoration: BoxDecoration(
+                    color: CommonColors.color060600,
+                  ),
                   width: adWidth,
                   height: adHeight,
                   child: AdWidget(ad: nativeAd),
@@ -963,8 +967,11 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
         controller.mediaPlayerController.play();
       }
     });
-    _closeNativeAdSubscription = EventBusManager.instance.addObserver(EventBusName.closeNativeAd, (value) async {
-      controller.closeNativeAd();
+    _closeFullscreenNativeAdSubscription = EventBusManager.instance.addObserver(EventBusName.closeFullscreenNativeAd, (value) async {
+      controller.closeFullscreenNativeAd();
+    });
+    _closeVideoNativeAdSubscription = EventBusManager.instance.addObserver(EventBusName.closeVideoNativeAd, (value) async {
+      controller.mediaPlayerController.play();
     });
   }
 
@@ -979,7 +986,8 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
     WidgetsBinding.instance.removeObserver(this);
     _pauseVideoSubscription.cancel();
     _playVideoSubscription.cancel();
-    _closeNativeAdSubscription.cancel();
+    _closeFullscreenNativeAdSubscription.cancel();
+    _closeVideoNativeAdSubscription.cancel();
     _fullScreenStatusSubscription.cancel();
     _orientationSubscription.cancel();
     VideoDetailPage.routeObserver.unsubscribe(this);

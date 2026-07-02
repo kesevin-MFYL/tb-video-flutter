@@ -98,14 +98,12 @@
           <Button
               android:id="@+id/ad_call_to_action"
               android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
+              android:layout_height="40dp"
               android:gravity="center"
               android:textSize="16sp"
               android:textStyle="bold"
               android:paddingLeft="20dp"
               android:paddingRight="20dp"
-              android:paddingTop="10dp"
-              android:paddingBottom="10dp"
               android:background="@drawable/shape_ad_action_bg"
               android:layout_marginStart="8dp"/>
         </LinearLayout>
