@@ -169,6 +169,7 @@ class BaseVideoDetailController extends BaseController
     if (isClosed || isExitingPage) return;
     if (NativeAdManager.instance.isAdLoaded('pause')) {
       isShowingPauseAd.value = true;
+      AdManager.instance.markAdShowing(true);
     }
   }
 
@@ -177,6 +178,7 @@ class BaseVideoDetailController extends BaseController
     if (isShowingPauseAd.value) {
       isShowingPauseAd.value = false;
       NativeAdManager.instance.disposeAd('pause');
+      AdManager.instance.markAdShowing(false);
       requestAd('pause');
     }
   }
@@ -189,6 +191,7 @@ class BaseVideoDetailController extends BaseController
         isShowingPlayPointAd.value = true;
         mediaPlayerController.pause();
         isShowingPlayMiddleAd.value = true;
+        AdManager.instance.markAdShowing(true);
       }
     } else {
       bool hasAd = tryShowDualAds();
@@ -205,6 +208,7 @@ class BaseVideoDetailController extends BaseController
       isShowingPlayMiddleAd.value = false;
       isShowingPlayPointAd.value = false;
       NativeAdManager.instance.disposeAd('play_middle');
+      AdManager.instance.markAdShowing(false);
       requestAd('play_middle');
     }
   }

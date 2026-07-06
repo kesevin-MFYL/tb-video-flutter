@@ -31,6 +31,12 @@ mixin VideoAdMixin on GetxController {
       return false;
     }
 
+    // 判断是否在时间间隔内
+    if (!AdManager.instance.canShowAdBasedOnInterval()) {
+      commonDebugPrint('VideoAdMixin: 准备展示首个广告，但在广告全局间隔内，跳过热启动广告');
+      return false;
+    }
+
     // 第一阶段：确定并展示第一个广告
     if (hasLevelH) {
       commonDebugPrint('VideoAdMixin: 准备展示首个广告 - level_h');

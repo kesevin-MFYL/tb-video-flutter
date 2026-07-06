@@ -39,12 +39,32 @@
       "placementid": "ca-app-pub-1894196503148136/9855917715"
     }
   ],
-  "NVhome": [
+  "play_middle": [
+    {
+      "adsource": "admob",
+      "adweight": 2,
+      "adtype": "native",
+      "placementid": "ca-app-pub-1894196503148136/4322915624"
+    },
     {
       "adsource": "admob",
       "adweight": 1,
       "adtype": "native",
-      "placementid": "ca-app-pub-1894196503148136/8143765238"
+      "placementid": "ca-app-pub-1894196503148136/9383670617"
+    }
+  ],
+  "pause": [
+    {
+      "adsource": "admob",
+      "adweight": 2,
+      "adtype": "native",
+      "placementid": "ca-app-pub-1894196503148136/6757507273"
+    },
+    {
+      "adsource": "admob",
+      "adweight": 1,
+      "adtype": "native",
+      "placementid": "ca-app-pub-1894196503148136/2275336785"
     }
   ]
 }

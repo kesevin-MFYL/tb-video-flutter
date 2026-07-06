@@ -225,6 +225,40 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
                     child: _buildBottomSubtitleSettings(),
                   ),
                 ),
+
+                // Pause Ad / Play Middle Ad
+                Obx(() {
+                  final isFullscreen = controller.mediaPlayerController.isFullscreen;
+                  return Positioned(
+                    left: 0,
+                    right: 0,
+                    top: isFullscreen ? 0 : safeAreaEdgeInsets.top,
+                    bottom: isFullscreen ? 0 : null,
+                    child: Obx(() {
+                      if (controller.isShowingPauseAd.value || controller.isShowingPlayMiddleAd.value) {
+                        final scenario = controller.isShowingPauseAd.value ? 'pause' : 'play_middle';
+                        final nativeAd = NativeAdManager.instance.getNativeAd(scenario);
+                        if (nativeAd != null) {
+                          double adWidth = 300.0;
+                          double adHeight = 306.0;
+
+                          return Align(
+                            alignment: isFullscreen ? Alignment.center : Alignment.topCenter,
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                color: CommonColors.color060600,
+                              ),
+                              width: adWidth,
+                              height: adHeight,
+                              child: AdWidget(ad: nativeAd),
+                            ),
+                          );
+                        }
+                      }
+                      return const SizedBox();
+                    }),
+                  );
+                }),
               ],
             ),
           );
@@ -271,37 +305,6 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
               controller.openMediaData(isReload: true);
             },
           ),
-        ),
-
-        // Pause Ad / Play Middle Ad
-        Center(
-          child: Obx(() {
-            if (controller.isShowingPauseAd.value || controller.isShowingPlayMiddleAd.value) {
-              final scenario = controller.isShowingPauseAd.value ? 'pause' : 'play_middle';
-              final nativeAd = NativeAdManager.instance.getNativeAd(scenario);
-              if (nativeAd != null) {
-                final isFullscreen = controller.mediaPlayerController.isFullscreen;
-                double adWidth = 332.0;
-                double adHeight = 306.0;
-
-                // if (!isFullscreen) {
-                //   double scale = controller.videoHeight / MediaQuery.sizeOf(context).width;
-                //   adWidth = 300.0 * scale;
-                //   adHeight = 250.0 * scale;
-                // }
-
-                return Container(
-                  decoration: BoxDecoration(
-                    color: CommonColors.color060600,
-                  ),
-                  width: adWidth,
-                  height: adHeight,
-                  child: AdWidget(ad: nativeAd),
-                );
-              }
-            }
-            return const SizedBox();
-          }),
         ),
       ],
     );
@@ -971,6 +974,8 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
       controller.closeFullscreenNativeAd();
     });
     _closeVideoNativeAdSubscription = EventBusManager.instance.addObserver(EventBusName.closeVideoNativeAd, (value) async {
+      controller.closePauseAd();
+      controller.closePlayMiddleAd();
       controller.mediaPlayerController.play();
     });
   }
