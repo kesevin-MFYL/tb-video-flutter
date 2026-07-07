@@ -63,9 +63,6 @@ class LaunchController extends GetxController {
     // 拉取firebase远程配置
     RemoteConfigManager().fetchAndActivateConfig();
 
-    // 初始化 RemoteConfig 设置
-    await RemoteConfigManager().initialize();
-
     // // 3. 收集隐私合规 (UMP) 并初始化 MobileAds
     //todo GDPR权限检查
     // ConsentManager.instance.gatherConsent((formError) async {

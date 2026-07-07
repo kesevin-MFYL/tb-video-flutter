@@ -101,16 +101,7 @@ class BaseVideoDetailController extends BaseController
   void onInit() {
     super.onInit();
     mediaPlayerController.addStatusLister((status) {
-      if (status == MediaPlayerStatusType.paused) {
-        if (!mediaPlayerController.isBuffering.value &&
-            mediaPlayerController.currentPosition.value.inSeconds > 0 &&
-            mediaPlayerController.currentPosition.value < mediaPlayerController.totalDuration.value &&
-            !mediaPlayerController.isSliderMoving.value) {
-          if (!isShowingPlayPointAd.value) {
-            showPauseAd();
-          }
-        }
-      } else if (status == MediaPlayerStatusType.playing) {
+      if (status == MediaPlayerStatusType.playing) {
         closePauseAd();
         closePlayMiddleAd();
       }
@@ -168,14 +159,18 @@ class BaseVideoDetailController extends BaseController
   void showPauseAd() {
     if (isClosed || isExitingPage) return;
     if (NativeAdManager.instance.isAdLoaded('pause')) {
+      commonDebugPrint('VideoAdMixin: 展示暂停的原生广告');
       isShowingPauseAd.value = true;
       AdManager.instance.markAdShowing(true);
+    } else {
+      commonDebugPrint('VideoAdMixin: 展示暂停的原生广告: 未获取到暂停的原生广告');
     }
   }
 
   /// 关闭暂停的原生广告
   void closePauseAd() {
     if (isShowingPauseAd.value) {
+      commonDebugPrint('VideoAdMixin: 关闭暂停的原生广告');
       isShowingPauseAd.value = false;
       NativeAdManager.instance.disposeAd('pause');
       AdManager.instance.markAdShowing(false);
@@ -185,19 +180,26 @@ class BaseVideoDetailController extends BaseController
 
   /// 触发播放中节点的原生广告
   void _triggerPlayPointAd() {
+    commonDebugPrint('VideoAdMixin: 开始展示播放中的广告');
     if (isClosed || isExitingPage) return;
     if (mediaPlayerController.isFullscreen) {
       if (NativeAdManager.instance.isAdLoaded('play_middle')) {
+        commonDebugPrint('VideoAdMixin: 当前时横屏播放状态，展示播放中的原生广告');
         isShowingPlayPointAd.value = true;
         mediaPlayerController.pause();
         isShowingPlayMiddleAd.value = true;
         AdManager.instance.markAdShowing(true);
+      } else {
+        commonDebugPrint('VideoAdMixin: 当前时横屏播放状态，未获取到播放中的原生广告');
       }
     } else {
-      bool hasAd = tryShowDualAds();
+      bool hasAd = tryShowDualAds(needTimeInterval: false);
       if (hasAd) {
+        commonDebugPrint('VideoAdMixin: 当前时竖屏播放状态，展示播放中的全屏广告');
         isShowingPlayPointAd.value = true;
         mediaPlayerController.pause();
+      } else {
+        commonDebugPrint('VideoAdMixin: 当前时竖屏播放状态，未获取到播放中的全屏广告');
       }
     }
   }
@@ -205,6 +207,7 @@ class BaseVideoDetailController extends BaseController
   /// 关闭播放中节点的原生广告
   void closePlayMiddleAd() {
     if (isShowingPlayMiddleAd.value) {
+      commonDebugPrint('VideoAdMixin: 关闭播放中的原生广告');
       isShowingPlayMiddleAd.value = false;
       isShowingPlayPointAd.value = false;
       NativeAdManager.instance.disposeAd('play_middle');

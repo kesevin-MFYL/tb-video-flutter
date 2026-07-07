@@ -54,7 +54,7 @@ class AppManager {
 
     SwitchManager.instance.initialize();
 
-    RemoteConfigManager().remoteConfig.fetchAndActivate();
+    await RemoteConfigManager().initialize();
   }
 
   void _configLoading() {

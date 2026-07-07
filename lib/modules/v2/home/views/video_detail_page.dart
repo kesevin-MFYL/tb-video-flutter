@@ -301,6 +301,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
             onBackAction: () {
               controller.handleBack();
             },
+            onPauseAction: controller.showPauseAd,
             onReload: () {
               controller.openMediaData(isReload: true);
             },

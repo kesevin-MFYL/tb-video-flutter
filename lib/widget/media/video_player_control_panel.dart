@@ -28,6 +28,7 @@ class VideoPlayerControlPanel extends StatefulWidget {
     this.onNextPlay,
     this.onReload,
     this.onBackAction,
+    this.onPauseAction,
   });
 
   final PlayerController controller;
@@ -37,6 +38,7 @@ class VideoPlayerControlPanel extends StatefulWidget {
   final VoidCallback? onShowSubtitleSettings;
   final VoidCallback? onNextPlay;
   final VoidCallback? onBackAction;
+  final VoidCallback? onPauseAction;
 
   @override
   State<VideoPlayerControlPanel> createState() => _VideoPlayerControlPanelState();
@@ -155,6 +157,9 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
             // 缓存中或锁定时🔒禁用
             if (mediaPlayerController.isBuffering.value || mediaPlayerController.controlsLock.value) return;
 
+            if (mediaPlayerController.mediaPlayerStatus.playing) {
+              widget.onPauseAction?.call();
+            }
             // 双击切换播放状态
             mediaPlayerController.togglePlay();
           },
@@ -507,7 +512,12 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
                                 ),
                                 SizedBox(width: isFullScreen ? 88 : 66),
                                 GestureDetector(
-                                  onTap: mediaPlayerController.togglePlay,
+                                  onTap: () {
+                                    if (mediaPlayerController.mediaPlayerStatus.playing) {
+                                      widget.onPauseAction?.call();
+                                    }
+                                    mediaPlayerController.togglePlay();
+                                  },
                                   child: Image.asset(
                                     isPlaying ? Assets.commonVideoPause : Assets.commonVideoPlayBig,
                                     width: isFullScreen ? 64 : 48,
@@ -553,7 +563,12 @@ class _VideoPlayerControlPanelState extends State<VideoPlayerControlPanel> {
                           children: [
                             // 播放/暂停按钮
                             GestureDetector(
-                              onTap: mediaPlayerController.togglePlay,
+                              onTap: () {
+                                if (mediaPlayerController.mediaPlayerStatus.playing) {
+                                  widget.onPauseAction?.call();
+                                }
+                                mediaPlayerController.togglePlay();
+                              },
                               child: Image.asset(
                                 isPlaying ? Assets.commonIconPause : Assets.commonIconPlay,
                                 width: isFullScreen ? 32 : 24,

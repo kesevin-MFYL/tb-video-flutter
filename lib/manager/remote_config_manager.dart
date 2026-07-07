@@ -175,7 +175,7 @@ class RemoteConfigManager {
     final cachedClickJson = Storage.getAdClickConfig();
     if (cachedClickJson != null && cachedClickJson.isNotEmpty) {
       commonDebugPrint("Remote config: Initialize defaults with local Storage click cache.");
-      _defaultAdClickJson = cachedClickJson; // 将缓存赋值给 _defaultAdRulesJson 作为兜底
+      _defaultAdClickJson = cachedClickJson; // 将缓存赋值给 _defaultAdClickJson 作为兜底
     }
 
     await remoteConfig.setDefaults({'ad_json_and': _defaultAdRulesJson});

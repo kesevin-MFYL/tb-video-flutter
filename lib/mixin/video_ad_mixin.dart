@@ -20,7 +20,7 @@ mixin VideoAdMixin on GetxController {
   void allAdClosed() {}
 
   /// 多广告展示逻辑判断
-  bool tryShowDualAds() {
+  bool tryShowDualAds({bool needTimeInterval = true}) {
     _isShowingSecondAd = false;
 
     bool hasLevelH = AdManager.instance.isAdAvailable('level_h');
@@ -31,10 +31,13 @@ mixin VideoAdMixin on GetxController {
       return false;
     }
 
-    // 判断是否在时间间隔内
-    if (!AdManager.instance.canShowAdBasedOnInterval()) {
-      commonDebugPrint('VideoAdMixin: 准备展示首个广告，但在广告全局间隔内，跳过热启动广告');
-      return false;
+    // 判断时间间隔(竖屏状态下，播放中展示的广告不需要判断时间间隔)
+    if (needTimeInterval) {
+      // 判断是否在时间间隔内
+      if (!AdManager.instance.canShowAdBasedOnInterval()) {
+        commonDebugPrint('VideoAdMixin: 准备展示首个广告，但在广告全局间隔内，跳过热启动广告');
+        return false;
+      }
     }
 
     // 第一阶段：确定并展示第一个广告

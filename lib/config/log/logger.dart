@@ -8,12 +8,12 @@ void commonDebugPrint(
   Object? object, {
   bool needSplit = false,
 }) {
-  if (kDebugMode) {
+  // if (kDebugMode) {
     final content = object.toString();
     if (needSplit) {
       defaultLogger.d(content);
     } else {
       print(content);
     }
-  }
+  // }
 }
