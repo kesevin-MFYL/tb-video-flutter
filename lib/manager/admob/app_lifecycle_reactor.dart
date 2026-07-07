@@ -34,14 +34,22 @@ class AppLifecycleReactor {
         return;
       }
 
+      bool hasLevelH = AdManager.instance.isAdAvailable('level_h');
+      bool hasOpen = AdManager.instance.isAdAvailable('open');
+
       String? scenarioToShow;
-      if (AdManager.instance.isAdAvailable('level_h')) {
+      if (hasLevelH) {
         scenarioToShow = 'level_h';
-      } else if (AdManager.instance.isAdAvailable('open')) {
+      } else if (hasOpen) {
         scenarioToShow = 'open';
       }
 
       if (scenarioToShow != null) {
+        if (!hasLevelH) {
+          commonDebugPrint('AdManager: app从后台切换回前台 - 但level_h场景下无广告，重新拉取');
+          requestAd('level_h');
+        }
+
         if (NativeAdManager.instance.isAdLoaded(scenarioToShow)) {
           commonDebugPrint('AdManager: app从后台切换回前台，展示原生全屏广告：$scenarioToShow');
           _showNativeAdDialog(scenarioToShow);
@@ -54,6 +62,8 @@ class AppLifecycleReactor {
         }
       } else {
         commonDebugPrint('AdManager: app从后台切换回前台，没有可用广告');
+        requestAd('level_h');
+        requestAd('open');
       }
     }
   }
@@ -110,5 +120,15 @@ class AppLifecycleReactor {
       useSafeArea: false,
       barrierDismissible: false,
     );
+  }
+
+  /// 请求广告
+  void requestAd(String scenario) {
+    final config = RemoteConfigManager().config;
+    if (config != null) {
+      commonDebugPrint('AdManager: 触发请求广告 - $scenario');
+      if (scenario == 'level_h') AdManager.instance.loadAd('level_h', config.levelH);
+      if (scenario == 'open') AdManager.instance.loadAd('open', config.open);
+    }
   }
 }

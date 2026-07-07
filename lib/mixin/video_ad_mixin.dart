@@ -28,7 +28,14 @@ mixin VideoAdMixin on GetxController {
     bool hasBh2 = AdManager.instance.isAdAvailable('behavior2');
 
     if (!hasLevelH && !hasBh1 && !hasBh2) {
+      commonDebugPrint('VideoAdMixin: 准备展示首个广告 - 没有找到任何场景下的广告，重新拉取');
+      requestAd('level_h');
+      requestAd('behavior');
+      requestAd('behavior2');
       return false;
+    } else if (!hasLevelH) {
+      commonDebugPrint('VideoAdMixin: 准备展示首个广告 - 有behavior或behavior2场景下的广告，但没有level_h场景下的广告，重新拉取');
+      requestAd('level_h');
     }
 
     // 判断时间间隔(竖屏状态下，播放中展示的广告不需要判断时间间隔)
