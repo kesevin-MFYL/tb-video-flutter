@@ -114,6 +114,7 @@ mixin VideoAdMixin on GetxController {
       if (NativeAdManager.instance.isAdLoaded('level_h')) {
         handleNativeAd('level_h');
       } else {
+        EventBusManager.instance.post(EventBusName.pauseVideo);
         AdManager.instance.showAdIfAvailable(
           'level_h',
           ignoreInterval: true,
@@ -129,6 +130,7 @@ mixin VideoAdMixin on GetxController {
       if (NativeAdManager.instance.isAdLoaded('behavior')) {
         handleNativeAd('behavior');
       } else {
+        EventBusManager.instance.post(EventBusName.pauseVideo);
         AdManager.instance.showAdIfAvailable(
           'behavior',
           ignoreInterval: true,
@@ -144,6 +146,7 @@ mixin VideoAdMixin on GetxController {
       if (NativeAdManager.instance.isAdLoaded('behavior2')) {
         handleNativeAd('behavior2');
       } else {
+        EventBusManager.instance.post(EventBusName.pauseVideo);
         AdManager.instance.showAdIfAvailable(
           'behavior2',
           ignoreInterval: true,

@@ -60,9 +60,6 @@ class LaunchController extends GetxController {
   }
 
   Future<void> _initializeAppAndAds() async {
-    // 拉取firebase远程配置
-    RemoteConfigManager().fetchAndActivateConfig();
-
     // // 3. 收集隐私合规 (UMP) 并初始化 MobileAds
     //todo GDPR权限检查
     // ConsentManager.instance.gatherConsent((formError) async {

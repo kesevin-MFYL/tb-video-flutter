@@ -55,6 +55,9 @@ class AppManager {
     SwitchManager.instance.initialize();
 
     await RemoteConfigManager().initialize();
+
+    // 拉取firebase远程配置
+    RemoteConfigManager().fetchAndActivateConfig();
   }
 
   void _configLoading() {
