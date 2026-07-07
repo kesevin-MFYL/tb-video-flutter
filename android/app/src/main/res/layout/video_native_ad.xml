@@ -32,8 +32,20 @@
             android:paddingBottom="5dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="20dp"
             android:layout_marginStart="12dp" />
+
+        <TextView
+            android:id="@+id/ad_price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginTop="20dp"
+            android:background="@android:color/transparent"
+            android:textColor="@android:color/transparent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
 
         <ImageView
             android:id="@+id/ad_close_btn"
@@ -43,7 +55,7 @@
             android:src="@drawable/ic_ad_close"
             android:background="@drawable/shape_ad_close_bg"
             android:layout_marginEnd="12dp"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="20dp"
             android:padding="4dp"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>

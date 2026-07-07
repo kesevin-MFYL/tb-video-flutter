@@ -975,9 +975,11 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
       controller.closeFullscreenNativeAd();
     });
     _closeVideoNativeAdSubscription = EventBusManager.instance.addObserver(EventBusName.closeVideoNativeAd, (value) async {
+      if (controller.isShowingPlayMiddleAd.value) {
+        controller.mediaPlayerController.play();
+      }
       controller.closePauseAd();
       controller.closePlayMiddleAd();
-      controller.mediaPlayerController.play();
     });
   }
 

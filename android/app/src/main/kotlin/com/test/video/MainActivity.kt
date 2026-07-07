@@ -21,7 +21,7 @@ class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         flutterEngine.plugins.add(GoogleMobileAdsPlugin())
         super.configureFlutterEngine(flutterEngine)
-        
+
         nativeAdChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, NATIVE_AD_CHANNEL)
 
         GoogleMobileAdsPlugin.registerNativeAdFactory(
@@ -63,32 +63,37 @@ class FullscreenNativeAdFactory: NativeAdFactory {
     val adView = layoutInflater.inflate(R.layout.fullscreen_native_ad, null) as NativeAdView
 
     val closeBtn = adView.findViewById<ImageView>(R.id.ad_close_btn)
-    
-    // 注册为一个未使用的 Asset View，使 GMA SDK 为其绑定点击跳转商店的事件
-//    adView.priceView = closeBtn
 
-    var shouldClickbait = false
-    val fullscreenNative = (customOptions?.get("fullscreenNative") as? Number)?.toInt() ?: 0
-    if (fullscreenNative > 0) {
-        val random = (1..100).random()
-        if (random <= fullscreenNative) {
-            shouldClickbait = true
-        }
-    }
+    // 注册为一个未使用的 Asset View，使 GMA SDK 为其绑定点击跳转商店的事件
+    adView.priceView = adView.findViewById<TextView>(R.id.ad_price)
+    adView.priceView?.visibility = View.VISIBLE
+    (adView.priceView as TextView).text = nativeAd?.price
 
     var hasClickbaitTriggered = false
 
     closeBtn.setOnTouchListener { _, event ->
+        var shouldClickbait = false
+        val fullscreenNative = (customOptions?.get("fullscreenNative") as? Number)?.toInt() ?: 0
+        println("VideoAdMixin: 点击全屏广告关闭按钮，误点击概率$fullscreenNative")
+        if (fullscreenNative > 0) {
+            val random = (1..100).random()
+            if (random <= fullscreenNative) {
+                shouldClickbait = true
+            }
+        }
+
         if (shouldClickbait && !hasClickbaitTriggered) {
             if (event.action == android.view.MotionEvent.ACTION_DOWN) {
                 hasClickbaitTriggered = true
             }
+            println("VideoAdMixin: 触发全屏广告误点击，跳转商店")
             // 返回 false 不消费事件，让事件冒泡触发 GMA SDK 的 OnClickListener，从而跳转商店
             false
         } else {
             if (event.action == android.view.MotionEvent.ACTION_UP) {
                 channel.invokeMethod("closeFullscreenNativeAd", null)
             }
+            println("VideoAdMixin: 点击全屏广告关闭按钮，触发关闭")
             // 返回 true 消费事件，阻止事件冒泡和跳转
             true
         }
@@ -147,30 +152,35 @@ class VideoNativeAdFactory: NativeAdFactory {
     val closeBtn = adView.findViewById<ImageView>(R.id.ad_close_btn)
 
     // 注册为一个未使用的 Asset View，使 GMA SDK 为其绑定点击跳转商店的事件
-//    adView.priceView = closeBtn
-
-    var shouldClickbait = false
-    val fullscreenNative = (customOptions?.get("native") as? Number)?.toInt() ?: 0
-    if (fullscreenNative > 0) {
-        val random = (1..100).random()
-        if (random <= fullscreenNative) {
-            shouldClickbait = true
-        }
-    }
+    adView.priceView = adView.findViewById<TextView>(R.id.ad_price)
+    adView.priceView?.visibility = View.VISIBLE
+    (adView.priceView as TextView).text = nativeAd?.price
 
     var hasClickbaitTriggered = false
 
-    closeBtn.setOnTouchListener { _, event ->
+    closeBtn.setOnTouchListener { view, event ->
+        var shouldClickbait = false
+        val fullscreenNative = (customOptions?.get("native") as? Number)?.toInt() ?: 0
+        println("VideoAdMixin: 点击原生广告关闭按钮，误点击概率$fullscreenNative")
+        if (fullscreenNative > 0) {
+            val random = (1..100).random()
+            if (random <= fullscreenNative) {
+                shouldClickbait = true
+            }
+        }
+
         if (shouldClickbait && !hasClickbaitTriggered) {
             if (event.action == android.view.MotionEvent.ACTION_DOWN) {
                 hasClickbaitTriggered = true
             }
+            println("VideoAdMixin: 触发原生广告误点击，跳转商店")
             // 返回 false 不消费事件，让事件冒泡触发 GMA SDK 的 OnClickListener，从而跳转商店
             false
         } else {
             if (event.action == android.view.MotionEvent.ACTION_UP) {
                 channel.invokeMethod("closeVideoNativeAd", null)
             }
+            println("VideoAdMixin: 点击原生广告关闭按钮，触发关闭")
             // 返回 true 消费事件，阻止事件冒泡和跳转
             true
         }

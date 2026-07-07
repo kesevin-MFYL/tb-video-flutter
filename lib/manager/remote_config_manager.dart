@@ -236,6 +236,7 @@ class RemoteConfigManager {
           debugPrint("Remote config fetchAndActivate called, but no update.");
         }
 
+        parseAndCacheAdClickConfig();
         // 无论是否有更新，都尝试将 RemoteConfig 中的数据转换为 AdConfig 对象
         bool isSuccess = parseAndCacheConfig();
 
@@ -321,7 +322,7 @@ class RemoteConfigManager {
         // 成功解析后，保存最新的有效配置到本地 Storage，以便下次启动兜底
         Storage.saveAdClickConfig(configString);
 
-        commonDebugPrint("Remote config: Ad click config parsed and cached: ${_config?.toJson()}");
+        commonDebugPrint("Remote config: Ad click config parsed and cached: ${_adClickConfig?.toJson()}");
         return true;
       } catch (e) {
         commonDebugPrint("Remote config: Error parsing ad click config JSON: $e");

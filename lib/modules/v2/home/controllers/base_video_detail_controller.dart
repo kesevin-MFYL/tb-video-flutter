@@ -97,6 +97,9 @@ class BaseVideoDetailController extends BaseController
   /// 上一次触发广告的时间节点索引
   int _lastPlayPointAdIndex = 0;
 
+  /// 是否正在等待拉取播放中广告
+  bool _waitingForPlayMiddleAd = false;
+
   @override
   void onInit() {
     super.onInit();
@@ -190,7 +193,30 @@ class BaseVideoDetailController extends BaseController
         isShowingPlayMiddleAd.value = true;
         AdManager.instance.markAdShowing(true);
       } else {
-        commonDebugPrint('VideoAdMixin: 当前时横屏播放状态，未获取到播放中的原生广告');
+        commonDebugPrint('VideoAdMixin: 当前时横屏播放状态，未获取到播放中的原生广告，开始拉取');
+        _waitingForPlayMiddleAd = true;
+        NativeAdManager.instance.setListener(
+          'play_middle',
+          onAdLoaded: (scenario) {
+            if (scenario == 'play_middle' && _waitingForPlayMiddleAd) {
+              _waitingForPlayMiddleAd = false;
+              commonDebugPrint('VideoAdMixin: 播放中的原生广告拉取成功，开始展示');
+              if (isClosed || isExitingPage || !mediaPlayerController.isFullscreen) return;
+              if (!mediaPlayerController.mediaPlayerStatus.playing) return;
+              isShowingPlayPointAd.value = true;
+              mediaPlayerController.pause();
+              isShowingPlayMiddleAd.value = true;
+              AdManager.instance.markAdShowing(true);
+            }
+          },
+          onAdFailed: (scenario, error) {
+            if (scenario == 'play_middle' && _waitingForPlayMiddleAd) {
+              _waitingForPlayMiddleAd = false;
+              commonDebugPrint('VideoAdMixin: 播放中的原生广告拉取失败');
+            }
+          },
+        );
+        requestAd('play_middle');
       }
     } else {
       bool hasAd = tryShowDualAds(needTimeInterval: false);
@@ -206,13 +232,13 @@ class BaseVideoDetailController extends BaseController
 
   /// 关闭播放中节点的原生广告
   void closePlayMiddleAd() {
+    _waitingForPlayMiddleAd = false;
     if (isShowingPlayMiddleAd.value) {
       commonDebugPrint('VideoAdMixin: 关闭播放中的原生广告');
       isShowingPlayMiddleAd.value = false;
       isShowingPlayPointAd.value = false;
       NativeAdManager.instance.disposeAd('play_middle');
       AdManager.instance.markAdShowing(false);
-      requestAd('play_middle');
     }
   }
 
