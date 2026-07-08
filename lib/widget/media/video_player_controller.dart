@@ -147,9 +147,6 @@ class PlayerController {
   /// 当前选中的字幕
   final selectedCaption = Rx<CaptionEntity?>(null);
 
-  /// 弹幕开关
-  final isOpenDanmu = false.obs;
-
   /// 是否已经提交过当前视频
   bool _hasSubmittedVideo = false;
 
@@ -290,7 +287,6 @@ class PlayerController {
       videoType.value = dataSource.videoType;
 
       this.captionList.value = captionList;
-
 
       if (dataSource.videoSource.isEmptyString()) {
         hasError.value = true;
@@ -994,6 +990,9 @@ class PlayerController {
       await playerController?.pause();
       await previewPlayer?.pause();
 
+      final oldPlayerController = playerController;
+      final oldPreviewPlayer = previewPlayer;
+
       // 2. 先设置为 null，触发 UI 重建移除旧播放器
       playerController = null;
       previewPlayer = null;
@@ -1001,8 +1000,8 @@ class PlayerController {
 
       isInitialized.value = false;
 
-      await playerController?.dispose();
-      await previewPlayer?.dispose();
+      await oldPlayerController?.dispose();
+      await oldPreviewPlayer?.dispose();
 
       // 6. 等待解码器彻底释放（Oppo 需要更多时间）
       await Future.delayed(Duration(milliseconds: 500));
@@ -1044,6 +1043,9 @@ class PlayerController {
       await playerController?.pause();
       await previewPlayer?.pause();
 
+      final oldPlayerController = playerController;
+      final oldPreviewPlayer = previewPlayer;
+
       // 3. 先设置为 null，触发 UI 重建移除旧播放器
       playerController = null;
       previewPlayer = null;
@@ -1051,8 +1053,8 @@ class PlayerController {
 
       isInitialized.value = false;
 
-      await playerController?.dispose();
-      await previewPlayer?.dispose();
+      await oldPlayerController?.dispose();
+      await oldPreviewPlayer?.dispose();
 
       // 6. 等待解码器彻底释放（Oppo 需要更多时间）
       await Future.delayed(Duration(milliseconds: 500));
