@@ -479,6 +479,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> with RouteAware, Widg
         scrollDirection: Axis.horizontal,
         padding: EdgeInsets.symmetric(horizontal: 16.w),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: castList.map((entity) {
             final index = castList.indexOf(entity);
             return Container(

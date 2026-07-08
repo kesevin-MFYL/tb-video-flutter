@@ -14,6 +14,7 @@ class CommonImageView extends StatelessWidget {
     this.fit = BoxFit.cover,
     this.alignment,
     this.needFadeIn = true,
+    this.needCache = true,
     this.placeholderName = Assets.commonIconVideoError,
     this.onPress,
     this.placeholder,
@@ -31,6 +32,7 @@ class CommonImageView extends StatelessWidget {
     this.fit = BoxFit.cover,
     this.alignment,
     this.needFadeIn = true,
+    this.needCache = true,
     this.onPress,
     this.placeholder,
     String? placeholderName,
@@ -52,6 +54,7 @@ class CommonImageView extends StatelessWidget {
   final LoadingErrorWidgetBuilder? errorWidget;
 
   final bool needFadeIn;
+  final bool needCache;
 
   final void Function(String? imageUrl)? onPress;
 
@@ -74,12 +77,14 @@ class CommonImageView extends StatelessWidget {
     // 如果没有指定 memCache 并且指定了宽度或高度，自动计算合适的 memCache (假设设备像素比为3)
     int? cacheWidth = memCacheWidth;
     int? cacheHeight = memCacheHeight;
-    if (cacheWidth == null && cacheHeight == null) {
-      if (width != null && width! > 0 && width != double.infinity) {
-        cacheWidth = (width! * 3).toInt();
-      }
-      if (height != null && height! > 0 && height != double.infinity) {
-        cacheHeight = (height! * 3).toInt();
+    if (needCache) {
+      if (cacheWidth == null && cacheHeight == null) {
+        if (width != null && width! > 0 && width != double.infinity) {
+          cacheWidth = (width! * 3).toInt();
+        }
+        if (height != null && height! > 0 && height != double.infinity) {
+          cacheHeight = (height! * 3).toInt();
+        }
       }
     }
 
