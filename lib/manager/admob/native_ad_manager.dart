@@ -105,6 +105,9 @@ class NativeAdManager {
           commonDebugPrint(
             '测试日志：场景$scenario--拉取广告成功-广告类型:${item.adtype}--广告id: ${item.placementid}--优先级：${item.adweight}',
           );
+          commonDebugPrint(
+            'VideoAdMixin：场景$scenario--拉取广告成功-广告类型:${item.adtype}--广告id: ${item.placementid}--优先级：${item.adweight}',
+          );
           commonDebugPrint('NativeAdManager: NativeAd ${item.placementid} loaded for scenario: $scenario.');
           // 加载成功，记录广告实例和可用状态
           _nativeAds[scenario] = ad as NativeAd;
@@ -120,6 +123,9 @@ class NativeAdManager {
         onAdFailedToLoad: (ad, error) {
           commonDebugPrint(
             'NativeAdManager: NativeAd ${item.placementid} failed to load for scenario $scenario: $error',
+          );
+          commonDebugPrint(
+            'VideoAdMixin: 场景$scenario--拉取广告失败-广告类型:${item.adtype}--广告id: ${item.placementid}--优先级：${item.adweight}',
           );
           // 加载失败，释放废弃实例
           ad.dispose();

@@ -58,6 +58,9 @@ class InterstitialAdManager {
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
           commonDebugPrint('测试日志：场景$scenario--拉取广告成功-广告类型:${item.adtype}--广告id: ${item.placementid}--优先级：${item.adweight}');
+          commonDebugPrint(
+            'VideoAdMixin：场景$scenario--拉取广告成功-广告类型:${item.adtype}--广告id: ${item.placementid}--优先级：${item.adweight}',
+          );
           commonDebugPrint('InterstitialAdManager: InterstitialAd ${item.placementid} loaded for scenario: $scenario');
           // 加载成功，记录加载时间和广告实例
           _interstitialLoadTimes[scenario] = DateTime.now();
@@ -67,6 +70,9 @@ class InterstitialAdManager {
         },
         onAdFailedToLoad: (error) {
           commonDebugPrint('InterstitialAdManager: InterstitialAd ${item.placementid} failed to load for scenario $scenario: $error');
+          commonDebugPrint(
+            'VideoAdMixin: 场景$scenario--拉取广告失败-广告类型:${item.adtype}--广告id: ${item.placementid}--优先级：${item.adweight}',
+          );
           _isAdLoadingMap[scenario] = false;
           // 加载失败，通知调度器继续下一个
           onFailed();

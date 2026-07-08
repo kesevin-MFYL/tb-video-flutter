@@ -100,6 +100,9 @@ class BaseVideoDetailController extends BaseController
   /// 是否正在等待拉取播放中广告
   bool _waitingForPlayMiddleAd = false;
 
+  /// 是否正在等待广告完成以便播放视频
+  bool _isWaitingForAd = false;
+
   @override
   void onInit() {
     super.onInit();
@@ -290,6 +293,7 @@ class BaseVideoDetailController extends BaseController
   void fetchData() {
     // 进入播放页后开始请求播放暂停广告
     requestAd('pause');
+    _isWaitingForAd = tryShowDualAds();
     getDataFromServer();
   }
 
@@ -459,6 +463,7 @@ class BaseVideoDetailController extends BaseController
   void chooseEpisode(EpisodeEntity episode) {
     closePauseAd();
     closePlayMiddleAd();
+    _isWaitingForAd = tryShowDualAds();
     if (videoType == VideoType.tv) {
       if (tabController == null || tabController!.index >= seasonList.length) return;
 
@@ -488,8 +493,7 @@ class BaseVideoDetailController extends BaseController
   void updateMediaAndTitle() {
     if (isClosed || isExitingPage) return;
     updateTitle();
-    bool didShowAd = tryShowDualAds();
-    openMediaData(isReload: false, autoPlay: !didShowAd);
+    openMediaData(isReload: false, autoPlay: !_isWaitingForAd);
     update();
   }
 
@@ -501,6 +505,7 @@ class BaseVideoDetailController extends BaseController
     }
     SystemChrome.setPreferredOrientations([]);
     isShowingPlayPointAd.value = false;
+    _isWaitingForAd = false;
     if (mediaPlayerController.firstLoad && mediaHistoryEntity != null && mediaHistoryEntity!.currentDuration != null) {
       mediaPlayerController.rePlay();
     } else {
@@ -643,6 +648,10 @@ class BaseVideoDetailController extends BaseController
 
   /// 切换播放
   void changePlay({required int mediaId, required int mediaType}) async {
+    closePauseAd();
+    closePlayMiddleAd();
+    _isWaitingForAd = tryShowDualAds();
+    mediaPlayerController.pause();
     EasyLoading.show();
     this.mediaId = mediaId;
     this.mediaType = mediaType;

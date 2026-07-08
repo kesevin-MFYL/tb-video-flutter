@@ -238,16 +238,7 @@ class RemoteConfigManager {
 
         parseAndCacheAdClickConfig();
         // 无论是否有更新，都尝试将 RemoteConfig 中的数据转换为 AdConfig 对象
-        bool isSuccess = parseAndCacheConfig();
-
-        if (isSuccess && _config != null) {
-          commonDebugPrint("Remote config: Reloading all ads with updated config.");
-          AdManager.instance.loadAd('level_h', _config!.levelH);
-          AdManager.instance.loadAd('open', _config!.open);
-          AdManager.instance.loadAd('behavior', _config!.behavior);
-          AdManager.instance.loadAd('behavior2', _config!.behavior2);
-          AdManager.instance.loadAd('NVhome', _config!.nvhome);
-        }
+        parseAndCacheConfig();
       });
     } catch (e) {
       commonDebugPrint("Firebase: 拉取远端配置失败: $e");
