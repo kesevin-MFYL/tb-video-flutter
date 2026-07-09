@@ -206,13 +206,12 @@ class PlayerController {
   }
 
   /// 配置播放器
-  Future<void> _createVideoController(MediaDataSource dataSource, Duration initVideoPosition) async {
+  Future<void> _createVideoController(MediaDataSource dataSource, Duration initVideoPosition, bool useProxy) async {
     if (_isDisposed) return;
     try {
-      final originalUrl = dataSource.videoSource!.toOriginUrl();
-      if (originalUrl.startsWith('http') || originalUrl.startsWith('https')) {
-        playerController = VideoPlayerController.networkUrl(dataSource.videoSource!.toLocalUri());
-      } else if (originalUrl.startsWith('assets/')) {
+      if (currentVideoUrl!.startsWith('http') || currentVideoUrl!.startsWith('https')) {
+        playerController = VideoPlayerController.networkUrl(useProxy ? currentVideoUrl!.toLocalUri() : Uri.parse(currentVideoUrl!));
+      } else if (currentVideoUrl!.startsWith('assets/')) {
         playerController = VideoPlayerController.asset(dataSource.videoSource!);
       } else {
         playerController = VideoPlayerController.file(File(dataSource.videoSource!));
@@ -241,7 +240,7 @@ class PlayerController {
   }
 
   /// 配置预览播放器
-  Future<void> _createPreviewController(MediaDataSource dataSource, Duration initVideoPosition) async {
+  Future<void> _createPreviewController(MediaDataSource dataSource, Duration initVideoPosition, bool useProxy) async {
     if (_isDisposed) return;
     try {
       previewPlayer ??= Player(configuration: const PlayerConfiguration(bufferSize: 2 * 1024 * 1024));
@@ -263,7 +262,7 @@ class PlayerController {
             : "asset://${dataSource.videoSource!}";
         await previewPlayer!.open(Media(assetUrl, httpHeaders: dataSource.httpHeaders), play: false);
       } else {
-        await previewPlayer!.open(Media(dataSource.videoSource!, httpHeaders: dataSource.httpHeaders), play: false);
+        await previewPlayer!.open(Media(useProxy ? currentVideoUrl!.toLocalUrl() : currentVideoUrl!, httpHeaders: dataSource.httpHeaders), play: false);
       }
     } catch (e) {
       commonDebugPrint('PlayerController _createPreviewController error: $e');
@@ -308,15 +307,8 @@ class PlayerController {
       }
 
       if (dataSource.type == MediaDataSourceType.network) {
-        final videoUrl = dataSource.videoSource!;
-        commonDebugPrint('PlayerController: 原始视频地址$videoUrl');
-        currentVideoUrl = videoUrl;
-
-        if (useProxy) {
-          dataSource.videoSource = videoUrl.toLocalUrl();
-        } else {
-          dataSource.videoSource = videoUrl;
-        }
+        currentVideoUrl = dataSource.videoSource!;
+        commonDebugPrint('PlayerController: 原始视频地址$currentVideoUrl');
 
         if (videoType.value != VideoType.video) {
           // 检查是否有下一集
@@ -333,10 +325,10 @@ class PlayerController {
       hasError.value = false;
 
       // 配置Player
-      await _createVideoController(dataSource, initVideoPosition);
+      await _createVideoController(dataSource, initVideoPosition, useProxy);
 
       // 配置预览Player
-      await _createPreviewController(dataSource, initVideoPosition);
+      await _createPreviewController(dataSource, initVideoPosition, useProxy);
 
       // 添加监听
       addListeners();
@@ -370,8 +362,6 @@ class PlayerController {
       // 捕获初始化过程中的 Source error，并自动降级重试整个 setDataSource 流程
       if (isSourceError && useProxy && currentVideoUrl != null) {
         commonDebugPrint('PlayerController: 初始化检测到代理 Source error，重新执行 setDataSource 并使用原始地址');
-
-        dataSource.videoSource = currentVideoUrl;
 
         await setDataSource(
           dataSource,
