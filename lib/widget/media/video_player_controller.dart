@@ -234,8 +234,8 @@ class PlayerController {
         }
       }
     } catch (e) {
-      hasError.value = true;
       commonDebugPrint('PlayerController _createVideoController error: $e');
+      rethrow;
     }
   }
 
@@ -266,6 +266,7 @@ class PlayerController {
       }
     } catch (e) {
       commonDebugPrint('PlayerController _createPreviewController error: $e');
+      rethrow;
     }
   }
 
@@ -276,6 +277,8 @@ class PlayerController {
         Duration initVideoPosition = Duration.zero,
         // 字幕列表
         List<CaptionEntity> captionList = const [],
+        // 是否使用本地缓存代理
+        bool useProxy = true,
       }) async {
     if (_isDisposed) return;
     try {
@@ -308,7 +311,11 @@ class PlayerController {
         commonDebugPrint('PlayerController: 原始视频地址$videoUrl');
         currentVideoUrl = videoUrl;
 
-        dataSource.videoSource = videoUrl.toLocalUrl();
+        if (useProxy) {
+          dataSource.videoSource = videoUrl.toLocalUrl();
+        } else {
+          dataSource.videoSource = videoUrl;
+        }
 
         if (videoType.value != VideoType.video) {
           // 检查是否有下一集
@@ -336,8 +343,24 @@ class PlayerController {
       // 配置字幕
       await initSubtitles();
     } catch (err) {
-      hasError.value = true;
       commonDebugPrint('PlayerController setDataSource error: $err');
+      
+      // 捕获初始化过程中的 Source error，并自动降级重试整个 setDataSource 流程
+      if (err.toString().contains('Source error') && useProxy && currentVideoUrl != null) {
+        commonDebugPrint('PlayerController: 初始化检测到代理 Source error，重新执行 setDataSource 并使用原始地址');
+
+        dataSource.videoSource = currentVideoUrl;
+
+        await setDataSource(
+          dataSource,
+          initVideoPosition: initVideoPosition,
+          captionList: captionList,
+          useProxy: false,
+        );
+        return;
+      }
+      
+      hasError.value = true;
     }
   }
 
