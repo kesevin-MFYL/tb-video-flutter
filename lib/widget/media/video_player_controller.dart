@@ -210,6 +210,7 @@ class PlayerController {
     if (_isDisposed) return;
     try {
       if (currentVideoUrl!.startsWith('http') || currentVideoUrl!.startsWith('https')) {
+        commonDebugPrint('PlayerController: 代理视频地址：${currentVideoUrl!.toLocalUri()}');
         playerController = VideoPlayerController.networkUrl(useProxy ? currentVideoUrl!.toLocalUri() : Uri.parse(currentVideoUrl!));
       } else if (currentVideoUrl!.startsWith('assets/')) {
         playerController = VideoPlayerController.asset(dataSource.videoSource!);
