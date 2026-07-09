@@ -6,6 +6,7 @@ import 'package:editvideo/models/caption_entity.dart';
 import 'package:editvideo/widget/media/model/media_player_status.dart';
 import 'package:editvideo/widget/media/utils/fullscreen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_video_caching/flutter_video_caching.dart';
 import 'dart:async';
 import 'dart:io';
@@ -345,8 +346,29 @@ class PlayerController {
     } catch (err) {
       commonDebugPrint('PlayerController setDataSource error: $err');
       
+      // PlatformException 包含底层 ExoPlayer 的错误信息
+      bool isSourceError = false;
+      if (err is PlatformException) {
+        // 检查 message 或 details 字段
+        final errMsg = err.message ?? '';
+        final errDetails = err.details?.toString() ?? '';
+        if (errMsg.contains('Source error') || errDetails.contains('Source error')) {
+          isSourceError = true;
+        }
+      } else if (err.toString().contains('Source error')) {
+        isSourceError = true;
+      }
+      
+      // 如果播放器控制器已经创建并且内部状态记录了错误，也可以作为判断依据
+      if (!isSourceError && playerController != null) {
+        if (playerController!.value.hasError && 
+            (playerController!.value.errorDescription?.contains('Source error') ?? false)) {
+          isSourceError = true;
+        }
+      }
+      
       // 捕获初始化过程中的 Source error，并自动降级重试整个 setDataSource 流程
-      if (err.toString().contains('Source error') && useProxy && currentVideoUrl != null) {
+      if (isSourceError && useProxy && currentVideoUrl != null) {
         commonDebugPrint('PlayerController: 初始化检测到代理 Source error，重新执行 setDataSource 并使用原始地址');
 
         dataSource.videoSource = currentVideoUrl;
