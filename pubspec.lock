@@ -468,10 +468,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_video_caching
-      sha256: "3cc46c71b277bdcffe1bd6c4c08c23203e6b72f7512a8bcab3324a9cbf966d96"
+      sha256: "23388c5cb90623d683c025d88e4c7573450108a126d893b2c92a27f2c43f9375"
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "1.1.3"
+    version: "1.1.5"
   flutter_volume_controller:
     dependency: "direct main"
     description:
@@ -509,6 +509,22 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.5.2"
+  gma_mediation_bidmachine:
+    dependency: "direct main"
+    description:
+      name: gma_mediation_bidmachine
+      sha256: "4743dd98816722ebedb0f8bc3b8589af6bf5ab0aa0034b0fab94c5e5facee6c9"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.3.1"
+  gma_mediation_inmobi:
+    dependency: "direct main"
+    description:
+      name: gma_mediation_inmobi
+      sha256: "70497727df6eebd9c7bd3f1166cc1ae0f0983b4936efb4066b16e9eb42523d74"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "2.0.1"
   gma_mediation_liftoffmonetize:
     dependency: "direct main"
     description:
@@ -541,6 +557,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "3.5.3"
+  gma_mediation_unity:
+    dependency: "direct main"
+    description:
+      name: gma_mediation_unity
+      sha256: "8a7d88a0b4ae1e05926607664ba2062974e5f616a4de002cc22828518c8bd816"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.6.5"
   google_mobile_ads:
     dependency: "direct main"
     description:
