@@ -1,22 +1,22 @@
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/modules/v2/home/controllers/media_detail_controller.dart';
 import 'package:editvideo/modules/v2/home/widget/episode_horizontal_cell.dart';
+import 'package:editvideo/modules/v2/home/widget/media/anime_episode_view.dart';
 import 'package:editvideo/modules/v2/home/widget/media/auto_scroll_episode_wrapper.dart';
-import 'package:editvideo/modules/v2/home/widget/media/tv_season_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 /// 剧集弹窗(横屏)
-class TvSeasonDialog extends StatefulWidget {
+class AnimeEpisodeDialog extends StatefulWidget {
   final MediaDetailController controller;
 
-  const TvSeasonDialog({super.key, required this.controller});
+  const AnimeEpisodeDialog({super.key, required this.controller});
 
   @override
-  State<TvSeasonDialog> createState() => _TvSeasonDialogState();
+  State<AnimeEpisodeDialog> createState() => _AnimeEpisodeDialogState();
 }
 
-class _TvSeasonDialogState extends State<TvSeasonDialog> {
+class _AnimeEpisodeDialogState extends State<AnimeEpisodeDialog> {
   @override
   Widget build(BuildContext context) {
     return Align(
@@ -31,7 +31,7 @@ class _TvSeasonDialogState extends State<TvSeasonDialog> {
             color: CommonColors.color1B1B18.withOpacity(0.9),
             borderRadius: BorderRadius.circular(32),
           ),
-          child: TvSeasonView(
+          child: AnimeEpisodeView(
             controller: widget.controller,
             isDialog: true,
             needAdapted: false,

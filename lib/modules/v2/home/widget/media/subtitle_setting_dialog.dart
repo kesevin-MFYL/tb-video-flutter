@@ -7,16 +7,16 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 /// 字幕弹窗(横屏)
-class SubtitleSettingsDialog extends StatefulWidget {
+class SubtitleSettingDialog extends StatefulWidget {
   final MediaPlayerController controller;
 
-  const SubtitleSettingsDialog({super.key, required this.controller});
+  const SubtitleSettingDialog({super.key, required this.controller});
 
   @override
-  State<SubtitleSettingsDialog> createState() => _SubtitleSettingsDialogState();
+  State<SubtitleSettingDialog> createState() => _SubtitleSettingDialogState();
 }
 
-class _SubtitleSettingsDialogState extends State<SubtitleSettingsDialog> {
+class _SubtitleSettingDialogState extends State<SubtitleSettingDialog> {
   final PageController _pageController = PageController(initialPage: 0, keepPage: false);
   final ScrollController _scrollController = ScrollController();
 
@@ -64,7 +64,6 @@ class _SubtitleSettingsDialogState extends State<SubtitleSettingsDialog> {
         child: Container(
           width: 343,
           margin: EdgeInsets.only(top: 16, bottom: 16, right: 16),
-          padding: EdgeInsets.only(top: 24),
           decoration: BoxDecoration(
             color: CommonColors.color1B1B18.withOpacity(0.9),
             borderRadius: BorderRadius.circular(32),
@@ -84,7 +83,7 @@ class _SubtitleSettingsDialogState extends State<SubtitleSettingsDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
+          padding: EdgeInsets.only(left: 16, top: 22, right: 16, bottom: 16),
           child: Row(
             children: [
               CommonText.instance(
@@ -103,7 +102,6 @@ class _SubtitleSettingsDialogState extends State<SubtitleSettingsDialog> {
             ],
           ),
         ),
-        SizedBox(height: 16),
         Obx(() {
           final openCaptions = widget.controller.openCaptions.value;
           return Padding(
@@ -172,7 +170,7 @@ class _SubtitleSettingsDialogState extends State<SubtitleSettingsDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
+          padding: EdgeInsets.only(left: 16, top: 22, right: 16, bottom: 16),
           child: Row(
             children: [
               CommonButton(

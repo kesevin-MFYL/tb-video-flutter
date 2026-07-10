@@ -14,13 +14,20 @@ import 'package:editvideo/utils/storage.dart';
 import 'package:editvideo/utils/video_cache_utils.dart';
 import 'package:editvideo/widget/media/media_player_controller.dart';
 import 'package:editvideo/widget/media/model/media_data_source.dart';
+import 'package:editvideo/manager/admob/native_ad_manager.dart';
+import 'package:editvideo/manager/admob/ad_manager.dart';
+import 'package:editvideo/manager/remote_config_manager.dart';
+import 'package:editvideo/widget/media/model/media_player_status.dart';
+import 'package:editvideo/mixin/video_ad_mixin.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 
 import '../../../../widget/page_status/multi_status_view.dart';
 
-class BaseMediaDetailController extends BaseController with GetSingleTickerProviderStateMixin, MediaOperateMixin {
+class BaseMediaDetailController extends BaseController
+    with GetTickerProviderStateMixin, MediaOperateMixin, VideoAdMixin {
   TabController? tabController;
 
   /// 详情状态
@@ -74,6 +81,200 @@ class BaseMediaDetailController extends BaseController with GetSingleTickerProvi
   /// 选中的集
   final selectEpisode = Rx<EpisodeEntity?>(null);
 
+  /// 退出拦截状态
+  final canExit = false.obs;
+  bool isExitingPage = false;
+
+  /// 是否正在显示暂停广告
+  final isShowingPauseAd = false.obs;
+
+  /// 是否正在显示PlayPoint中间广告（横屏）
+  final isShowingPlayMiddleAd = false.obs;
+
+  /// 是否触发了PlayPoint节点（用于防止pause广告重复触发）
+  final isShowingPlayPointAd = false.obs;
+
+  /// 上一次触发广告的时间节点索引
+  int _lastPlayPointAdIndex = 0;
+
+  /// 是否正在等待拉取播放中广告
+  bool _waitingForPlayMiddleAd = false;
+
+  /// 是否正在等待广告完成以便播放视频
+  bool _isWaitingForAd = false;
+
+  @override
+  void onInit() {
+    super.onInit();
+    mediaPlayerController.addStatusLister((status) {
+      if (status == MediaPlayerStatusType.playing) {
+        closePauseAd();
+        closePlayMiddleAd();
+      }
+    });
+
+    ever(mediaPlayerController.currentPosition, (Duration position) {
+      if (mediaPlayerController.isSliderMoving.value) return;
+
+      final config = RemoteConfigManager().config;
+      if (config != null && config.playPointTime > 0) {
+        // 当前播放进度秒数
+        int currentSeconds = position.inSeconds;
+        // 如果正好到达了 playPointTime 的整数倍节点（并且不是0）
+        if (currentSeconds > 0 && currentSeconds % config.playPointTime == 0) {
+          int currentIndex = currentSeconds ~/ config.playPointTime;
+          // 防止同一秒内多次触发，必须大于上一次触发的节点索引
+          if (currentIndex > _lastPlayPointAdIndex) {
+            _lastPlayPointAdIndex = currentIndex;
+            _triggerPlayPointAd();
+          }
+        } else {
+          // 如果当前时间不到 playPointTime，或者是跨越了但并非“正好等于”，则只更新索引以便后续可以触发更大的节点
+          int currentIndex = currentSeconds ~/ config.playPointTime;
+          if (currentIndex < _lastPlayPointAdIndex) {
+            _lastPlayPointAdIndex = currentIndex;
+          }
+        }
+      }
+    });
+
+    ever(mediaPlayerController.isSliderMoving, (isMoving) {
+      if (isMoving) {
+        closePauseAd();
+        closePlayMiddleAd();
+      } else {
+        // 拖动结束时，只需重置 _lastPlayPointAdIndex 到当前位置，不触发广告
+        final position = mediaPlayerController.currentPosition.value;
+        final config = RemoteConfigManager().config;
+        if (config != null && config.playPointTime > 0) {
+          _lastPlayPointAdIndex = position.inSeconds ~/ config.playPointTime;
+        }
+      }
+    });
+  }
+
+  @override
+  void onClose() {
+    if (isShowingPauseAd.value) {
+      NativeAdManager.instance.disposeAd('pause');
+    }
+    super.onClose();
+  }
+
+  /// 显示暂停的原生广告
+  void showPauseAd() {
+    if (isClosed || isExitingPage) return;
+    if (NativeAdManager.instance.isAdLoaded('pause')) {
+      commonDebugPrint('VideoAdMixin: 展示暂停的原生广告');
+      isShowingPauseAd.value = true;
+      AdManager.instance.markAdShowing(true);
+    } else {
+      commonDebugPrint('VideoAdMixin: 展示暂停的原生广告: 未获取到暂停的原生广告');
+    }
+  }
+
+  /// 关闭暂停的原生广告
+  void closePauseAd() {
+    if (isShowingPauseAd.value) {
+      commonDebugPrint('VideoAdMixin: 关闭暂停的原生广告');
+      isShowingPauseAd.value = false;
+      NativeAdManager.instance.disposeAd('pause');
+      AdManager.instance.markAdShowing(false);
+      requestAd('pause');
+    }
+  }
+
+  /// 触发播放中节点的原生广告
+  void _triggerPlayPointAd() {
+    commonDebugPrint('VideoAdMixin: 开始展示播放中的广告');
+    if (isClosed || isExitingPage) return;
+    if (mediaPlayerController.isFullscreen) {
+      if (NativeAdManager.instance.isAdLoaded('play_middle')) {
+        commonDebugPrint('VideoAdMixin: 当前时横屏播放状态，展示播放中的原生广告');
+        isShowingPlayPointAd.value = true;
+        mediaPlayerController.pause();
+        isShowingPlayMiddleAd.value = true;
+        AdManager.instance.markAdShowing(true);
+      } else {
+        commonDebugPrint('VideoAdMixin: 当前时横屏播放状态，未获取到播放中的原生广告，开始拉取');
+        _waitingForPlayMiddleAd = true;
+        NativeAdManager.instance.setListener(
+          'play_middle',
+          onAdLoaded: (scenario) {
+            if (scenario == 'play_middle' && _waitingForPlayMiddleAd) {
+              _waitingForPlayMiddleAd = false;
+              commonDebugPrint('VideoAdMixin: 播放中的原生广告拉取成功，开始展示');
+              if (isClosed || isExitingPage || !mediaPlayerController.isFullscreen) return;
+              if (!mediaPlayerController.mediaPlayerStatus.playing) return;
+              isShowingPlayPointAd.value = true;
+              mediaPlayerController.pause();
+              isShowingPlayMiddleAd.value = true;
+              AdManager.instance.markAdShowing(true);
+            }
+          },
+          onAdFailed: (scenario, error) {
+            if (scenario == 'play_middle' && _waitingForPlayMiddleAd) {
+              _waitingForPlayMiddleAd = false;
+              commonDebugPrint('VideoAdMixin: 播放中的原生广告拉取失败');
+            }
+          },
+        );
+        requestAd('play_middle');
+      }
+    } else {
+      bool hasAd = tryShowDualAds(needTimeInterval: false);
+      if (hasAd) {
+        commonDebugPrint('VideoAdMixin: 当前时竖屏播放状态，展示播放中的全屏广告');
+        isShowingPlayPointAd.value = true;
+        mediaPlayerController.pause();
+      } else {
+        commonDebugPrint('VideoAdMixin: 当前时竖屏播放状态，未获取到播放中的全屏广告');
+      }
+    }
+  }
+
+  /// 关闭播放中节点的原生广告
+  void closePlayMiddleAd() {
+    _waitingForPlayMiddleAd = false;
+    if (isShowingPlayMiddleAd.value) {
+      commonDebugPrint('VideoAdMixin: 关闭播放中的原生广告');
+      isShowingPlayMiddleAd.value = false;
+      isShowingPlayPointAd.value = false;
+      NativeAdManager.instance.disposeAd('play_middle');
+      AdManager.instance.markAdShowing(false);
+    }
+  }
+
+  void handleBack() {
+    if (mediaPlayerController.isFullscreen) {
+      mediaPlayerController.triggerFullScreen(status: false);
+      if (mediaPlayerController.controlsLock.value) {
+        mediaPlayerController.controlsLock.value = false;
+      }
+      return;
+    }
+
+    if (isExitingPage) return; // 防止重复触发
+
+    closePauseAd();
+    closePlayMiddleAd();
+
+    isExitingPage = true;
+    bool hasAd = tryShowDualAds();
+    if (hasAd) {
+      mediaPlayerController.pause();
+    } else {
+      exitPage();
+    }
+  }
+
+  void exitPage() {
+    canExit.value = true;
+    Future.microtask(() {
+      Get.back();
+    });
+  }
+
   @override
   void handArguments(arguments) {
     if (arguments != null && arguments is Map<String, dynamic>) {
@@ -90,13 +291,19 @@ class BaseMediaDetailController extends BaseController with GetSingleTickerProvi
 
   @override
   void fetchData() {
+    // 进入播放页后开始请求播放暂停广告
+    requestAd('pause');
+    _isWaitingForAd = tryShowDualAds();
     getDataFromServer();
   }
 
   void getDataFromServer() {
     Future.wait([_getMediaDetail(), _getMediaRecommend(), _getTvSeasons()]).then((list) {
+      if (isClosed || isExitingPage) return;
+      if (EasyLoading.isShow) {
+        EasyLoading.dismiss();
+      }
       updateMediaAndTitle();
-      EasyLoading.dismiss();
     });
   }
 
@@ -129,48 +336,79 @@ class BaseMediaDetailController extends BaseController with GetSingleTickerProvi
 
   /// 获取所有季
   Future<void> _getTvSeasons() async {
-    if (videoType != VideoType.tv) return;
+    if (videoType == VideoType.video) return;
 
-    // 电视剧获取季
-    final result = await HomeApi.getAllSeasons(id: mediaId);
-    if (result.isSuccess) {
-      final listData = result.responseData?.data;
-      seasonList = listData ?? [];
+    if (videoType == VideoType.tv) {
+      // 电视剧获取季
+      final result = await HomeApi.getAllSeasons(id: mediaId);
+      if (result.isSuccess) {
+        final listData = result.responseData?.data;
+        seasonList = listData ?? [];
 
-      // 选中的季，没有缓存记录默认第一季
-      selectSeason.value =
-          seasonList.firstWhereOrNull((element) => element.id == mediaHistoryEntity?.season?.id) ?? seasonList.first;
-      var initialIndex = seasonList.indexWhere((element) => element.id == selectSeason.value?.id);
+        if (seasonList.isEmpty) {
+          episodeStatusType.value = MultiStatusType.statusEmpty;
+          tabController = TabController(length: 0, vsync: this);
+          return;
+        }
 
-      // 如果不是多开窗口 提前获取所有季下的所有集
-      if (!isMultiOpen) {
-        // 获取所有季下的所有集
-        for (var season in seasonList) {
-          await getEpisodeList(seasonId: season.id);
+        // 选中的季，没有缓存记录默认第一季
+        selectSeason.value =
+            seasonList.firstWhereOrNull((element) => element.id == mediaHistoryEntity?.season?.id) ?? seasonList.first;
+        var initialIndex = seasonList.indexWhere((element) => element.id == selectSeason.value?.id);
+
+        // 如果不是多开窗口 提前获取所有季下的所有集
+        if (!isMultiOpen) {
+          // 获取所有季下的所有集
+          for (var season in seasonList) {
+            await getEpisodeList(seasonId: season.id);
+          }
+
+          episodeStatusType.value = MultiStatusType.statusContent;
+
+          // 选中的集，没有缓存记录默认第一集
+          episodeList = episodeListCache[selectSeason.value?.id] ?? [];
+          selectEpisode.value =
+              episodeList.firstWhereOrNull((element) => element.id == mediaHistoryEntity?.episode?.id) ??
+              episodeList.first;
+
+          // 字幕
+          captionList = selectEpisode.value?.captionList ?? [];
+        }
+
+        tabController = TabController(length: seasonList.length, vsync: this);
+        tabController?.index = initialIndex == -1 ? 0 : initialIndex;
+
+        // 如果是多开窗口 每次单独获取每季下的所有季
+        if (isMultiOpen) {
+          // 获取季下的所有集
+          await getEpisodeList(seasonId: selectSeason.value?.id);
+        }
+      } else {
+        commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
+      }
+    } else if (videoType == VideoType.anime) {
+      // 动漫获取集
+      final result = await HomeApi.getAnimeAllEpisodes(id: mediaId);
+      if (result.isSuccess) {
+        final listData = result.responseData?.data;
+        episodeList = listData ?? [];
+
+        if (episodeList.isEmpty) {
+          episodeStatusType.value = MultiStatusType.statusContent;
+          return;
         }
 
         episodeStatusType.value = MultiStatusType.statusContent;
 
-        // 选中的集，没有缓存记录默认第一集
-        episodeList = episodeListCache[selectSeason.value?.id] ?? [];
         selectEpisode.value =
             episodeList.firstWhereOrNull((element) => element.id == mediaHistoryEntity?.episode?.id) ??
             episodeList.first;
 
         // 字幕
         captionList = selectEpisode.value?.captionList ?? [];
+      } else {
+        commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
       }
-
-      tabController ??= TabController(length: seasonList.length, vsync: this);
-      tabController!.index = initialIndex == -1 ? 0 : initialIndex;
-
-      // 如果是多开窗口 每次单独获取每季下的所有季
-      if (isMultiOpen) {
-        // 获取季下的所有集
-        await getEpisodeList(seasonId: selectSeason.value?.id);
-      }
-    } else {
-      commonDebugPrint(result.error?.message ?? ApiResponse.unknownErrorMsg);
     }
   }
 
@@ -179,7 +417,7 @@ class BaseMediaDetailController extends BaseController with GetSingleTickerProvi
     if (videoType != VideoType.tv || seasonId == null) return;
     if (episodeListCache.containsKey(seasonId)) {
       if (isMultiOpen) {
-        episodeList = episodeListCache[seasonId]!;
+        episodeList = episodeListCache[seasonId] ?? [];
         _handleEpisodeListSuccess();
       }
       return;
@@ -202,15 +440,19 @@ class BaseMediaDetailController extends BaseController with GetSingleTickerProvi
     }
   }
 
+  /// 多开视频窗口会执行
   void _handleEpisodeListSuccess() {
     if (isFirstLoadEpisode) {
       isFirstLoadEpisode = false;
 
-      // 没有缓存记录默认第一集
-      selectEpisode.value =
-          episodeList.firstWhereOrNull((element) => element.id == mediaHistoryEntity?.episode?.id) ?? episodeList.first;
+      if (episodeList.isNotEmpty) {
+        // 没有缓存记录默认第一集
+        selectEpisode.value =
+            episodeList.firstWhereOrNull((element) => element.id == mediaHistoryEntity?.episode?.id) ??
+            episodeList.first;
 
-      captionList = selectEpisode.value?.captionList ?? [];
+        captionList = selectEpisode.value?.captionList ?? [];
+      }
     }
 
     episodeStatusType.value = episodeList.isEmpty ? MultiStatusType.statusEmpty : MultiStatusType.statusContent;
@@ -219,13 +461,18 @@ class BaseMediaDetailController extends BaseController with GetSingleTickerProvi
 
   /// 选择剧集
   void chooseEpisode(EpisodeEntity episode) {
-    if (tabController!.index >= seasonList.length) return;
+    closePauseAd();
+    closePlayMiddleAd();
+    _isWaitingForAd = tryShowDualAds();
+    if (videoType == VideoType.tv) {
+      if (tabController == null || tabController!.index >= seasonList.length) return;
 
+      if (tabController!.index < seasonList.length) {
+        selectSeason.value = seasonList[tabController!.index];
+      }
+    }
     selectEpisode.value = episode;
     captionList = selectEpisode.value?.captionList ?? [];
-    if (tabController!.index < seasonList.length) {
-      selectSeason.value = seasonList[tabController!.index];
-    }
 
     updateMediaAndTitle();
   }
@@ -244,9 +491,26 @@ class BaseMediaDetailController extends BaseController with GetSingleTickerProvi
 
   /// 重置播放器和更新标题
   void updateMediaAndTitle() {
-    openMediaData();
+    if (isClosed || isExitingPage) return;
     updateTitle();
+    openMediaData(isReload: false, autoPlay: !_isWaitingForAd);
     update();
+  }
+
+  @override
+  void allAdClosed() {
+    if (isExitingPage) {
+      exitPage();
+      return;
+    }
+    SystemChrome.setPreferredOrientations([]);
+    isShowingPlayPointAd.value = false;
+    _isWaitingForAd = false;
+    if (mediaPlayerController.firstLoad && mediaHistoryEntity != null && mediaHistoryEntity!.currentDuration != null) {
+      mediaPlayerController.rePlay();
+    } else {
+      mediaPlayerController.play();
+    }
   }
 
   /// 修改标题
@@ -258,11 +522,12 @@ class BaseMediaDetailController extends BaseController with GetSingleTickerProvi
     );
   }
 
-  void openMediaData({bool isReload = false}) async {
+  void openMediaData({bool isReload = false, bool autoPlay = true}) async {
     try {
       /// 注册播放器记录事件
+      mediaPlayerController.autoPlay = autoPlay;
       mediaPlayerController.setRecrodAction(saveMedia);
-
+      final lastPosition = mediaPlayerController.currentPosition.value;
       if (videoType == VideoType.video) {
         await mediaPlayerController.setDataSource(
           MediaDataSource(
@@ -276,7 +541,7 @@ class BaseMediaDetailController extends BaseController with GetSingleTickerProvi
                   mediaHistoryEntity!.currentDuration != null
               ? Duration(seconds: mediaHistoryEntity!.currentDuration!)
               : isReload && mediaPlayerController.currentPosition.value.inSeconds > 0
-              ? mediaPlayerController.currentPosition.value
+              ? lastPosition
               : Duration.zero,
           captionList: captionList,
         );
@@ -294,7 +559,7 @@ class BaseMediaDetailController extends BaseController with GetSingleTickerProvi
                     mediaHistoryEntity!.currentDuration != null
                 ? Duration(seconds: mediaHistoryEntity!.currentDuration!)
                 : isReload && mediaPlayerController.currentPosition.value.inSeconds > 0
-                ? mediaPlayerController.currentPosition.value
+                ? lastPosition
                 : Duration.zero,
             captionList: captionList,
           );
@@ -307,6 +572,8 @@ class BaseMediaDetailController extends BaseController with GetSingleTickerProvi
 
   /// 当前视频播放完毕或手动切换，播放下一个视频
   void nextPlay() async {
+    closePauseAd();
+    closePlayMiddleAd();
     // 影片播放完毕
     if (videoType == VideoType.video) {
       if (recommendList.isNotEmpty) {
@@ -352,12 +619,28 @@ class BaseMediaDetailController extends BaseController with GetSingleTickerProvi
             } else {
               episodeList = episodeListCache[selectSeason.value?.id] ?? [];
             }
-            selectEpisode.value = episodeList.first;
-            tabController?.animateTo(seasonIndex + 1);
-            chooseEpisode(selectEpisode.value!);
+            if (episodeList.isNotEmpty) {
+              selectEpisode.value = episodeList.first;
+              tabController?.animateTo(seasonIndex + 1);
+              if (selectEpisode.value != null) {
+                chooseEpisode(selectEpisode.value!);
+              }
+            }
           } else if (seasonIndex != -1 && seasonIndex == seasonList.length - 1) {
             // 是最后一季
           }
+        }
+      }
+    } else if (videoType == VideoType.anime) {
+      // 动漫剧集播放完毕
+      final currentEpisode = selectEpisode.value;
+      if (currentEpisode != null) {
+        final episodeIndex = episodeList.indexOf(currentEpisode);
+        if (episodeIndex != -1 && episodeIndex < episodeList.length - 1) {
+          // 不是最后一集,播放下一集
+          mediaPlayerController.setRecrodAction(null);
+          final nextEpisode = episodeList[episodeIndex + 1];
+          chooseEpisode(nextEpisode);
         }
       }
     }
@@ -365,13 +648,17 @@ class BaseMediaDetailController extends BaseController with GetSingleTickerProvi
 
   /// 切换播放
   void changePlay({required int mediaId, required int mediaType}) async {
+    closePauseAd();
+    closePlayMiddleAd();
+    _isWaitingForAd = tryShowDualAds();
+    mediaPlayerController.pause();
     EasyLoading.show();
     this.mediaId = mediaId;
     this.mediaType = mediaType;
     videoType = VideoType.instance(mediaType);
     mediaHistoryEntity = Storage.getViewedMediaById(mediaId);
     mediaPlayerController.setRecrodAction(null);
-    
+
     // Clear old data to prevent mixing data from previous media
     seasonList.clear();
     episodeList.clear();
@@ -387,23 +674,23 @@ class BaseMediaDetailController extends BaseController with GetSingleTickerProvi
       VideoCacheUtils.clearCache(
         videoType == VideoType.video ? mediaDetailEntity?.video ?? '' : selectEpisode.value?.video ?? '',
       );
-    } else {
-      //Save history with new entity
-      final historyEntity = MediaHistoryEntity(
-        id: mediaDetailEntity?.id,
-        title: mediaDetailEntity?.title,
-        cover: mediaDetailEntity?.cover,
-        type: mediaType,
-        videoUrl: videoType == VideoType.video ? mediaDetailEntity?.video ?? '' : selectEpisode.value?.video ?? '',
-        viewTime: DateTime.now().millisecondsSinceEpoch,
-        totalDuration: mediaPlayerController.totalDuration.value.inSeconds,
-        currentDuration: mediaPlayerController.currentPosition.value.inSeconds,
-        season: videoType == VideoType.tv ? selectSeason.value : null,
-        episode: videoType == VideoType.tv ? selectEpisode.value : null,
-      );
-
-      Storage.addViewedMedia(historyEntity);
     }
+
+    //Save history with new entity
+    final historyEntity = MediaHistoryEntity(
+      id: mediaDetailEntity?.id,
+      title: mediaDetailEntity?.title,
+      cover: mediaDetailEntity?.cover,
+      type: mediaType,
+      videoUrl: videoType == VideoType.video ? mediaDetailEntity?.video ?? '' : selectEpisode.value?.video ?? '',
+      viewTime: DateTime.now().millisecondsSinceEpoch,
+      totalDuration: mediaPlayerController.totalDuration.value.inSeconds,
+      currentDuration: mediaPlayerController.currentPosition.value.inSeconds,
+      season: videoType == VideoType.tv || videoType == VideoType.anime ? selectSeason.value : null,
+      episode: videoType == VideoType.tv || videoType == VideoType.anime ? selectEpisode.value : null,
+    );
+
+    Storage.addViewedMedia(historyEntity);
 
     EventBusManager.instance.post(EventBusName.historyRefresh);
   }

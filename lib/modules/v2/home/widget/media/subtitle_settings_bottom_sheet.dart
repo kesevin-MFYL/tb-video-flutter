@@ -8,23 +8,23 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 /// 字幕设置内容视图(用于竖屏底部弹窗)
-class SubtitleSettingsView extends StatefulWidget {
+class SubtitleSettingsBottomSheet extends StatefulWidget {
   final MediaPlayerController controller;
   final VoidCallback onClose;
   final bool isOpen;
 
-  const SubtitleSettingsView({super.key, required this.controller, required this.onClose, this.isOpen = false});
+  const SubtitleSettingsBottomSheet({super.key, required this.controller, required this.onClose, this.isOpen = false});
 
   @override
-  State<SubtitleSettingsView> createState() => _SubtitleSettingsViewState();
+  State<SubtitleSettingsBottomSheet> createState() => _SubtitleSettingsBottomSheetState();
 }
 
-class _SubtitleSettingsViewState extends State<SubtitleSettingsView> {
+class _SubtitleSettingsBottomSheetState extends State<SubtitleSettingsBottomSheet> {
   final PageController _pageController = PageController(initialPage: 0, keepPage: false);
   final ScrollController _scrollController = ScrollController();
 
   @override
-  void didUpdateWidget(SubtitleSettingsView oldWidget) {
+  void didUpdateWidget(SubtitleSettingsBottomSheet oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.isOpen && !oldWidget.isOpen) {
       if (_pageController.hasClients && _pageController.page != 0) {
@@ -83,7 +83,7 @@ class _SubtitleSettingsViewState extends State<SubtitleSettingsView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          padding: EdgeInsets.only(left: 16.w, top: 22.w, right: 16.w, bottom: 16.w),
           child: Row(
             children: [
               CommonText.instance(
@@ -102,7 +102,6 @@ class _SubtitleSettingsViewState extends State<SubtitleSettingsView> {
             ],
           ),
         ),
-        SizedBox(height: 16.w),
         Obx(() {
           final openCaptions = widget.controller.openCaptions.value;
           return Padding(
@@ -171,7 +170,7 @@ class _SubtitleSettingsViewState extends State<SubtitleSettingsView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          padding: EdgeInsets.only(left: 16.w, top: 22.w, right: 16.w, bottom: 16.w),
           child: Row(
             children: [
               CommonButton(

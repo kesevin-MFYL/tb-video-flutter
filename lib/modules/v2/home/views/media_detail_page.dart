@@ -1,7 +1,12 @@
+import 'dart:async';
+
 import 'package:editvideo/config/color/colors.dart';
 import 'package:editvideo/generated/assets.dart';
+import 'package:editvideo/manager/admob/native_ad_manager.dart';
+import 'package:editvideo/manager/event_manager.dart';
 import 'package:editvideo/models/home_section_entity.dart';
 import 'package:editvideo/modules/v2/home/controllers/media_detail_controller.dart';
+import 'package:editvideo/modules/v2/home/widget/media/anime_episode_view.dart';
 import 'package:editvideo/modules/v2/home/widget/media/auto_scroll_episode_wrapper.dart';
 import 'package:editvideo/modules/v2/home/widget/episode_horizontal_cell.dart';
 import 'package:editvideo/modules/v2/home/widget/episode_vertical_cell.dart';
@@ -23,8 +28,10 @@ import 'package:editvideo/widget/page_base.dart';
 import 'package:editvideo/widget/page_status/multi_status_view.dart';
 import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
 /// 影片详情 单窗口播放视频
@@ -43,10 +50,24 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
   late int mediaId;
   late bool isMultiOpen;
 
+  late StreamSubscription<EventBusModel> _pauseVideoSubscription;
+  late StreamSubscription<EventBusModel> _playVideoSubscription;
+  late StreamSubscription<EventBusModel> _closeFullscreenNativeAdSubscription;
+  late StreamSubscription<EventBusModel> _closeVideoNativeAdSubscription;
+  late StreamSubscription<bool> _fullScreenStatusSubscription;
+  late StreamSubscription<Orientation> _orientationSubscription;
+
+  bool pageClosed = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
+    // 仅当前页面支持自动旋转，使用 microtask 确保在其他页面的 didPushNext 之后执行
+    Future.microtask(() {
+      SystemChrome.setPreferredOrientations([]);
+    });
 
     mediaId = Get.arguments['mediaId'];
     isMultiOpen = Get.arguments['isMultiOpen'] ?? false;
@@ -57,8 +78,8 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
       controller = Get.put(MediaDetailController(), tag: '$mediaId');
     }
 
-    fullScreenStatusListener();
     lifecycleListener();
+    fullScreenStatusListener();
     initPlayerStatusListener();
   }
 
@@ -72,23 +93,29 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
       tag: isMultiOpen ? '$mediaId' : null,
       builder: (controller) {
         return Obx(() {
-          final isFullscreen = controller.isFullscreen;
-          if (isFullscreen) {
-            enterFullScreen();
-          } else {
-            exitFullScreen();
+          if (controller.isShowingNativeAd && controller.nativeAdScenario != null) {
+            final nativeAd = NativeAdManager.instance.getNativeAd(controller.nativeAdScenario!);
+            if (nativeAd != null) {
+              return PopScope(
+                canPop: false,
+                child: Scaffold(
+                  backgroundColor: CommonColors.color060600,
+                  body: SizedBox(
+                    width: double.infinity,
+                    height: double.infinity,
+                    child: AdWidget(ad: nativeAd),
+                  ),
+                ),
+              );
+            }
           }
+
+          final isFullscreen = controller.isFullscreen;
           return PopScope(
-            canPop: !isFullscreen,
+            canPop: controller.canExit.value,
             onPopInvokedWithResult: (didPop, _) {
               if (!didPop) {
-                if (isFullscreen) {
-                  controller.mediaPlayerController.triggerFullScreen(status: false);
-                }
-                // 重置锁屏状态
-                if (controller.mediaPlayerController.controlsLock.value) {
-                  controller.mediaPlayerController.controlsLock.value = false;
-                }
+                controller.handleBack();
               }
             },
             child: Stack(
@@ -135,6 +162,9 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
                               // 电视剧剧集
                               _buildTvSeasons(),
 
+                              // 动漫集
+                              _buildAnimeEpisodes(),
+
                               // 其他信息
                               _buildOtherInfo(),
 
@@ -148,6 +178,7 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
                   ),
                 ),
 
+                // 详细信息弹窗
                 Positioned(
                   left: 0,
                   right: 0,
@@ -159,6 +190,7 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
                   ),
                 ),
 
+                // 电视剧选集弹窗
                 Positioned(
                   left: 0,
                   right: 0,
@@ -170,6 +202,19 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
                   ),
                 ),
 
+                // 动漫选集弹窗
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Visibility(
+                    visible: isFullscreen ? false : true,
+                    maintainState: true,
+                    child: _buildBottomAnimeEpisodes(),
+                  ),
+                ),
+
+                // 字幕设置弹窗
                 Positioned(
                   left: 0,
                   right: 0,
@@ -180,6 +225,38 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
                     child: _buildBottomSubtitleSettings(),
                   ),
                 ),
+
+                // Pause Ad / Play Middle Ad
+                Obx(() {
+                  final isFullscreen = controller.mediaPlayerController.isFullscreen;
+                  return Positioned(
+                    left: 0,
+                    right: 0,
+                    top: isFullscreen ? 0 : safeAreaEdgeInsets.top,
+                    bottom: isFullscreen ? 0 : null,
+                    child: Obx(() {
+                      if (controller.isShowingPauseAd.value || controller.isShowingPlayMiddleAd.value) {
+                        final scenario = controller.isShowingPauseAd.value ? 'pause' : 'play_middle';
+                        final nativeAd = NativeAdManager.instance.getNativeAd(scenario);
+                        if (nativeAd != null) {
+                          double adWidth = 300.0;
+                          double adHeight = 306.0;
+
+                          return Align(
+                            alignment: isFullscreen ? Alignment.center : Alignment.topCenter,
+                            child: Container(
+                              decoration: const BoxDecoration(color: CommonColors.color060600),
+                              width: adWidth,
+                              height: adHeight,
+                              child: AdWidget(ad: nativeAd),
+                            ),
+                          );
+                        }
+                      }
+                      return const SizedBox();
+                    }),
+                  );
+                }),
               ],
             ),
           );
@@ -193,70 +270,37 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
       fit: StackFit.expand,
       children: [
         Center(
-          child: Video(
-            key: ValueKey(controller.mediaId),
-            controller: controller.mediaPlayerController.videoController,
-            controls: NoVideoControls,
-            fill: CommonColors.color333333,
-            resumeUponEnteringForegroundMode: true,
-            subtitleViewConfiguration: SubtitleViewConfiguration(
-              style: TextStyle(
-                height: 1.5,
-                fontSize: 46.0,
-                letterSpacing: 0.0,
-                wordSpacing: 0.0,
-                color: CommonColors.white.withOpacity(0.9),
-                fontWeight: FontWeight.w500,
-                backgroundColor: Colors.transparent,
-              ),
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            ),
-          ),
+          child: Obx(() {
+            final isInitialized = controller.mediaPlayerController.isInitialized.value;
+            return isInitialized && controller.mediaPlayerController.videoController != null
+                ? Video(
+                    key: ValueKey(controller.mediaId),
+                    controller: controller.mediaPlayerController.videoController!,
+                    controls: NoVideoControls,
+                    resumeUponEnteringForegroundMode: true,
+                    // subtitleViewConfiguration: SubtitleViewConfiguration(
+                    //   style: TextStyle(
+                    //     height: 1.5,
+                    //     fontSize: 46.0,
+                    //     letterSpacing: 0.0,
+                    //     wordSpacing: 0.0,
+                    //     color: CommonColors.white.withOpacity(0.9),
+                    //     fontWeight: FontWeight.w500,
+                    //     backgroundColor: Colors.transparent,
+                    //   ),
+                    //   padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    // ),
+                  )
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      loadingIndicator(size: 30, strokeWidth: 2),
+                      SizedBox(height: 6),
+                      CommonText.instance('loading....', 12),
+                    ],
+                  );
+          }),
         ),
-
-        Obx(() {
-          return !controller.isFullscreen
-              ? Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: IgnorePointer(
-              child: Container(
-                height: 52,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.transparent, CommonColors.color060600.withOpacity(0.8)],
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                  ),
-                ),
-              ),
-            ),
-          )
-              : const SizedBox();
-        }),
-
-        Obx(() {
-          return !controller.isFullscreen
-              ? Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: IgnorePointer(
-              child: Container(
-                height: 54,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Colors.transparent, CommonColors.color060600.withOpacity(0.8)],
-                  ),
-                ),
-              ),
-            ),
-          )
-              : const SizedBox();
-        }),
 
         // Center(child: danmaku),
         Center(
@@ -266,6 +310,10 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
             onChooseEpisode: controller.showRightTvSeasonsDialog,
             onShowSubtitleSettings: controller.showSubtitleSettingsDialog,
             onNextPlay: controller.nextPlay,
+            onBackAction: () {
+              controller.handleBack();
+            },
+            onPauseAction: controller.showPauseAd,
             onReload: () {
               controller.openMediaData(isReload: true);
             },
@@ -386,6 +434,7 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
               controller.mediaDetailEntity!.description ?? '',
               14.sp,
               color: CommonColors.white.withOpacity(0.5),
+              strutStyle: const StrutStyle(forceStrutHeight: true, height: 1.4, leading: 0),
             ),
         ],
       ),
@@ -451,14 +500,22 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CommonButton(
-                    minSize: 54.w,
-                    borderRadius: BorderRadius.circular(22.r),
-                    color: CommonColors.color333333,
-                    child: ClipOval(
-                      child: CommonImageView.normal(imageUrl: entity.cover, width: 54.w, height: 54.w),
+                  ClipOval(
+                    child: CommonButton(
+                      minSize: 54.w,
+                      borderRadius: BorderRadius.circular(27.r),
+                      color: CommonColors.color333333,
+                      child: CommonImageView.normal(
+                        imageUrl: entity.cover,
+                        width: 54.w,
+                        height: 54.w,
+                        errorWidget: (context, url, error) {
+                          return const SizedBox();
+                        },
+                      ),
                     ),
                   ),
+
                   SizedBox(height: 8.h),
                   CommonText.instance(
                     entity.name ?? '--',
@@ -483,6 +540,52 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
     return Padding(
       padding: EdgeInsetsGeometry.symmetric(vertical: 16.w),
       child: TvSeasonView(
+        controller: controller,
+        contentBuilder: (context, episodeList) {
+          return AutoScrollEpisodeWrapper(
+            controller: controller,
+            episodeList: episodeList,
+            calculateOffset: (index, viewportDimension) {
+              final itemWidth = 48.w;
+              final spacing = 8.w;
+              final padding = 16.w;
+              final itemCenter = padding + index * (itemWidth + spacing) + itemWidth / 2;
+              return itemCenter - viewportDimension / 2;
+            },
+            builder: (context, scrollController) {
+              return ListView.separated(
+                controller: scrollController,
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                shrinkWrap: true,
+                separatorBuilder: (context, index) => SizedBox(width: 8.w),
+                itemCount: episodeList.length,
+                itemBuilder: (context, index) {
+                  final episodeItem = episodeList[index];
+                  return Obx(() {
+                    final selectEpisode = controller.selectEpisode.value;
+                    return EpisodeHorizontalCell(
+                      episodeEntity: episodeItem,
+                      selected: selectEpisode == episodeItem,
+                      action: controller.chooseEpisode,
+                    );
+                  });
+                },
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  /// 动漫选集信息
+  Widget _buildAnimeEpisodes() {
+    if (controller.videoType != VideoType.anime) return const SizedBox();
+
+    return Padding(
+      padding: EdgeInsetsGeometry.symmetric(vertical: 16.w),
+      child: AnimeEpisodeView(
         controller: controller,
         contentBuilder: (context, episodeList) {
           return AutoScrollEpisodeWrapper(
@@ -591,6 +694,75 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
     });
   }
 
+  /// 动漫选集底部弹窗
+  Widget _buildBottomAnimeEpisodes() {
+    if (controller.videoType != VideoType.anime) return const SizedBox();
+
+    return Obx(() {
+      final showBottomEposide = controller.showBottomEposide.value;
+      return IgnorePointer(
+        ignoring: !showBottomEposide,
+        child: ClipRect(
+          child: TweenAnimationBuilder<Offset>(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOutCubic,
+            tween: showBottomEposide
+                ? Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+                : Tween<Offset>(begin: Offset.zero, end: const Offset(0, 1)),
+            builder: (context, offset, child) {
+              return FractionalTranslation(translation: offset, child: child);
+            },
+            child: Container(
+              padding: EdgeInsets.only(top: 22.w, bottom: safeAreaBottomDistance(16.w)),
+              height: controller.bottomHeight,
+              decoration: BoxDecoration(
+                color: CommonColors.color1B1B18,
+                borderRadius: BorderRadius.only(topLeft: Radius.circular(32.h), topRight: Radius.circular(32.h)),
+              ),
+              child: AnimeEpisodeView(
+                controller: controller,
+                isDialog: true,
+                contentBuilder: (context, episodeList) {
+                  return AutoScrollEpisodeWrapper(
+                    controller: controller,
+                    episodeList: episodeList,
+                    calculateOffset: (index, viewportDimension) {
+                      final itemHeight = 48.w;
+                      final spacing = 16.w;
+                      final padding = 16.w;
+                      final itemCenter = padding + index * (itemHeight + spacing) + itemHeight / 2;
+                      return itemCenter - viewportDimension / 2;
+                    },
+                    builder: (context, scrollController) {
+                      return ListView.separated(
+                        controller: scrollController,
+                        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.w),
+                        shrinkWrap: true,
+                        separatorBuilder: (context, index) => SizedBox(height: 16.w),
+                        itemCount: episodeList.length,
+                        itemBuilder: (context, index) {
+                          final episodeItem = episodeList[index];
+                          return Obx(() {
+                            final selectEpisode = controller.selectEpisode.value;
+                            return EpisodeVerticalCell(
+                              episodeEntity: episodeItem,
+                              selected: selectEpisode == episodeItem,
+                              action: controller.chooseEpisode,
+                            );
+                          });
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+    });
+  }
+
   /// 字幕底部弹窗
   Widget _buildBottomSubtitleSettings() {
     return Obx(() {
@@ -608,13 +780,13 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
               return FractionalTranslation(translation: offset, child: child);
             },
             child: Container(
-              padding: EdgeInsets.only(top: 22.w, bottom: safeAreaBottomDistance(16.w)),
+              padding: EdgeInsets.only(bottom: safeAreaBottomDistance(16.w)),
               height: controller.bottomHeight,
               decoration: BoxDecoration(
                 color: CommonColors.color1B1B18,
                 borderRadius: BorderRadius.only(topLeft: Radius.circular(32.h), topRight: Radius.circular(32.h)),
               ),
-              child: SubtitleSettingsView(
+              child: SubtitleSettingsBottomSheet(
                 controller: controller.mediaPlayerController,
                 onClose: controller.bottomSubtitleSettingsChanged,
                 isOpen: showBottomSubtitleSettings,
@@ -708,9 +880,26 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
   }
 
   void fullScreenStatusListener() {
-    controller.mediaPlayerController.isFullScreen.listen((bool isFullScreen) {
-      if (!isFullScreen) {
+    _fullScreenStatusSubscription = controller.mediaPlayerController.isFullScreen.listen((bool isFullScreen) {
+      if (isFullScreen) {
+        enterFullScreen();
+      } else {
+        exitFullScreen();
         controller.closeBottomSheet();
+      }
+    });
+
+    _orientationSubscription = controller.mediaPlayerController.currentOrientation.listen((Orientation orientation) {
+      if (orientation == Orientation.landscape) {
+        enterFullScreen();
+      } else {
+        exitFullScreen();
+        controller.closeBottomSheet();
+        if (controller.isSideSeasonsDialogOpen ||
+            controller.isSideAnimeDialogOpen ||
+            controller.isSubtitleSettingsDialogOpen) {
+          Get.back();
+        }
       }
     });
   }
@@ -722,7 +911,9 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
       if (controller.isFullscreen) {
         // 非锁定的情况下，退出全屏
         if (!controller.mediaPlayerController.controlsLock.value) {
-          if (controller.isSideSeasonsDialogOpen || controller.isSubtitleSettingsDialogOpen) {
+          if (controller.isSideSeasonsDialogOpen ||
+              controller.isSideAnimeDialogOpen ||
+              controller.isSubtitleSettingsDialogOpen) {
             Get.back();
           }
           controller.mediaPlayerController.triggerFullScreen(status: false);
@@ -738,8 +929,14 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
   // 离开当前页面时
   void didPushNext() async {
     /// 开启
+    pageClosed = true;
     controller.mediaPlayerController.removeStatusLister(playerListener);
     controller.mediaPlayerController.pause();
+    _pauseVideoSubscription.cancel();
+    _playVideoSubscription.cancel();
+    _fullScreenStatusSubscription.cancel();
+    _orientationSubscription.cancel();
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
     // controller.mediaPlayerController.clearSubtitleContent();
     super.didPushNext();
   }
@@ -752,6 +949,10 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
     //   isShowing.value = true;
     // }
     await Future.delayed(const Duration(milliseconds: 300));
+    pageClosed = false;
+    lifecycleListener();
+    fullScreenStatusListener();
+    SystemChrome.setPreferredOrientations([]);
     controller.mediaPlayerController.addStatusLister(playerListener);
     controller.mediaPlayerController.play();
     super.didPopNext();
@@ -765,29 +966,38 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
 
   @override
   void didChangeMetrics() {
+    if (pageClosed) return;
     final orientation = MediaQueryData.fromView(View.of(context)).orientation;
     controller.mediaPlayerController.currentOrientation.value = orientation;
-    if (orientation == Orientation.portrait) {
-      if (controller.isSideSeasonsDialogOpen || controller.isSubtitleSettingsDialogOpen) {
-        Get.back();
-      }
-      controller.closeBottomSheet();
-    }
   }
 
   // 生命周期监听
   void lifecycleListener() {
-    // _lifecycleListener = AppLifecycleListener(
-    //   // onResume: () => _handleTransition('resume'),
-    //   // 后台
-    //   // onInactive: () => _handleTransition('inactive'),
-    //   // 在Android和iOS端不生效
-    //   // onHide: () => _handleTransition('hide'),
-    //   onShow: () => _handleTransition('show'),
-    //   onPause: () => _handleTransition('pause'),
-    //   onRestart: () => _handleTransition('restart'),
-    //   onDetach: () => _handleTransition('detach'),
-    // );
+    _pauseVideoSubscription = EventBusManager.instance.addObserver(EventBusName.pauseVideo, (value) async {
+      Future.delayed(Duration(milliseconds: 350)).then((_) {
+        controller.mediaPlayerController.pause();
+      });
+    });
+    _playVideoSubscription = EventBusManager.instance.addObserver(EventBusName.playVideo, (value) async {
+      if (controller.mediaPlayerController.isInitialized.value &&
+          !controller.mediaPlayerController.mediaPlayerStatus.playing) {
+        controller.mediaPlayerController.play();
+      }
+    });
+    _closeFullscreenNativeAdSubscription = EventBusManager.instance.addObserver(EventBusName.closeFullscreenNativeAd, (
+      value,
+    ) async {
+      controller.closeFullscreenNativeAd();
+    });
+    _closeVideoNativeAdSubscription = EventBusManager.instance.addObserver(EventBusName.closeVideoNativeAd, (
+      value,
+    ) async {
+      if (controller.isShowingPlayMiddleAd.value) {
+        controller.mediaPlayerController.play();
+      }
+      controller.closePauseAd();
+      controller.closePlayMiddleAd();
+    });
   }
 
   @override
@@ -799,6 +1009,15 @@ class _MediaDetailPageState extends State<MediaDetailPage> with RouteAware, Widg
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _pauseVideoSubscription.cancel();
+    _playVideoSubscription.cancel();
+    _closeFullscreenNativeAdSubscription.cancel();
+    _closeVideoNativeAdSubscription.cancel();
+    _fullScreenStatusSubscription.cancel();
+    _orientationSubscription.cancel();
+    MediaDetailPage.routeObserver.unsubscribe(this);
+    // 恢复竖屏
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
     super.dispose();
   }
 }
